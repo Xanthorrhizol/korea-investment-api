@@ -1,4 +1,5 @@
 mod auth;
+mod stock;
 mod types;
 
 /// 사용할 계좌

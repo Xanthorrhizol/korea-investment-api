@@ -19,3 +19,22 @@ impl HashKeyResponse {
         self.HASH.clone()
     }
 }
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TokenCreationResponse {
+    access_token: String,
+    token_type: String,
+    expires_in: u32,
+}
+
+impl TokenCreationResponse {
+    pub fn get_access_token(&self) -> String {
+        self.access_token.clone()
+    }
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct TokenRevokeResponse {
+    pub code: u32,
+    pub message: String,
+}

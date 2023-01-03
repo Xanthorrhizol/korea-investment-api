@@ -16,8 +16,8 @@ pub struct Auth {
 
 impl Auth {
     /// OAuth API 사용을 위한 구조체 생성
-    /// hash, token은 None으로 시작
-    /// create_hash, create_token 함수를 호출해야 hash, token 값이 저장됨
+    /// hash, token, approval_key는 None으로 시작
+    /// create_hash, create_token, create_approval_key 함수를 호출해야 hash, token 값이 저장됨
     pub fn new(
         client: &reqwest::Client,
         endpoint_url: &str,

@@ -9,6 +9,16 @@ pub struct HashKeyRequestHeader {
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ApprovalKeyCreationResponse {
+    approval_key: String,
+}
+impl ApprovalKeyCreationResponse {
+    pub fn get_approval_key(&self) -> String {
+        self.approval_key.clone()
+    }
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct HashKeyResponse {
     JsonBody: String,
     HASH: String,

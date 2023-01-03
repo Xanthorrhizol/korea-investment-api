@@ -1,4 +1,5 @@
 use crate::types;
+use crate::Error;
 use reqwest::header::{HeaderMap, HeaderValue};
 
 /// Auth
@@ -10,6 +11,7 @@ pub struct Auth {
     appsecret: String,
     hash: Option<String>,
     token: Option<String>,
+    approval_key: Option<String>,
 }
 
 impl Auth {
@@ -29,23 +31,50 @@ impl Auth {
             appsecret,
             hash: None,
             token: None,
+            approval_key: None,
         }
     }
 
     /// 구조체에 저장되어 있는 hash를 반환
-    pub fn get_hash(&self) -> String {
-        self.hash.unwrap().clone()
+    pub fn get_hash(&self) -> Option<String> {
+        self.hash.clone()
     }
 
     /// 구조체에 저장되어 있는 token을 반환
-    pub fn get_token(&self) -> String {
-        self.token.unwrap().clone()
+    pub fn get_token(&self) -> Option<String> {
+        self.token.clone()
+    }
+
+    /// 구조체에 저장되어 있는 approval_key 반환
+    pub fn get_approval_key(&self) -> Option<String> {
+        self.approval_key.clone()
+    }
+
+    /// 실시간 (웹소켓) 접속키 발급[실시간-000]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice/oauth2#L_5c87ba63-740a-4166-93ac-803510bb9c02)
+    /// 웹소켓 접속키를 발급받아서 반환함과 동시에 구조체의 approval_key 업데이트
+    pub async fn create_approval_key(&mut self) -> Result<String, Error> {
+        let approval_key = self
+            .client
+            .post(format!("{}/oauth2/Approval", self.endpoint_url))
+            .header("Content-Type", "application/json; utf8")
+            .body(format!(
+                "{{\"grant_type\": \"client_credentials\", \"appkey\": \"{}\", \"appsecret\":\"{}\"}}",
+                self.appkey, self.appsecret
+            ))
+            .send()
+            .await?
+            .json::<types::ApprovalKeyCreationResponse>()
+            .await?
+            .get_approval_key();
+        self.approval_key = Some(approval_key.clone());
+        Ok(approval_key)
     }
 
     /// Hashkey
     /// [Docs](https://apiportal.koreainvestment.com/apiservice/oauth2#L_214b9e22-8f2e-4fba-9688-587279f1061a)
     /// hash값을 얻어와서 반환함과 동시에 구조체의 hash를 업데이트
-    pub async fn create_hash(&mut self) -> String {
+    pub async fn create_hash(&mut self) -> Result<String, Error> {
         let mut headers = HeaderMap::new();
         headers.insert(
             "Content-Type",
@@ -59,20 +88,18 @@ impl Auth {
             .headers(headers)
             .body("{}")
             .send()
-            .await
-            .unwrap()
+            .await?
             .json::<types::HashKeyResponse>()
-            .await
-            .unwrap()
+            .await?
             .get_hash();
         self.hash = Some(hash.clone());
-        hash
+        Ok(hash)
     }
 
     /// 접근토큰발급(P)[인증-001]
     /// [Docs](https://apiportal.koreainvestment.com/apiservice/oauth2#L_fa778c98-f68d-451e-8fff-b1c6bfe5cd30)
     /// token값을 얻어와서 반환함과 동시에 구조체의 token을 업데이트
-    pub async fn create_token(&mut self) -> String {
+    pub async fn create_token(&mut self) -> Result<String, Error> {
         let token = self
             .client
             .post(format!("{}/uapi/tokenP", self.endpoint_url))
@@ -82,14 +109,12 @@ impl Auth {
                 self.appkey, self.appsecret
             ))
             .send()
-            .await
-            .unwrap()
+            .await?
             .json::<types::TokenCreationResponse>()
-            .await
-            .unwrap()
+            .await?
             .get_access_token();
         self.token = Some(token.clone());
-        token
+        Ok(token)
     }
 
     /// 접근토큰폐기(P)[인증-002]
@@ -99,8 +124,9 @@ impl Auth {
     ///     code: u32,
     ///     message: String,
     /// }
-    pub async fn revoke_token(&self) -> types::TokenRevokeResponse {
-        self.client
+    pub async fn revoke_token(&self) -> Result<types::TokenRevokeResponse, Error> {
+        Ok(self
+            .client
             .post(format!("{}/uapi/revokeP", &self.endpoint_url))
             .header("Content-Type", "application/json")
             .body(format!(
@@ -110,10 +136,8 @@ impl Auth {
                 self.token.clone().unwrap()
             ))
             .send()
-            .await
-            .unwrap()
+            .await?
             .json::<types::TokenRevokeResponse>()
-            .await
-            .unwrap()
+            .await?)
     }
 }

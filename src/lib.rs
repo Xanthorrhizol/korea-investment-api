@@ -32,3 +32,12 @@ impl KoreaInvestmentApi {
         }
     }
 }
+
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    // from lib
+    #[error("Web socket error")]
+    WebSocket(#[from] websocket::WebSocketError),
+    #[error("Reqwest error")]
+    ReqwestError(#[from] reqwest::Error),
+}

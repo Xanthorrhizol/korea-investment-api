@@ -14,22 +14,31 @@ pub struct KoreaInvestmentApi {
     client: reqwest::Client,
     endpoint_url: String,
     auth: auth::Auth,
+    stock: stock::Korea,
 }
 
 impl KoreaInvestmentApi {
-    pub fn new(acc: Account, appkey: String, appsecret: String) -> Self {
+    pub async fn new(acc: Account, appkey: String, appsecret: String) -> Result<Self, Error> {
         let endpoint_url = match acc {
             Account::Real => "https://openapi.koreainvestment.com:9443",
             Account::Virtual => "https://openapivts.koreainvestment.com:29443",
         }
         .to_string();
         let client = reqwest::Client::new();
-        let auth = auth::Auth::new(&client, &endpoint_url, appkey, appsecret);
-        Self {
+        let mut auth = auth::Auth::new(&client, &endpoint_url, appkey, appsecret);
+        auth.create_approval_key().await?;
+        auth.create_hash().await?;
+        let stock = stock::Korea::new(
+            &endpoint_url,
+            auth.get_approval_key().unwrap(),
+            auth.get_hash().unwrap(),
+        )?; // unwrap is safe here
+        Ok(Self {
             client,
             endpoint_url,
             auth,
-        }
+            stock,
+        })
     }
 }
 

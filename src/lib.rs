@@ -2,12 +2,20 @@ mod auth;
 mod stock;
 mod types;
 
-/// 사용할 계좌
+/// 투자환경
 /// 실전투자: Real
 /// 모의투자: Virtual
-pub enum Account {
+pub enum Environment {
     Real,
     Virtual,
+}
+
+/// 계좌
+/// cano: CANO(계좌번호 체계(8-2)의 앞 8자리)
+/// acnt_prdt_cd: ACNT_PRDT_CD(계좌번호 체계(8-2)의 뒤 2자리)
+pub struct Account {
+    pub cano: String,
+    pub acnt_prdt_cd: String,
 }
 
 pub struct KoreaInvestmentApi {
@@ -18,10 +26,15 @@ pub struct KoreaInvestmentApi {
 }
 
 impl KoreaInvestmentApi {
-    pub async fn new(acc: Account, appkey: String, appsecret: String) -> Result<Self, Error> {
+    pub async fn new(
+        acc: Environment,
+        appkey: String,
+        appsecret: String,
+        account: Account,
+    ) -> Result<Self, Error> {
         let endpoint_url = match acc {
-            Account::Real => "https://openapi.koreainvestment.com:9443",
-            Account::Virtual => "https://openapivts.koreainvestment.com:29443",
+            Environment::Real => "https://openapi.koreainvestment.com:9443",
+            Environment::Virtual => "https://openapivts.koreainvestment.com:29443",
         }
         .to_string();
         let client = reqwest::Client::new();
@@ -29,9 +42,11 @@ impl KoreaInvestmentApi {
         auth.create_approval_key().await?;
         auth.create_hash().await?;
         let stock = stock::Korea::new(
+            &client,
             &endpoint_url,
             auth.get_approval_key().unwrap(),
             auth.get_hash().unwrap(),
+            account,
         )?; // unwrap is safe here
         Ok(Self {
             client,

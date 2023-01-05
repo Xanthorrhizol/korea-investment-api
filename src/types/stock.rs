@@ -1,21 +1,32 @@
 #![allow(non_snake_case)]
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum OrderDivision {
     Limit,
     Market,
     // TODO: add other types
 }
 impl Into<String> for OrderDivision {
-    fn into(&self) -> String {
-        match OrderDivision {
+    fn into(self) -> String {
+        match self {
             OrderDivision::Limit => "00".to_string(),
             OrderDivision::Market => "01".to_string(),
             // TODO: add other types
         }
     }
 }
+impl From<String> for OrderDivision {
+    fn from(s: String) -> Self {
+        match s.as_str() {
+            "00" => OrderDivision::Limit,
+            "01" => OrderDivision::Market,
+            _ => todo!(),
+        }
+    }
+}
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Quantity {
     inner: u32,
 }
@@ -25,11 +36,19 @@ impl Quantity {
     }
 }
 impl Into<String> for Quantity {
-    fn into(&self) -> String {
+    fn into(self) -> String {
         format!("{}", self.inner)
     }
 }
+impl From<String> for Quantity {
+    fn from(s: String) -> Self {
+        Self {
+            inner: s.trim().parse().unwrap(),
+        }
+    }
+}
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Price {
     inner: u32,
 }
@@ -39,19 +58,28 @@ impl Price {
     }
 }
 impl Into<String> for Price {
-    fn into(&self) -> String {
+    fn into(self) -> String {
         format!("{}", self.inner)
     }
 }
+impl From<String> for Price {
+    fn from(s: String) -> Self {
+        Self {
+            inner: s.trim().parse().unwrap(),
+        }
+    }
+}
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum TrId {
     RealStockCashBidOrder,
     RealStockCashAskOrder,
     VirtualStockCashBidOrder,
     VirtualStockCashAskOrder,
+    // TODO: other
 }
 impl Into<String> for TrId {
-    fn into(&self) -> String {
+    fn into(self) -> String {
         match self {
             TrId::RealStockCashBidOrder => "TTTC0802U",
             TrId::RealStockCashAskOrder => "TTTC0801U",
@@ -62,12 +90,13 @@ impl Into<String> for TrId {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum CustomerType {
     Business,
     Personal,
 }
 impl Into<String> for CustomerType {
-    fn into(&self) -> String {
+    fn into(self) -> String {
         match self {
             CustomerType::Business => "B",
             CustomerType::Personal => "P",
@@ -76,7 +105,7 @@ impl Into<String> for CustomerType {
     }
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RequestHeader {
     authorization: String,
     appkey: String,
@@ -98,7 +127,7 @@ impl RequestHeader {
     }
 }
 
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RequestBody {
     CANO: String,            // 종합계좌번호(계좌번호 체계(8-2)의 앞 8자리)
     ACNT_PRDT_CD: String,    // 계좌상품코드(계좌번호 체계(8-2)의 뒤 2자리)
@@ -126,9 +155,9 @@ impl RequestBody {
             ORD_UNPR,
         }
     }
-    pub fn get_json_string() -> String {
+    pub fn get_json_string(self) -> String {
         format!(
-            "{{\"CANO\":\"{}\",\"ACNT_PRDT_CD\":\"{}\",\"PDNO\":\"{}\",\"ORD_DVSN\":\"{}\",\"ORD_QTY\":\"{}\", \"ORD_UNPR\":\"{}\"}}", CANO, ACNT_PRDT_CD, PDNO, ORD_DVSN.into(),ORD_QTY.into(),ORD_UNPR.into())
+            "{{\"CANO\":\"{}\",\"ACNT_PRDT_CD\":\"{}\",\"PDNO\":\"{}\",\"ORD_DVSN\":\"{}\",\"ORD_QTY\":\"{}\", \"ORD_UNPR\":\"{}\"}}", self.CANO, self.ACNT_PRDT_CD, self.PDNO, Into::<String>::into(self.ORD_DVSN), Into::<String>::into(self.ORD_QTY), Into::<String>::into(self.ORD_UNPR))
     }
 }
 

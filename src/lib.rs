@@ -23,6 +23,7 @@ pub struct KoreaInvestmentApi {
     endpoint_url: String,
     auth: auth::Auth,
     stock: stock::Korea,
+    usehash: bool,
 }
 
 impl KoreaInvestmentApi {
@@ -31,6 +32,7 @@ impl KoreaInvestmentApi {
         appkey: String,
         appsecret: String,
         account: Account,
+        usehash: bool,
     ) -> Result<Self, Error> {
         let endpoint_url = match acc {
             Environment::Real => "https://openapi.koreainvestment.com:9443",
@@ -41,12 +43,13 @@ impl KoreaInvestmentApi {
         let mut auth = auth::Auth::new(&client, &endpoint_url, appkey, appsecret);
         auth.create_token().await?;
         auth.create_approval_key().await?;
-        let stock = stock::Korea::new(&client, &endpoint_url, acc, &auth, account)?; // unwrap is safe here
+        let stock = stock::Korea::new(&client, &endpoint_url, acc, auth.clone(), account, usehash)?; // unwrap is safe here
         Ok(Self {
             client,
             endpoint_url,
             auth,
             stock,
+            usehash,
         })
     }
 }

@@ -7,8 +7,9 @@ pub struct Korea {
     wsclient: websocket::client::sync::Client<TlsStream<std::net::TcpStream>>,
     endpoint_url: String,
     environment: Environment,
-    auth: &'static auth::Auth,
+    auth: auth::Auth,
     account: Account,
+    usehash: bool,
 }
 
 impl Korea {
@@ -19,8 +20,9 @@ impl Korea {
         client: &reqwest::Client,
         endpoint_url: &str,
         environment: Environment,
-        auth: &'static auth::Auth,
+        auth: auth::Auth,
         account: Account,
+        usehash: bool,
     ) -> Result<Self, Error> {
         let wsclient = websocket::ClientBuilder::new(endpoint_url)?
             .connect_secure(Some(TlsConnector::new()?))?;
@@ -31,12 +33,88 @@ impl Korea {
             environment,
             auth,
             account,
+            usehash,
         })
     }
 
     /// 주식주문(현금)[v1_국내주식-001]
     /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_aade4c72-5fb7-418a-9ff2-254b4d5f0ceb)
     pub async fn order_cash(
+        &self,
+        order_division: stock::OrderDivision,
+        order_direction: stock::Direction,
+        pdno: String,
+        qty: stock::Quantity,
+        price: stock::Price,
+    ) -> Result<stock::ResponseBody, Error> {
+        match self.usehash {
+            true => {
+                self.order_cash_w_hash(order_division, order_direction, pdno, qty, price)
+                    .await
+            }
+            false => {
+                self.order_cash_wo_hash(order_division, order_direction, pdno, qty, price)
+                    .await
+            }
+        }
+    }
+    pub async fn order_cash_wo_hash(
+        &self,
+        order_division: stock::OrderDivision,
+        order_direction: stock::Direction,
+        pdno: String,
+        qty: stock::Quantity,
+        price: stock::Price,
+    ) -> Result<stock::ResponseBody, Error> {
+        let request = stock::RequestBody::new(
+            self.account.cano.clone(),
+            self.account.acnt_prdt_cd.clone(),
+            pdno,
+            order_division,
+            qty,
+            price,
+        )
+        .get_json_string();
+        let tr_id = match self.environment {
+            Environment::Real => match order_direction {
+                stock::Direction::Bid => Into::<String>::into(stock::TrId::RealStockCashBidOrder),
+                stock::Direction::Ask => Into::<String>::into(stock::TrId::RealStockCashAskOrder),
+            },
+            Environment::Virtual => match order_direction {
+                stock::Direction::Bid => {
+                    Into::<String>::into(stock::TrId::VirtualStockCashBidOrder)
+                }
+                stock::Direction::Ask => {
+                    Into::<String>::into(stock::TrId::VirtualStockCashAskOrder)
+                }
+            },
+        };
+        Ok(self
+            .client
+            .post(format!(
+                "{}/uapi/domestic-stock/v1/trading/order-cash",
+                self.endpoint_url
+            ))
+            .header("Content-Type", "application/json")
+            .header(
+                "Authorization",
+                match self.auth.get_token() {
+                    Some(token) => token,
+                    None => {
+                        return Err(Error::AuthInitFailed("token"));
+                    }
+                },
+            )
+            .header("appkey", self.auth.get_appkey())
+            .header("appsecret", self.auth.get_appsecret())
+            .header("tr_id", tr_id)
+            .body(request)
+            .send()
+            .await?
+            .json::<stock::ResponseBody>()
+            .await?)
+    }
+    pub async fn order_cash_w_hash(
         &self,
         order_division: stock::OrderDivision,
         order_direction: stock::Direction,

@@ -4,6 +4,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 
 /// Auth
 /// [OAuth 인증 관련](https://apiportal.koreainvestment.com/apiservice/oauth2#L_214b9e22-8f2e-4fba-9688-587279f1061a)
+#[derive(Clone)]
 pub struct Auth {
     client: reqwest::Client,
     endpoint_url: String,

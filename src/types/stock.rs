@@ -27,6 +27,12 @@ impl From<String> for OrderDivision {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum Direction {
+    Bid, // buy
+    Ask, // sell
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Quantity {
     inner: u32,
 }

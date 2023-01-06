@@ -9,7 +9,6 @@ pub struct Auth {
     endpoint_url: String,
     appkey: String,
     appsecret: String,
-    hash: Option<String>,
     token: Option<String>,
     approval_key: Option<String>,
 }
@@ -29,15 +28,9 @@ impl Auth {
             endpoint_url: endpoint_url.to_string(),
             appkey,
             appsecret,
-            hash: None,
             token: None,
             approval_key: None,
         }
-    }
-
-    /// 구조체에 저장되어 있는 hash를 반환
-    pub fn get_hash(&self) -> Option<String> {
-        self.hash.clone()
     }
 
     /// 구조체에 저장되어 있는 token을 반환
@@ -48,6 +41,16 @@ impl Auth {
     /// 구조체에 저장되어 있는 approval_key 반환
     pub fn get_approval_key(&self) -> Option<String> {
         self.approval_key.clone()
+    }
+
+    /// 구조체에 저장되어 있는 appkey 반환
+    pub fn get_appkey(&self) -> String {
+        self.appkey.clone()
+    }
+
+    /// 구조체에 저장되어 있는 appsecret 반환
+    pub fn get_appsecret(&self) -> String {
+        self.appsecret.clone()
     }
 
     /// 실시간 (웹소켓) 접속키 발급[실시간-000]
@@ -73,8 +76,8 @@ impl Auth {
 
     /// Hashkey
     /// [Docs](https://apiportal.koreainvestment.com/apiservice/oauth2#L_214b9e22-8f2e-4fba-9688-587279f1061a)
-    /// hash값을 얻어와서 반환함과 동시에 구조체의 hash를 업데이트
-    pub async fn create_hash(&mut self) -> Result<String, Error> {
+    /// hash값을 얻어와서 반환
+    pub async fn get_hash(&self, json: String) -> Result<String, Error> {
         let mut headers = HeaderMap::new();
         headers.insert(
             "Content-Type",
@@ -86,13 +89,12 @@ impl Auth {
             .client
             .post(format!("{}/uapi/hashkey", self.endpoint_url))
             .headers(headers)
-            .body("{}")
+            .body(json)
             .send()
             .await?
             .json::<auth::HashKeyResponse>()
             .await?
             .get_hash();
-        self.hash = Some(hash.clone());
         Ok(hash)
     }
 

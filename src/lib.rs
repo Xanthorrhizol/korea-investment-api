@@ -39,15 +39,9 @@ impl KoreaInvestmentApi {
         .to_string();
         let client = reqwest::Client::new();
         let mut auth = auth::Auth::new(&client, &endpoint_url, appkey, appsecret);
+        auth.create_token().await?;
         auth.create_approval_key().await?;
-        auth.create_hash().await?;
-        let stock = stock::Korea::new(
-            &client,
-            &endpoint_url,
-            auth.get_approval_key().unwrap(),
-            auth.get_hash().unwrap(),
-            account,
-        )?; // unwrap is safe here
+        let stock = stock::Korea::new(&client, &endpoint_url, acc, &auth, account)?; // unwrap is safe here
         Ok(Self {
             client,
             endpoint_url,
@@ -68,4 +62,8 @@ pub enum Error {
     WebSocketNativeTlsError(#[from] websocket::native_tls::Error),
     #[error("Reqwest error")]
     ReqwestError(#[from] reqwest::Error),
+
+    // custom
+    #[error("Auth init failed - None value in {0}")]
+    AuthInitFailed(&'static str),
 }

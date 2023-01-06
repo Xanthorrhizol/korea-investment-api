@@ -1,13 +1,13 @@
 use crate::types::stock;
-use crate::{Account, Error};
+use crate::{auth, Account, Environment, Error};
 use websocket::native_tls::{TlsConnector, TlsStream};
 
 pub struct Korea {
     client: reqwest::Client,
     wsclient: websocket::client::sync::Client<TlsStream<std::net::TcpStream>>,
     endpoint_url: String,
-    approval_key: String,
-    hash: String,
+    environment: Environment,
+    auth: &'static auth::Auth,
     account: Account,
 }
 
@@ -18,8 +18,8 @@ impl Korea {
     pub fn new(
         client: &reqwest::Client,
         endpoint_url: &str,
-        approval_key: String,
-        hash: String,
+        environment: Environment,
+        auth: &'static auth::Auth,
         account: Account,
     ) -> Result<Self, Error> {
         let wsclient = websocket::ClientBuilder::new(endpoint_url)?
@@ -28,8 +28,8 @@ impl Korea {
             client: client.clone(),
             wsclient,
             endpoint_url: endpoint_url.to_string(),
-            approval_key,
-            hash,
+            environment,
+            auth,
             account,
         })
     }
@@ -39,6 +39,7 @@ impl Korea {
     pub async fn order_cash(
         &self,
         order_division: stock::OrderDivision,
+        order_direction: stock::Direction,
         pdno: String,
         qty: stock::Quantity,
         price: stock::Price,
@@ -50,7 +51,23 @@ impl Korea {
             order_division,
             qty,
             price,
-        );
+        )
+        .get_json_string();
+        let tr_id = match self.environment {
+            Environment::Real => match order_direction {
+                stock::Direction::Bid => Into::<String>::into(stock::TrId::RealStockCashBidOrder),
+                stock::Direction::Ask => Into::<String>::into(stock::TrId::RealStockCashAskOrder),
+            },
+            Environment::Virtual => match order_direction {
+                stock::Direction::Bid => {
+                    Into::<String>::into(stock::TrId::VirtualStockCashBidOrder)
+                }
+                stock::Direction::Ask => {
+                    Into::<String>::into(stock::TrId::VirtualStockCashAskOrder)
+                }
+            },
+        };
+        let hash = self.auth.get_hash(request.clone()).await?;
         Ok(self
             .client
             .post(format!(
@@ -58,7 +75,20 @@ impl Korea {
                 self.endpoint_url
             ))
             .header("Content-Type", "application/json")
-            .body(request.get_json_string())
+            .header(
+                "Authorization",
+                match self.auth.get_token() {
+                    Some(token) => token,
+                    None => {
+                        return Err(Error::AuthInitFailed("token"));
+                    }
+                },
+            )
+            .header("appkey", self.auth.get_appkey())
+            .header("appsecret", self.auth.get_appsecret())
+            .header("tr_id", tr_id)
+            .header("hashkey", hash)
+            .body(request)
             .send()
             .await?
             .json::<stock::ResponseBody>()

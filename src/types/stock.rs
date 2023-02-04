@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -165,19 +164,4 @@ impl RequestBody {
         format!(
             "{{\"CANO\":\"{}\",\"ACNT_PRDT_CD\":\"{}\",\"PDNO\":\"{}\",\"ORD_DVSN\":\"{}\",\"ORD_QTY\":\"{}\", \"ORD_UNPR\":\"{}\"}}", self.CANO, self.ACNT_PRDT_CD, self.PDNO, Into::<String>::into(self.ORD_DVSN), Into::<String>::into(self.ORD_QTY), Into::<String>::into(self.ORD_UNPR))
     }
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ResponseBody {
-    tr_cd: String,  // 0: 성공, 0 이외의 값: 실패
-    msg_cd: String, // 응답코드
-    msg: String,    // 응답메시지
-    output: Output,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Output {
-    KRX_FWDG_ORD_ORGNO: String, // 주문시 한국투자증권 시스템에서 지정된 영업점코드
-    ODNO: String,               // 주문번호(주문시 한국투자증권 시스템에서 채번된 주문번호)
-    ORD_TMD: String,            // 주문시각(시분초HHMMSS)
 }

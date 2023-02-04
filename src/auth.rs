@@ -1,4 +1,4 @@
-use crate::types::auth;
+use crate::types::response;
 use crate::Error;
 use reqwest::header::{HeaderMap, HeaderValue};
 
@@ -68,7 +68,7 @@ impl Auth {
             ))
             .send()
             .await?
-            .json::<auth::ApprovalKeyCreationResponse>()
+            .json::<response::Body::ApprovalKeyCreation>()
             .await?
             .get_approval_key();
         self.approval_key = Some(approval_key.clone());
@@ -93,7 +93,7 @@ impl Auth {
             .body(json)
             .send()
             .await?
-            .json::<auth::HashKeyResponse>()
+            .json::<response::Body::HashKey>()
             .await?
             .get_hash();
         Ok(hash)
@@ -113,7 +113,7 @@ impl Auth {
             ))
             .send()
             .await?
-            .json::<auth::TokenCreationResponse>()
+            .json::<response::Body::TokenCreation>()
             .await?
             .get_access_token();
         self.token = Some(token.clone());
@@ -127,7 +127,7 @@ impl Auth {
     ///     code: u32,
     ///     message: String,
     /// }
-    pub async fn revoke_token(&self) -> Result<auth::TokenRevokeResponse, Error> {
+    pub async fn revoke_token(&self) -> Result<response::Body::TokenRevoke, Error> {
         Ok(self
             .client
             .post(format!("{}/uapi/revokeP", &self.endpoint_url))
@@ -140,7 +140,7 @@ impl Auth {
             ))
             .send()
             .await?
-            .json::<auth::TokenRevokeResponse>()
+            .json::<response::Body::TokenRevoke>()
             .await?)
     }
 }

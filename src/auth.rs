@@ -61,10 +61,10 @@ impl Auth {
         let approval_key = self
             .client
             .post(format!("{}/oauth2/Approval", self.endpoint_url))
-            .header("Content-Type", "application/json; utf8")
+            .header("Content-Type", "application/json")
             .body(format!(
-                "{{\"grant_type\": \"client_credentials\", \"appkey\": \"{}\", \"appsecret\":\"{}\"}}",
-                self.appkey, self.appsecret
+                "{{\"grant_type\":\"client_credentials\",\"secretkey\":\"{}\",\"appkey\":\"{}\"}}",
+                self.appsecret, self.appkey
             ))
             .send()
             .await?
@@ -105,10 +105,10 @@ impl Auth {
     pub async fn create_token(&mut self) -> Result<String, Error> {
         let token = self
             .client
-            .post(format!("{}/uapi/tokenP", self.endpoint_url))
+            .post(format!("{}/oauth2/tokenP", self.endpoint_url))
             .header("Content-Type", "application/json")
             .body(format!(
-                "{{\"appkey\": \"{}\",\"appsecret\":\"{}\"}}",
+                "{{\"grant_type\":\"client_credentials\",\"appkey\":\"{}\",\"appsecret\":\"{}\"}}",
                 self.appkey, self.appsecret
             ))
             .send()
@@ -130,7 +130,7 @@ impl Auth {
     pub async fn revoke_token(&self) -> Result<response::auth::Body::TokenRevoke, Error> {
         Ok(self
             .client
-            .post(format!("{}/uapi/revokeP", &self.endpoint_url))
+            .post(format!("{}/oauth2/revokeP", &self.endpoint_url))
             .header("Content-Type", "application/json")
             .body(format!(
                 "{{\"appkey\":\"{}\",\"appsecret\":\"{}\",\"token\":\"{}\"}}",

@@ -1,4 +1,6 @@
-use crate::types::{request, response, Direction, OrderDivision, Price, Quantity, TrId};
+use crate::types::{
+    request, response, CorrectionDivision, Direction, OrderDivision, Price, Quantity, TrId,
+};
 use crate::{auth, Account, Environment, Error};
 use websocket::native_tls::{TlsConnector, TlsStream};
 
@@ -170,6 +172,147 @@ impl Korea {
 
     // 주식주문(정정취소)[v1_국내주식-003]
     // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_4bfdfb2b-34a7-43f6-935a-e637724f960a)
+    pub async fn correct(
+        &self,
+        order_division: OrderDivision,
+        krx_fwdg_ord_orgno: String,
+        orgn_odno: String,
+        rvse_cncl_dvsn_cd: CorrectionDivision,
+        qty_all_ord_yn: bool,
+        qty: Quantity,
+        price: Price,
+    ) -> Result<response::stock::Body::Order, Error> {
+        match self.usehash {
+            true => {
+                self.correct_w_hash(
+                    order_division,
+                    krx_fwdg_ord_orgno,
+                    orgn_odno,
+                    rvse_cncl_dvsn_cd,
+                    qty_all_ord_yn,
+                    qty,
+                    price,
+                )
+                .await
+            }
+            false => {
+                self.correct_wo_hash(
+                    order_division,
+                    krx_fwdg_ord_orgno,
+                    orgn_odno,
+                    rvse_cncl_dvsn_cd,
+                    qty_all_ord_yn,
+                    qty,
+                    price,
+                )
+                .await
+            }
+        }
+    }
+    pub async fn correct_wo_hash(
+        &self,
+        order_division: OrderDivision,
+        krx_fwdg_ord_orgno: String,
+        orgn_odno: String,
+        rvse_cncl_dvsn_cd: CorrectionDivision,
+        qty_all_ord_yn: bool,
+        qty: Quantity,
+        price: Price,
+    ) -> Result<response::stock::Body::Order, Error> {
+        let request = request::stock::Body::Correction::new(
+            self.account.cano.clone(),
+            self.account.acnt_prdt_cd.clone(),
+            krx_fwdg_ord_orgno,
+            orgn_odno,
+            order_division,
+            rvse_cncl_dvsn_cd,
+            qty,
+            price,
+            qty_all_ord_yn,
+        )
+        .get_json_string();
+        let tr_id: String = match self.environment {
+            Environment::Real => TrId::RealStockCorrection.into(),
+            Environment::Virtual => TrId::VirtualStockCorrection.into(),
+        };
+        Ok(self
+            .client
+            .post(format!(
+                "{}/uapi/domestic-stock/v1/trading/order-rvsecncl",
+                self.endpoint_url
+            ))
+            .header("Content-Type", "application/json")
+            .header(
+                "Authorization",
+                match self.auth.get_token() {
+                    Some(token) => token,
+                    None => {
+                        return Err(Error::AuthInitFailed("token"));
+                    }
+                },
+            )
+            .header("appkey", self.auth.get_appkey())
+            .header("appsecret", self.auth.get_appsecret())
+            .header("tr_id", tr_id)
+            .body(request)
+            .send()
+            .await?
+            .json::<response::stock::Body::Order>()
+            .await?)
+    }
+    pub async fn correct_w_hash(
+        &self,
+        order_division: OrderDivision,
+        krx_fwdg_ord_orgno: String,
+        orgn_odno: String,
+        rvse_cncl_dvsn_cd: CorrectionDivision,
+        qty_all_ord_yn: bool,
+        qty: Quantity,
+        price: Price,
+    ) -> Result<response::stock::Body::Order, Error> {
+        let request = request::stock::Body::Correction::new(
+            self.account.cano.clone(),
+            self.account.acnt_prdt_cd.clone(),
+            krx_fwdg_ord_orgno,
+            orgn_odno,
+            order_division,
+            rvse_cncl_dvsn_cd,
+            qty,
+            price,
+            qty_all_ord_yn,
+        )
+        .get_json_string();
+        let tr_id: String = match self.environment {
+            Environment::Real => TrId::RealStockCorrection.into(),
+            Environment::Virtual => TrId::VirtualStockCorrection.into(),
+        };
+        let hash = self.auth.get_hash(request.clone()).await?;
+        Ok(self
+            .client
+            .post(format!(
+                "{}/uapi/domestic-stock/v1/trading/order-rvsecncl",
+                self.endpoint_url
+            ))
+            .header("Content-Type", "application/json")
+            .header(
+                "Authorization",
+                match self.auth.get_token() {
+                    Some(token) => token,
+                    None => {
+                        return Err(Error::AuthInitFailed("token"));
+                    }
+                },
+            )
+            .header("appkey", self.auth.get_appkey())
+            .header("appsecret", self.auth.get_appsecret())
+            .header("tr_id", tr_id)
+            .header("hashkey", hash)
+            .body(request)
+            .send()
+            .await?
+            .json::<response::stock::Body::Order>()
+            .await?)
+    }
 
     // 주식정정취소가능주문조회[v1_국내주식-004]
     // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_d4537e9c-73f7-414c-9fb0-4eae3bc397d0)

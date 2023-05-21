@@ -11,8 +11,8 @@ pub enum OrderDivision {
 impl Into<String> for OrderDivision {
     fn into(self) -> String {
         match self {
-            OrderDivision::Limit => "00".to_string(),
-            OrderDivision::Market => "01".to_string(),
+            Self::Limit => "00".to_string(),
+            Self::Market => "01".to_string(),
             // TODO: add other types
         }
     }
@@ -22,6 +22,30 @@ impl From<String> for OrderDivision {
         match s.as_str() {
             "00" => OrderDivision::Limit,
             "01" => OrderDivision::Market,
+            _ => todo!(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub enum CorrectionDivision {
+    Correction,
+    Cancel,
+}
+impl Into<String> for CorrectionDivision {
+    fn into(self) -> String {
+        match self {
+            Self::Correction => "01",
+            Self::Cancel => "02",
+        }
+        .to_string()
+    }
+}
+impl From<String> for CorrectionDivision {
+    fn from(s: String) -> CorrectionDivision {
+        match s.as_str() {
+            "01" => CorrectionDivision::Correction,
+            "02" => CorrectionDivision::Cancel,
             _ => todo!(),
         }
     }
@@ -79,19 +103,26 @@ impl From<String> for Price {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum TrId {
+    // Order
     RealStockCashBidOrder,
     RealStockCashAskOrder,
     VirtualStockCashBidOrder,
     VirtualStockCashAskOrder,
-    // TODO: other
+    // Correction
+    RealStockCorrection,
+    VirtualStockCorrection,
 }
 impl Into<String> for TrId {
     fn into(self) -> String {
         match self {
+            // Order
             TrId::RealStockCashBidOrder => "TTTC0802U",
             TrId::RealStockCashAskOrder => "TTTC0801U",
             TrId::VirtualStockCashBidOrder => "VTTC0802U",
             TrId::VirtualStockCashAskOrder => "VTTC0801U",
+            // Correction
+            TrId::RealStockCorrection => "TTTC0803U",
+            TrId::VirtualStockCorrection => "VTTC0803U",
         }
         .to_string()
     }

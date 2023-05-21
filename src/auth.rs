@@ -68,7 +68,7 @@ impl Auth {
             ))
             .send()
             .await?
-            .json::<response::Body::ApprovalKeyCreation>()
+            .json::<response::auth::Body::ApprovalKeyCreation>()
             .await?
             .get_approval_key();
         self.approval_key = Some(approval_key.clone());
@@ -93,7 +93,7 @@ impl Auth {
             .body(json)
             .send()
             .await?
-            .json::<response::Body::HashKey>()
+            .json::<response::auth::Body::HashKey>()
             .await?
             .get_hash();
         Ok(hash)
@@ -113,7 +113,7 @@ impl Auth {
             ))
             .send()
             .await?
-            .json::<response::Body::TokenCreation>()
+            .json::<response::auth::Body::TokenCreation>()
             .await?
             .get_access_token();
         self.token = Some(token.clone());
@@ -127,7 +127,7 @@ impl Auth {
     ///     code: u32,
     ///     message: String,
     /// }
-    pub async fn revoke_token(&self) -> Result<response::Body::TokenRevoke, Error> {
+    pub async fn revoke_token(&self) -> Result<response::auth::Body::TokenRevoke, Error> {
         Ok(self
             .client
             .post(format!("{}/uapi/revokeP", &self.endpoint_url))
@@ -140,7 +140,7 @@ impl Auth {
             ))
             .send()
             .await?
-            .json::<response::Body::TokenRevoke>()
+            .json::<response::auth::Body::TokenRevoke>()
             .await?)
     }
 }

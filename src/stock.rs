@@ -1,4 +1,4 @@
-use crate::types::{response, stock};
+use crate::types::{request, response, Direction, OrderDivision, Price, Quantity, TrId};
 use crate::{auth, Account, Environment, Error};
 use websocket::native_tls::{TlsConnector, TlsStream};
 
@@ -41,12 +41,12 @@ impl Korea {
     /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_aade4c72-5fb7-418a-9ff2-254b4d5f0ceb)
     pub async fn order_cash(
         &self,
-        order_division: stock::OrderDivision,
-        order_direction: stock::Direction,
+        order_division: OrderDivision,
+        order_direction: Direction,
         pdno: String,
-        qty: stock::Quantity,
-        price: stock::Price,
-    ) -> Result<response::Body::Order, Error> {
+        qty: Quantity,
+        price: Price,
+    ) -> Result<response::stock::Body::Order, Error> {
         match self.usehash {
             true => {
                 self.order_cash_w_hash(order_division, order_direction, pdno, qty, price)
@@ -60,13 +60,13 @@ impl Korea {
     }
     pub async fn order_cash_wo_hash(
         &self,
-        order_division: stock::OrderDivision,
-        order_direction: stock::Direction,
+        order_division: OrderDivision,
+        order_direction: Direction,
         pdno: String,
-        qty: stock::Quantity,
-        price: stock::Price,
-    ) -> Result<response::Body::Order, Error> {
-        let request = stock::RequestBody::new(
+        qty: Quantity,
+        price: Price,
+    ) -> Result<response::stock::Body::Order, Error> {
+        let request = request::stock::Body::Order::new(
             self.account.cano.clone(),
             self.account.acnt_prdt_cd.clone(),
             pdno,
@@ -77,16 +77,12 @@ impl Korea {
         .get_json_string();
         let tr_id = match self.environment {
             Environment::Real => match order_direction {
-                stock::Direction::Bid => Into::<String>::into(stock::TrId::RealStockCashBidOrder),
-                stock::Direction::Ask => Into::<String>::into(stock::TrId::RealStockCashAskOrder),
+                Direction::Bid => Into::<String>::into(TrId::RealStockCashBidOrder),
+                Direction::Ask => Into::<String>::into(TrId::RealStockCashAskOrder),
             },
             Environment::Virtual => match order_direction {
-                stock::Direction::Bid => {
-                    Into::<String>::into(stock::TrId::VirtualStockCashBidOrder)
-                }
-                stock::Direction::Ask => {
-                    Into::<String>::into(stock::TrId::VirtualStockCashAskOrder)
-                }
+                Direction::Bid => Into::<String>::into(TrId::VirtualStockCashBidOrder),
+                Direction::Ask => Into::<String>::into(TrId::VirtualStockCashAskOrder),
             },
         };
         Ok(self
@@ -111,18 +107,18 @@ impl Korea {
             .body(request)
             .send()
             .await?
-            .json::<response::Body::Order>()
+            .json::<response::stock::Body::Order>()
             .await?)
     }
     pub async fn order_cash_w_hash(
         &self,
-        order_division: stock::OrderDivision,
-        order_direction: stock::Direction,
+        order_division: OrderDivision,
+        order_direction: Direction,
         pdno: String,
-        qty: stock::Quantity,
-        price: stock::Price,
-    ) -> Result<response::Body::Order, Error> {
-        let request = stock::RequestBody::new(
+        qty: Quantity,
+        price: Price,
+    ) -> Result<response::stock::Body::Order, Error> {
+        let request = request::stock::Body::Order::new(
             self.account.cano.clone(),
             self.account.acnt_prdt_cd.clone(),
             pdno,
@@ -133,16 +129,12 @@ impl Korea {
         .get_json_string();
         let tr_id = match self.environment {
             Environment::Real => match order_direction {
-                stock::Direction::Bid => Into::<String>::into(stock::TrId::RealStockCashBidOrder),
-                stock::Direction::Ask => Into::<String>::into(stock::TrId::RealStockCashAskOrder),
+                Direction::Bid => Into::<String>::into(TrId::RealStockCashBidOrder),
+                Direction::Ask => Into::<String>::into(TrId::RealStockCashAskOrder),
             },
             Environment::Virtual => match order_direction {
-                stock::Direction::Bid => {
-                    Into::<String>::into(stock::TrId::VirtualStockCashBidOrder)
-                }
-                stock::Direction::Ask => {
-                    Into::<String>::into(stock::TrId::VirtualStockCashAskOrder)
-                }
+                Direction::Bid => Into::<String>::into(TrId::VirtualStockCashBidOrder),
+                Direction::Ask => Into::<String>::into(TrId::VirtualStockCashAskOrder),
             },
         };
         let hash = self.auth.get_hash(request.clone()).await?;
@@ -169,7 +161,7 @@ impl Korea {
             .body(request)
             .send()
             .await?
-            .json::<response::Body::Order>()
+            .json::<response::stock::Body::Order>()
             .await?)
     }
 

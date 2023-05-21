@@ -75,14 +75,14 @@ impl Korea {
             price,
         )
         .get_json_string();
-        let tr_id = match self.environment {
+        let tr_id: String = match self.environment {
             Environment::Real => match order_direction {
-                Direction::Bid => Into::<String>::into(TrId::RealStockCashBidOrder),
-                Direction::Ask => Into::<String>::into(TrId::RealStockCashAskOrder),
+                Direction::Bid => TrId::RealStockCashBidOrder.into(),
+                Direction::Ask => TrId::RealStockCashAskOrder.into(),
             },
             Environment::Virtual => match order_direction {
-                Direction::Bid => Into::<String>::into(TrId::VirtualStockCashBidOrder),
-                Direction::Ask => Into::<String>::into(TrId::VirtualStockCashAskOrder),
+                Direction::Bid => TrId::VirtualStockCashBidOrder.into(),
+                Direction::Ask => TrId::VirtualStockCashAskOrder.into(),
             },
         };
         Ok(self
@@ -127,14 +127,14 @@ impl Korea {
             price,
         )
         .get_json_string();
-        let tr_id = match self.environment {
+        let tr_id: String = match self.environment {
             Environment::Real => match order_direction {
-                Direction::Bid => Into::<String>::into(TrId::RealStockCashBidOrder),
-                Direction::Ask => Into::<String>::into(TrId::RealStockCashAskOrder),
+                Direction::Bid => TrId::RealStockCashBidOrder.into(),
+                Direction::Ask => TrId::RealStockCashAskOrder.into(),
             },
             Environment::Virtual => match order_direction {
-                Direction::Bid => Into::<String>::into(TrId::VirtualStockCashBidOrder),
-                Direction::Ask => Into::<String>::into(TrId::VirtualStockCashAskOrder),
+                Direction::Bid => TrId::VirtualStockCashBidOrder.into(),
+                Direction::Ask => TrId::VirtualStockCashAskOrder.into(),
             },
         };
         let hash = self.auth.get_hash(request.clone()).await?;

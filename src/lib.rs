@@ -57,13 +57,13 @@ impl KoreaInvestmentApi {
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     // from lib
-    #[error("Web socket error")]
+    #[error(transparent)]
     WebSocket(#[from] websocket::WebSocketError),
-    #[error("Web socket parse error")]
+    #[error(transparent)]
     WebSocketParseError(#[from] websocket::url::ParseError),
-    #[error("Web socket native_tls error")]
+    #[error(transparent)]
     WebSocketNativeTlsError(#[from] websocket::native_tls::Error),
-    #[error("Reqwest error")]
+    #[error(transparent)]
     ReqwestError(#[from] reqwest::Error),
 
     // custom

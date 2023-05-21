@@ -21,8 +21,8 @@ pub struct Account {
 pub struct KoreaInvestmentApi {
     client: reqwest::Client,
     endpoint_url: String,
-    auth: auth::Auth,
-    stock: stock::Korea,
+    pub auth: auth::Auth,
+    pub stock: stock::Korea,
     usehash: bool,
 }
 

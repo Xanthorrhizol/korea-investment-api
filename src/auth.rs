@@ -1,5 +1,5 @@
 use crate::types::response;
-use crate::Error;
+use crate::{Environment, Error};
 use reqwest::header::{HeaderMap, HeaderValue};
 
 /// Auth
@@ -20,13 +20,18 @@ impl Auth {
     /// create_hash, create_token, create_approval_key 함수를 호출해야 hash, token 값이 저장됨
     pub fn new(
         client: &reqwest::Client,
-        endpoint_url: &str,
+        environment: Environment,
         appkey: String,
         appsecret: String,
     ) -> Self {
+        let endpoint_url = match environment {
+            Environment::Real => "https://openapi.koreainvestment.com:9443",
+            Environment::Virtual => "https://openapivts.koreainvestment.com:29443",
+        }
+        .to_string();
         Self {
             client: client.clone(),
-            endpoint_url: endpoint_url.to_string(),
+            endpoint_url,
             appkey,
             appsecret,
             token: None,

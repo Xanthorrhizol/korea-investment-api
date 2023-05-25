@@ -4,38 +4,33 @@ use crate::types::{
 use crate::{auth, Account, Environment, Error};
 // use websocket::native_tls::{TlsConnector, TlsStream};
 
-pub struct Korea<'a> {
+pub struct Korea {
     client: reqwest::Client,
-    wsclient: websocket::ClientBuilder<'a>,
     endpoint_url: String,
-    wsendpoint_url: websocket::url::Url,
     environment: Environment,
     auth: auth::Auth,
     account: Account,
     usehash: bool,
 }
 
-impl<'a> Korea<'a> {
-    /// 국내 주식 주문/시세에 관한 API
+impl Korea {
+    /// 국내 주식 주문에 관한 API
     /// [국내주식주문](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_aade4c72-5fb7-418a-9ff2-254b4d5f0ceb)
-    /// [국내주식시세](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock-quotations#L_07802512-4f49-4486-91b4-1050b6f5dc9d)
     pub fn new(
         client: &reqwest::Client,
-        endpoint_url: String,
-        wsendpoint_url: String,
         environment: Environment,
         auth: auth::Auth,
         account: Account,
         usehash: bool,
     ) -> Result<Self, Error> {
-        let wsclient = websocket::ClientBuilder::new(&wsendpoint_url)?;
-        let wsendpoint_url = websocket::url::Url::parse(&wsendpoint_url)?;
-
+        let endpoint_url = match environment {
+            Environment::Real => "https://openapi.koreainvestment.com:9443",
+            Environment::Virtual => "https://openapivts.koreainvestment.com:29443",
+        }
+        .to_string();
         Ok(Self {
             client: client.clone(),
-            wsclient,
-            endpoint_url: endpoint_url.to_string(),
-            wsendpoint_url,
+            endpoint_url,
             environment,
             auth,
             account,
@@ -329,11 +324,4 @@ impl<'a> Korea<'a> {
 
     // 매수가능조회[v1_국내주식-007]
     // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_806e407c-3082-44c0-9d71-e8534db5ad54)
-    //
-    //
-    //        let stream = self
-    //          .wsclient
-    //          .connect_secure(Some(TlsConnector::new()?))?
-    //          .into_stream()
-    //          .0;
 }

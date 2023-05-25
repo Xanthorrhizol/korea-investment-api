@@ -1,10 +1,12 @@
 mod auth;
+mod data;
 mod stock;
 mod types;
 
 /// 투자환경
 /// 실전투자: Real
 /// 모의투자: Virtual
+#[derive(Clone)]
 pub enum Environment {
     Real,
     Virtual,
@@ -13,6 +15,7 @@ pub enum Environment {
 /// 계좌
 /// cano: CANO(계좌번호 체계(8-2)의 앞 8자리)
 /// acnt_prdt_cd: ACNT_PRDT_CD(계좌번호 체계(8-2)의 뒤 2자리)
+#[derive(Clone)]
 pub struct Account {
     pub cano: String,
     pub acnt_prdt_cd: String,
@@ -20,10 +23,9 @@ pub struct Account {
 
 pub struct KoreaInvestmentApi<'a> {
     client: reqwest::Client,
-    endpoint_url: String,
-    wsendpoint_url: String,
     pub auth: auth::Auth,
-    pub stock: stock::Korea<'a>,
+    pub stock: stock::Korea,
+    pub k_data: data::KoreaStockData<'a>,
     usehash: bool,
 }
 
@@ -35,35 +37,19 @@ impl<'a> KoreaInvestmentApi<'a> {
         account: Account,
         usehash: bool,
     ) -> Result<KoreaInvestmentApi<'a>, Error> {
-        let (endpoint_url, wsendpoint_url) = match acc {
-            Environment::Real => (
-                "https://openapi.koreainvestment.com:9443".to_string(),
-                "ws://ops.koreainvestment.com:21000".to_string(),
-            ),
-            Environment::Virtual => (
-                "https://openapivts.koreainvestment.com:29443".to_string(),
-                "ws://ops.koreainvestment.com:31000".to_string(),
-            ),
-        };
         let client = reqwest::Client::new();
-        let mut auth = auth::Auth::new(&client, &endpoint_url, appkey, appsecret);
+        let mut auth = auth::Auth::new(&client, acc.clone(), appkey, appsecret);
         auth.create_token().await?;
         auth.create_approval_key().await?;
-        let stock = stock::Korea::new(
-            &client,
-            endpoint_url.clone(),
-            wsendpoint_url.clone(),
-            acc,
-            auth.clone(),
-            account,
-            usehash,
-        )?;
+        let stock =
+            stock::Korea::new(&client, acc.clone(), auth.clone(), account.clone(), usehash)?;
+        let k_data =
+            data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), usehash)?;
         Ok(Self {
             client,
-            endpoint_url,
-            wsendpoint_url,
             auth,
             stock,
+            k_data,
             usehash,
         })
     }

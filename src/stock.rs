@@ -2,41 +2,40 @@ use crate::types::{
     request, response, CorrectionDivision, Direction, OrderDivision, Price, Quantity, TrId,
 };
 use crate::{auth, Account, Environment, Error};
-use websocket::native_tls::{TlsConnector, TlsStream};
+// use websocket::native_tls::{TlsConnector, TlsStream};
 
-pub struct Korea {
+pub struct Korea<'a> {
     client: reqwest::Client,
-    stream: TlsStream<std::net::TcpStream>,
+    wsclient: websocket::ClientBuilder<'a>,
     endpoint_url: String,
+    wsendpoint_url: websocket::url::Url,
     environment: Environment,
     auth: auth::Auth,
     account: Account,
     usehash: bool,
 }
 
-impl Korea {
+impl<'a> Korea<'a> {
     /// 국내 주식 주문/시세에 관한 API
     /// [국내주식주문](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_aade4c72-5fb7-418a-9ff2-254b4d5f0ceb)
     /// [국내주식시세](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock-quotations#L_07802512-4f49-4486-91b4-1050b6f5dc9d)
     pub fn new(
         client: &reqwest::Client,
-        endpoint_url: &str,
-        wsendpoint_url: &str,
+        endpoint_url: String,
+        wsendpoint_url: String,
         environment: Environment,
         auth: auth::Auth,
         account: Account,
         usehash: bool,
     ) -> Result<Self, Error> {
-        let url = websocket::url::Url::parse(wsendpoint_url)?;
-        let mut wsclient = websocket::ClientBuilder::from_url(&url);
-        let stream = wsclient
-            .connect_secure(Some(TlsConnector::new()?))?
-            .into_stream()
-            .0;
+        let wsclient = websocket::ClientBuilder::new(&wsendpoint_url)?;
+        let wsendpoint_url = websocket::url::Url::parse(&wsendpoint_url)?;
+
         Ok(Self {
             client: client.clone(),
-            stream,
+            wsclient,
             endpoint_url: endpoint_url.to_string(),
+            wsendpoint_url,
             environment,
             auth,
             account,
@@ -330,4 +329,11 @@ impl Korea {
 
     // 매수가능조회[v1_국내주식-007]
     // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_806e407c-3082-44c0-9d71-e8534db5ad54)
+    //
+    //
+    //        let stream = self
+    //          .wsclient
+    //          .connect_secure(Some(TlsConnector::new()?))?
+    //          .into_stream()
+    //          .0;
 }

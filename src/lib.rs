@@ -18,22 +18,23 @@ pub struct Account {
     pub acnt_prdt_cd: String,
 }
 
-pub struct KoreaInvestmentApi {
+pub struct KoreaInvestmentApi<'a> {
     client: reqwest::Client,
     endpoint_url: String,
+    wsendpoint_url: String,
     pub auth: auth::Auth,
-    pub stock: stock::Korea,
+    pub stock: stock::Korea<'a>,
     usehash: bool,
 }
 
-impl KoreaInvestmentApi {
+impl<'a> KoreaInvestmentApi<'a> {
     pub async fn new(
         acc: Environment,
         appkey: String,
         appsecret: String,
         account: Account,
         usehash: bool,
-    ) -> Result<Self, Error> {
+    ) -> Result<KoreaInvestmentApi<'a>, Error> {
         let (endpoint_url, wsendpoint_url) = match acc {
             Environment::Real => (
                 "https://openapi.koreainvestment.com:9443".to_string(),
@@ -50,16 +51,17 @@ impl KoreaInvestmentApi {
         auth.create_approval_key().await?;
         let stock = stock::Korea::new(
             &client,
-            &endpoint_url,
-            &wsendpoint_url,
+            endpoint_url.clone(),
+            wsendpoint_url.clone(),
             acc,
             auth.clone(),
             account,
             usehash,
-        )?; // unwrap is safe here
+        )?;
         Ok(Self {
             client,
             endpoint_url,
+            wsendpoint_url,
             auth,
             stock,
             usehash,

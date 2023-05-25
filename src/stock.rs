@@ -6,7 +6,7 @@ use websocket::native_tls::{TlsConnector, TlsStream};
 
 pub struct Korea {
     client: reqwest::Client,
-    wsclient: websocket::client::sync::Client<TlsStream<std::net::TcpStream>>,
+    stream: TlsStream<std::net::TcpStream>,
     endpoint_url: String,
     environment: Environment,
     auth: auth::Auth,
@@ -21,16 +21,21 @@ impl Korea {
     pub fn new(
         client: &reqwest::Client,
         endpoint_url: &str,
+        wsendpoint_url: &str,
         environment: Environment,
         auth: auth::Auth,
         account: Account,
         usehash: bool,
     ) -> Result<Self, Error> {
-        let wsclient = websocket::ClientBuilder::new(endpoint_url)?
-            .connect_secure(Some(TlsConnector::new()?))?;
+        let url = websocket::url::Url::parse(wsendpoint_url)?;
+        let mut wsclient = websocket::ClientBuilder::from_url(&url);
+        let stream = wsclient
+            .connect_secure(Some(TlsConnector::new()?))?
+            .into_stream()
+            .0;
         Ok(Self {
             client: client.clone(),
-            wsclient,
+            stream,
             endpoint_url: endpoint_url.to_string(),
             environment,
             auth,

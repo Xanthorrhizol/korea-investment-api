@@ -34,16 +34,29 @@ impl KoreaInvestmentApi {
         account: Account,
         usehash: bool,
     ) -> Result<Self, Error> {
-        let endpoint_url = match acc {
-            Environment::Real => "https://openapi.koreainvestment.com:9443",
-            Environment::Virtual => "https://openapivts.koreainvestment.com:29443",
-        }
-        .to_string();
+        let (endpoint_url, wsendpoint_url) = match acc {
+            Environment::Real => (
+                "https://openapi.koreainvestment.com:9443".to_string(),
+                "ws://ops.koreainvestment.com:21000".to_string(),
+            ),
+            Environment::Virtual => (
+                "https://openapivts.koreainvestment.com:29443".to_string(),
+                "ws://ops.koreainvestment.com:31000".to_string(),
+            ),
+        };
         let client = reqwest::Client::new();
         let mut auth = auth::Auth::new(&client, &endpoint_url, appkey, appsecret);
         auth.create_token().await?;
         auth.create_approval_key().await?;
-        let stock = stock::Korea::new(&client, &endpoint_url, acc, auth.clone(), account, usehash)?; // unwrap is safe here
+        let stock = stock::Korea::new(
+            &client,
+            &endpoint_url,
+            &wsendpoint_url,
+            acc,
+            auth.clone(),
+            account,
+            usehash,
+        )?; // unwrap is safe here
         Ok(Self {
             client,
             endpoint_url,

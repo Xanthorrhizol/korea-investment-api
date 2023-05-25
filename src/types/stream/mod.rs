@@ -1,3 +1,10 @@
+/// 체결구분
+pub enum ExecClass {
+    All,     // 전체(00)
+    Partial, // 체결(01)
+    Nothing, // 미체결(02)
+}
+
 /// 대비구분
 #[derive(Clone, Debug)]
 pub enum VsPriceSign {

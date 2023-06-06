@@ -1,7 +1,7 @@
 mod auth;
 mod data;
 mod stock;
-mod types;
+pub mod types;
 
 /// 투자환경
 /// 실전투자: Real
@@ -21,6 +21,7 @@ pub struct Account {
     pub acnt_prdt_cd: String,
 }
 
+#[derive(Clone)]
 pub struct KoreaInvestmentApi<'a> {
     client: reqwest::Client,
     pub auth: auth::Auth,
@@ -66,8 +67,18 @@ pub enum Error {
     WebSocketNativeTlsError(#[from] websocket::native_tls::Error),
     #[error(transparent)]
     ReqwestError(#[from] reqwest::Error),
+    #[error(transparent)]
+    Utf8Error(#[from] std::str::Utf8Error),
+    #[error(transparent)]
+    JsonError(#[from] json::JsonError),
+    #[error(transparent)]
+    ChronoError(#[from] chrono::ParseError),
 
     // custom
     #[error("Auth init failed - None value in {0}")]
     AuthInitFailed(&'static str),
+    #[error("Broken protocol - {0}: {1}")]
+    BrokenProtocol(&'static str, String),
+    #[error("The remote websocket server sent invalid data")]
+    InvalidData,
 }

@@ -2,8 +2,8 @@ use crate::types::{
     request, response, CorrectionDivision, Direction, OrderDivision, Price, Quantity, TrId,
 };
 use crate::{auth, Account, Environment, Error};
-// use websocket::native_tls::{TlsConnector, TlsStream};
 
+#[derive(Clone)]
 pub struct Korea {
     client: reqwest::Client,
     endpoint_url: String,

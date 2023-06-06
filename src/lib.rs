@@ -21,23 +21,22 @@ pub struct Account {
     pub acnt_prdt_cd: String,
 }
 
-#[derive(Clone)]
-pub struct KoreaInvestmentApi<'a> {
+pub struct KoreaInvestmentApi {
     client: reqwest::Client,
     pub auth: auth::Auth,
     pub stock: stock::Korea,
-    pub k_data: data::KoreaStockData<'a>,
+    pub k_data: data::KoreaStockData,
     usehash: bool,
 }
 
-impl<'a> KoreaInvestmentApi<'a> {
+impl KoreaInvestmentApi {
     pub async fn new(
         acc: Environment,
         appkey: String,
         appsecret: String,
         account: Account,
         usehash: bool,
-    ) -> Result<KoreaInvestmentApi<'a>, Error> {
+    ) -> Result<KoreaInvestmentApi, Error> {
         let client = reqwest::Client::new();
         let mut auth = auth::Auth::new(&client, acc.clone(), appkey, appsecret);
         auth.create_token().await?;

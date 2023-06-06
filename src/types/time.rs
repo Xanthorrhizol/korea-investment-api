@@ -1,7 +1,7 @@
 use crate::Error;
 use chrono::{DateTime, LocalResult};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Time(DateTime<chrono_tz::Tz>);
 
 impl Time {

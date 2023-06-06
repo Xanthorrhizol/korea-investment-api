@@ -12,7 +12,7 @@ fn get_json_inner(obj: &json::object::Object, key: &str) -> json::JsonValue {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Exec {
     header: Header,
     body: Option<Body>,
@@ -55,7 +55,7 @@ impl Exec {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Body {
     shortcode: String,                    // MKSC_SHRN_ISCD(유가증권 단축 종목코드)
     exec_time: Time,                      // STCK_CNTG_HOUR(주식 체결 시간)

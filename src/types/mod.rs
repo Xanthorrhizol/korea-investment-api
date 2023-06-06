@@ -1,13 +1,15 @@
 mod exec;
 pub mod request;
 pub mod response;
+mod subscribe;
 mod time;
 
 pub use exec::Exec;
 use serde::{Deserialize, Serialize};
+pub use subscribe::Subscribe;
 pub use time::Time;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Header {
     tr_id: TrId,
     datetime: Time,
@@ -186,7 +188,7 @@ impl Into<String> for CustomerType {
 }
 
 /// 체결구분
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ExecClass {
     All,     // 전체(00)
     Partial, // 체결(01)
@@ -252,7 +254,7 @@ impl From<String> for TimeClassCode {
 
 /// 임의종료구분코드
 // TODO: check
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum MarketTerminationClassCode {
     Terminated,
 }

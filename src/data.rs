@@ -1,4 +1,4 @@
-use crate::types::{CustomerType, Exec, Subscribe, TrId};
+use crate::types::{CustomerType, Exec, Subscribe, SubscribeResult, TrId};
 use crate::{auth, Account, Environment, Error};
 use websocket::{Message, OwnedMessage};
 
@@ -54,10 +54,13 @@ impl KoreaStockData {
     /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_714d1437-8f62-43db-a73c-cf509d3f6aa7)
     pub fn exec_recv(&mut self) -> Result<Exec, Error> {
         if let Ok(msg) = self.exec_conn.recv_message() {
+            let tmp_msg = msg.clone();
             match msg {
                 OwnedMessage::Text(s) => {
-                    let json_value = json::parse(&s)?;
-                    let exec = Exec::parse(json_value)?;
+                    let exec = Exec::parse(s)?;
+                    if exec.header().tr_id() == &TrId::PingPong {
+                        let _ = self.exec_conn.send_message(&tmp_msg);
+                    }
                     Ok(exec)
                 }
                 _ => {
@@ -69,7 +72,7 @@ impl KoreaStockData {
         }
     }
 
-    pub fn exec_subscribe(&mut self, isin: String) -> Result<String, Error> {
+    pub fn exec_subscribe(&mut self, isin: String) -> Result<SubscribeResult, Error> {
         let app_key = self.auth.get_appkey();
         let app_secret = self.auth.get_appsecret();
         let personalseckey = self.auth.get_approval_key().unwrap();
@@ -83,6 +86,7 @@ impl KoreaStockData {
         .get_json_string();
         let msg = Message::text(msg);
         let _ = self.exec_conn.send_message(&msg);
+        let mut result = SubscribeResult::new(false, "".to_string(), None, None);
         if let Ok(msg) = self.exec_conn.recv_message() {
             match msg {
                 OwnedMessage::Text(s) => {
@@ -93,27 +97,32 @@ impl KoreaStockData {
                                 match v {
                                     json::JsonValue::Object(o) => {
                                         if let Some(s) = o.get("msg1") {
-                                            Ok(s.to_string())
-                                        } else {
-                                            Err(Error::InvalidData)
+                                            let s = s.to_string();
+                                            if &s == "SUBSCRIBE SUCCESS" {
+                                                result.set_success(true);
+                                            }
+                                            result.set_msg(s);
+                                        }
+                                        if let Some(json::JsonValue::Object(o)) = o.get("output") {
+                                            if let Some(s) = o.get("iv") {
+                                                result.set_iv(Some(s.to_string()));
+                                            }
+                                            if let Some(s) = o.get("key") {
+                                                result.set_key(Some(s.to_string()));
+                                            }
                                         }
                                     }
-                                    _ => Err(Error::InvalidData),
+                                    _ => {}
                                 }
-                            } else {
-                                Err(Error::InvalidData)
                             }
                         }
-                        _ => Err(Error::InvalidData),
+                        _ => {}
                     }
                 }
-                _ => {
-                    return Err(Error::InvalidData);
-                }
+                _ => {}
             }
-        } else {
-            Err(Error::InvalidData)
         }
+        Ok(result)
     }
 
     // 국내주식 실시간호가[실시간-004]

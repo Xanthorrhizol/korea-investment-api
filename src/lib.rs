@@ -72,6 +72,10 @@ pub enum Error {
     JsonError(#[from] json::JsonError),
     #[error(transparent)]
     ChronoError(#[from] chrono::ParseError),
+    #[error(transparent)]
+    ParseIntError(#[from] std::num::ParseIntError),
+    #[error(transparent)]
+    ParseFloatError(#[from] std::num::ParseFloatError),
 
     // custom
     #[error("Auth init failed - None value in {0}")]

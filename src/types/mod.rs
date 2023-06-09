@@ -6,13 +6,30 @@ mod time;
 
 pub use exec::Exec;
 use serde::{Deserialize, Serialize};
-pub use subscribe::Subscribe;
+pub use subscribe::{Subscribe, SubscribeResult};
 pub use time::Time;
+
+pub fn parse_bool(s: &str) -> bool {
+    match s.to_ascii_uppercase().as_str() {
+        "TRUE" | "T" | "Y" => true,
+        "FALSE" | "F" | "N" => false,
+        _ => false,
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct Header {
     tr_id: TrId,
     datetime: Time,
+}
+impl Header {
+    pub fn tr_id(&self) -> &TrId {
+        &self.tr_id
+    }
+
+    pub fn datetime(&self) -> &Time {
+        &self.datetime
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -30,9 +47,9 @@ impl Into<String> for OrderDivision {
         }
     }
 }
-impl From<String> for OrderDivision {
-    fn from(s: String) -> Self {
-        match s.as_str() {
+impl From<&str> for OrderDivision {
+    fn from(s: &str) -> Self {
+        match s {
             "00" => OrderDivision::Limit,
             "01" => OrderDivision::Market,
             _ => todo!(),
@@ -54,9 +71,9 @@ impl Into<String> for CorrectionDivision {
         .to_string()
     }
 }
-impl From<String> for CorrectionDivision {
-    fn from(s: String) -> CorrectionDivision {
-        match s.as_str() {
+impl From<&str> for CorrectionDivision {
+    fn from(s: &str) -> CorrectionDivision {
+        match s {
             "01" => CorrectionDivision::Correction,
             "02" => CorrectionDivision::Cancel,
             _ => todo!(),
@@ -84,8 +101,8 @@ impl Into<String> for Quantity {
         format!("{}", self.inner)
     }
 }
-impl From<String> for Quantity {
-    fn from(s: String) -> Self {
+impl From<&str> for Quantity {
+    fn from(s: &str) -> Self {
         Self {
             inner: s.trim().parse().unwrap(),
         }
@@ -106,8 +123,8 @@ impl Into<String> for Price {
         format!("{}", self.inner)
     }
 }
-impl From<String> for Price {
-    fn from(s: String) -> Self {
+impl From<&str> for Price {
+    fn from(s: &str) -> Self {
         Self {
             inner: s.trim().parse().unwrap(),
         }
@@ -151,9 +168,9 @@ impl Into<String> for TrId {
     }
 }
 
-impl From<String> for TrId {
-    fn from(s: String) -> Self {
-        match s.as_str() {
+impl From<&str> for TrId {
+    fn from(s: &str) -> Self {
+        match s {
             // Order
             "TTTC0802U" => TrId::RealStockCashBidOrder,
             "TTTC0801U" => TrId::RealStockCashAskOrder,
@@ -190,17 +207,17 @@ impl Into<String> for CustomerType {
 /// 체결구분
 #[derive(Debug, Clone)]
 pub enum ExecClass {
-    All,     // 전체(00)
-    Partial, // 체결(01)
-    Nothing, // 미체결(02)
+    Bid,       // 매수(1)
+    PreMarket, // 장전(3)
+    Ask,       // 매도(5)
 }
 
-impl From<String> for ExecClass {
-    fn from(s: String) -> Self {
-        match s.as_str() {
-            "00" => Self::All,
-            "01" => Self::Partial,
-            "02" => Self::Nothing,
+impl From<&str> for ExecClass {
+    fn from(s: &str) -> Self {
+        match s {
+            "1" => Self::Bid,
+            "3" => Self::PreMarket,
+            "5" => Self::Ask,
             _ => unreachable!(),
         }
     }
@@ -216,9 +233,9 @@ pub enum VsPriceSign {
     LowerLimit, // 하한(5)
 }
 
-impl From<String> for VsPriceSign {
-    fn from(s: String) -> Self {
-        match s.as_str() {
+impl From<&str> for VsPriceSign {
+    fn from(s: &str) -> Self {
+        match s {
             "1" => Self::UpperLimit,
             "2" => Self::Increase,
             "3" => Self::Steady,
@@ -239,9 +256,9 @@ pub enum TimeClassCode {
     OutMarketSinglePricePredict, // 시간외 단일가 예상(D)
 }
 
-impl From<String> for TimeClassCode {
-    fn from(s: String) -> Self {
-        match s.as_str() {
+impl From<&str> for TimeClassCode {
+    fn from(s: &str) -> Self {
+        match s {
             "0" => Self::InMarket,
             "A" => Self::PostMarketPrediction,
             "B" => Self::PreMarketPrediction,
@@ -259,8 +276,8 @@ pub enum MarketTerminationClassCode {
     Terminated,
 }
 
-impl From<String> for MarketTerminationClassCode {
-    fn from(s: String) -> Self {
+impl From<&str> for MarketTerminationClassCode {
+    fn from(_s: &str) -> Self {
         Self::Terminated
     }
 }
@@ -279,8 +296,8 @@ impl MarketOperationClassCode {
     }
 }
 
-impl From<String> for MarketOperationClassCode {
-    fn from(s: String) -> Self {
+impl From<&str> for MarketOperationClassCode {
+    fn from(s: &str) -> Self {
         let first = match &s[0..1] {
             "1" => When::PreMarket,
             "2" => When::Market,

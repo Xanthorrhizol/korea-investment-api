@@ -1,5 +1,56 @@
 use crate::types::{CustomerType, TrId};
 
+#[derive(Debug, Clone)]
+pub struct SubscribeResult {
+    success: bool,
+    msg: String,
+    iv: Option<String>,
+    key: Option<String>,
+}
+
+impl SubscribeResult {
+    pub fn new(success: bool, msg: String, iv: Option<String>, key: Option<String>) -> Self {
+        Self {
+            success,
+            msg,
+            iv,
+            key,
+        }
+    }
+
+    pub fn success(&self) -> bool {
+        self.success
+    }
+
+    pub fn msg(&self) -> &str {
+        &self.msg
+    }
+
+    pub fn iv(&self) -> &Option<String> {
+        &self.iv
+    }
+
+    pub fn key(&self) -> &Option<String> {
+        &self.key
+    }
+
+    pub fn set_success(&mut self, success: bool) {
+        self.success = success;
+    }
+
+    pub fn set_msg(&mut self, msg: String) {
+        self.msg = msg;
+    }
+
+    pub fn set_iv(&mut self, iv: Option<String>) {
+        self.iv = iv;
+    }
+
+    pub fn set_key(&mut self, key: Option<String>) {
+        self.key = key;
+    }
+}
+
 /// 국내주식 실시간체결가[실시간-003]
 /// 국내주식 실시간호가[실시간-004]
 pub struct Subscribe {

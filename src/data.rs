@@ -1,4 +1,4 @@
-use crate::types::{CustomerType, Exec, Subscribe, SubscribeResult, TrId};
+use crate::types::{CustomerType, Exec, Ordb, Subscribe, SubscribeResult, TrId};
 use crate::{auth, Account, Environment, Error};
 use websocket::{Message, OwnedMessage};
 
@@ -50,29 +50,7 @@ impl KoreaStockData {
         })
     }
 
-    /// 국내주식 실시간체결가[실시간-003]
-    /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_714d1437-8f62-43db-a73c-cf509d3f6aa7)
-    pub fn exec_recv(&mut self) -> Result<Exec, Error> {
-        if let Ok(msg) = self.exec_conn.recv_message() {
-            let tmp_msg = msg.clone();
-            match msg {
-                OwnedMessage::Text(s) => {
-                    let exec = Exec::parse(s)?;
-                    if exec.header().tr_id() == &TrId::PingPong {
-                        let _ = self.exec_conn.send_message(&tmp_msg);
-                    }
-                    Ok(exec)
-                }
-                _ => {
-                    return Err(Error::InvalidData);
-                }
-            }
-        } else {
-            Err(Error::InvalidData)
-        }
-    }
-
-    pub fn exec_subscribe(&mut self, isin: String) -> Result<SubscribeResult, Error> {
+    pub fn subscribe(&mut self, isin: String, tr_id: TrId) -> Result<SubscribeResult, Error> {
         let app_key = self.auth.get_appkey();
         let app_secret = self.auth.get_appsecret();
         let personalseckey = self.auth.get_approval_key().unwrap();
@@ -82,12 +60,19 @@ impl KoreaStockData {
             personalseckey,
             CustomerType::Personal,
             isin,
+            tr_id.clone(),
         )
         .get_json_string();
         let msg = Message::text(msg);
         let _ = self.exec_conn.send_message(&msg);
         let mut result = SubscribeResult::new(false, "".to_string(), None, None);
-        if let Ok(msg) = self.exec_conn.recv_message() {
+        if let Ok(msg) = if tr_id == TrId::RealtimeExec {
+            self.exec_conn.recv_message()
+        } else if tr_id == TrId::RealtimeOrdb {
+            self.ordb_conn.recv_message()
+        } else {
+            Err(Error::WrongTrId(tr_id, "RealtimeExec, RealtimeOrdb"))?
+        } {
             match msg {
                 OwnedMessage::Text(s) => {
                     let json_value = json::parse(&s)?;
@@ -125,8 +110,49 @@ impl KoreaStockData {
         Ok(result)
     }
 
-    // 국내주식 실시간호가[실시간-004]
-    // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_9cda726b-6f0b-48b5-8369-6d66bea05a2a)
+    /// 국내주식 실시간체결가[실시간-003]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_714d1437-8f62-43db-a73c-cf509d3f6aa7)
+    pub fn exec_recv(&mut self) -> Result<Exec, Error> {
+        if let Ok(msg) = self.exec_conn.recv_message() {
+            let tmp_msg = msg.clone();
+            match msg {
+                OwnedMessage::Text(s) => {
+                    let exec = Exec::parse(s)?;
+                    if exec.header().tr_id() == &TrId::PingPong {
+                        let _ = self.exec_conn.send_message(&tmp_msg);
+                    }
+                    Ok(exec)
+                }
+                _ => {
+                    return Err(Error::InvalidData);
+                }
+            }
+        } else {
+            Err(Error::InvalidData)
+        }
+    }
+
+    /// 국내주식 실시간호가[실시간-004]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_9cda726b-6f0b-48b5-8369-6d66bea05a2a)
+    pub fn ordb_recv(&mut self) -> Result<Ordb, Error> {
+        if let Ok(msg) = self.ordb_conn.recv_message() {
+            let tmp_msg = msg.clone();
+            match msg {
+                OwnedMessage::Text(s) => {
+                    let ordb = Ordb::parse(s)?;
+                    if ordb.header().tr_id() == &TrId::PingPong {
+                        let _ = self.ordb_conn.send_message(&tmp_msg);
+                    }
+                    Ok(ordb)
+                }
+                _ => {
+                    return Err(Error::InvalidData);
+                }
+            }
+        } else {
+            Err(Error::InvalidData)
+        }
+    }
 
     // 국내주식 실시간체결통보[실시간-005]
     // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_1e3c056d-1b42-461c-b8fb-631bb48e1ee2)

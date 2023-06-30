@@ -2,6 +2,7 @@ mod auth;
 mod data;
 mod stock;
 pub mod types;
+pub(crate) mod util;
 
 /// 투자환경
 /// 실전투자: Real
@@ -84,4 +85,6 @@ pub enum Error {
     BrokenProtocol(&'static str, String),
     #[error("The remote websocket server sent invalid data")]
     InvalidData,
+    #[error("Wrong TrId: {0:?}. Expect {1}")]
+    WrongTrId(crate::types::TrId, &'static str),
 }

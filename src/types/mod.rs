@@ -1,10 +1,12 @@
 mod exec;
+mod ordb;
 pub mod request;
 pub mod response;
 mod subscribe;
 mod time;
 
 pub use exec::Exec;
+pub use ordb::Ordb;
 use serde::{Deserialize, Serialize};
 pub use subscribe::{Subscribe, SubscribeResult};
 pub use time::Time;
@@ -266,6 +268,18 @@ impl From<&str> for TimeClassCode {
             "D" => Self::OutMarketSinglePricePredict,
             _ => unreachable!(),
         }
+    }
+}
+
+/// 매매구분코드
+// TODO: check and find what it is
+#[derive(Debug, Clone)]
+pub enum DealClassCode {
+    IDK(String),
+}
+impl From<&str> for DealClassCode {
+    fn from(s: &str) -> Self {
+        Self::IDK(s.to_string())
     }
 }
 

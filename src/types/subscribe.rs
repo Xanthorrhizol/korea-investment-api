@@ -96,6 +96,7 @@ impl Subscribe {
         personalseckey: String,
         custtype: CustomerType,
         isin: String,
+        tr_id: TrId,
     ) -> Self {
         Self {
             header: Header {
@@ -106,7 +107,7 @@ impl Subscribe {
                 tr_type: TrType::Register,
             },
             body: Body {
-                tr_id: TrId::RealtimeExec,
+                tr_id,
                 tr_key: isin,
             },
         }

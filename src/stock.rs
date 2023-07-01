@@ -166,11 +166,11 @@ impl Korea {
             .await?)
     }
 
-    // 주식주문(신용)[v1_국내주식-002]
+    // TODO: 주식주문(신용)[v1_국내주식-002]
     // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_f5769e4a-24d5-44f9-a2d8-232d45abf988)
 
-    // 주식주문(정정취소)[v1_국내주식-003]
-    // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_4bfdfb2b-34a7-43f6-935a-e637724f960a)
+    /// 주식주문(정정취소)[v1_국내주식-003]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_4bfdfb2b-34a7-43f6-935a-e637724f960a)
     pub async fn correct(
         &self,
         order_division: OrderDivision,
@@ -313,15 +313,15 @@ impl Korea {
             .await?)
     }
 
-    // 주식정정취소가능주문조회[v1_국내주식-004]
+    // TODO: 주식정정취소가능주문조회[v1_국내주식-004]
     // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_d4537e9c-73f7-414c-9fb0-4eae3bc397d0)
 
-    // 주식일별주문체결조회[v1_국내주식-005]
+    // TODO: 주식일별주문체결조회[v1_국내주식-005]
     // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_bc51f9f7-146f-4971-a5ae-ebd574acec12)
 
-    // 주식잔고조회[v1_국내주식-006]
+    // TODO: 주식잔고조회[v1_국내주식-006]
     // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_66c61080-674f-4c91-a0cc-db5e64e9a5e6)
 
-    // 매수가능조회[v1_국내주식-007]
+    // TODO: 매수가능조회[v1_국내주식-007]
     // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_806e407c-3082-44c0-9d71-e8534db5ad54)
 }

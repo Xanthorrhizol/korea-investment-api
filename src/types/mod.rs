@@ -1,11 +1,15 @@
+mod crypto;
 mod exec;
+mod my_exec;
 mod ordb;
 pub mod request;
 pub mod response;
 mod subscribe;
 mod time;
 
+pub(crate) use crypto::Aes256CbcDec;
 pub use exec::Exec;
+pub use my_exec::MyExec;
 pub use ordb::Ordb;
 use serde::{Deserialize, Serialize};
 pub use subscribe::{Subscribe, SubscribeResult};
@@ -35,36 +39,79 @@ impl Header {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum OrderDivision {
-    Limit,
-    Market,
-    // TODO: add other types
+pub enum OrderClass {
+    Limit,                // 지정가
+    Market,               // 시장가
+    ConditionalLimit,     // 조건부지정가
+    Best,                 // 최유리지정가
+    First,                // 최우선지정가
+    PreMarket,            // 장전시간외
+    PostMarket,           // 장후시간외
+    OutMarketSinglePrice, // 시간외단일가
+    MyStock,              // 자기주식
+    MyStockSOption,       // 자기주식S-Option
+    MyStockMoneyTrust,    // 자시주식금전신탁
+    IOCLimit,             // IOC지정가
+    FOKLimit,             // FOK지정가
+    IOCMarket,            // IOC시장가
+    FOKMarket,            // FOK시장가
+    IOCBest,              // IOC최유리
+    FOKBest,              // FOK최유리
 }
-impl Into<String> for OrderDivision {
+impl Into<String> for OrderClass {
     fn into(self) -> String {
         match self {
             Self::Limit => "00".to_string(),
             Self::Market => "01".to_string(),
-            // TODO: add other types
+            Self::ConditionalLimit => "02".to_string(),
+            Self::Best => "03".to_string(),
+            Self::First => "04".to_string(),
+            Self::PreMarket => "05".to_string(),
+            Self::PostMarket => "06".to_string(),
+            Self::OutMarketSinglePrice => "07".to_string(),
+            Self::MyStock => "08".to_string(),
+            Self::MyStockSOption => "09".to_string(),
+            Self::MyStockMoneyTrust => "10".to_string(),
+            Self::IOCLimit => "11".to_string(),
+            Self::FOKLimit => "12".to_string(),
+            Self::IOCMarket => "13".to_string(),
+            Self::FOKMarket => "14".to_string(),
+            Self::IOCBest => "15".to_string(),
+            Self::FOKBest => "16".to_string(),
         }
     }
 }
-impl From<&str> for OrderDivision {
+impl From<&str> for OrderClass {
     fn from(s: &str) -> Self {
         match s {
-            "00" => OrderDivision::Limit,
-            "01" => OrderDivision::Market,
+            "00" => OrderClass::Limit,
+            "01" => OrderClass::Market,
+            "02" => OrderClass::ConditionalLimit,
+            "03" => OrderClass::Best,
+            "04" => OrderClass::First,
+            "05" => OrderClass::PreMarket,
+            "06" => OrderClass::PostMarket,
+            "07" => OrderClass::OutMarketSinglePrice,
+            "08" => OrderClass::MyStock,
+            "09" => OrderClass::MyStockSOption,
+            "10" => OrderClass::MyStockMoneyTrust,
+            "11" => OrderClass::IOCLimit,
+            "12" => OrderClass::FOKLimit,
+            "13" => OrderClass::IOCMarket,
+            "14" => OrderClass::FOKMarket,
+            "15" => OrderClass::IOCBest,
+            "16" => OrderClass::FOKBest,
             _ => todo!(),
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub enum CorrectionDivision {
+pub enum CorrectionClass {
     Correction,
     Cancel,
 }
-impl Into<String> for CorrectionDivision {
+impl Into<String> for CorrectionClass {
     fn into(self) -> String {
         match self {
             Self::Correction => "01",
@@ -73,11 +120,11 @@ impl Into<String> for CorrectionDivision {
         .to_string()
     }
 }
-impl From<&str> for CorrectionDivision {
-    fn from(s: &str) -> CorrectionDivision {
+impl From<&str> for CorrectionClass {
+    fn from(s: &str) -> CorrectionClass {
         match s {
-            "01" => CorrectionDivision::Correction,
-            "02" => CorrectionDivision::Cancel,
+            "01" => CorrectionClass::Correction,
+            "02" => CorrectionClass::Cancel,
             _ => todo!(),
         }
     }
@@ -87,6 +134,16 @@ impl From<&str> for CorrectionDivision {
 pub enum Direction {
     Bid, // buy
     Ask, // sell
+}
+
+impl From<&str> for Direction {
+    fn from(direction: &str) -> Self {
+        match direction {
+            "01" => Self::Ask,
+            "02" => Self::Bid,
+            _ => unreachable!(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -146,6 +203,8 @@ pub enum TrId {
     // Market data
     RealtimeExec,
     RealtimeOrdb,
+    RealRealtimeMyExec,
+    VirtualRealtimeMyExec,
     // PingPong
     PingPong,
 }
@@ -163,6 +222,8 @@ impl Into<String> for TrId {
             // Market data
             TrId::RealtimeExec => "H0STCNT0",
             TrId::RealtimeOrdb => "H0STASP0",
+            TrId::RealRealtimeMyExec => "H0STCNI0",
+            TrId::VirtualRealtimeMyExec => "H0STCNI9",
             // PingPong
             TrId::PingPong => "PINGPONG",
         }
@@ -184,6 +245,8 @@ impl From<&str> for TrId {
             // Market data
             "H0STCNT0" => TrId::RealtimeExec,
             "H0STASP0" => TrId::RealtimeOrdb,
+            "H0STCNI0" => TrId::RealRealtimeMyExec,
+            "H0STCNI9" => TrId::VirtualRealtimeMyExec,
             // PingPong
             "PINGPONG" => TrId::PingPong,
             _ => todo!(),

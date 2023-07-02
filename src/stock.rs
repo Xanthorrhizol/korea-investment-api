@@ -1,5 +1,5 @@
 use crate::types::{
-    request, response, CorrectionDivision, Direction, OrderDivision, Price, Quantity, TrId,
+    request, response, CorrectionClass, Direction, OrderClass, Price, Quantity, TrId,
 };
 use crate::{auth, Account, Environment, Error};
 
@@ -42,7 +42,7 @@ impl Korea {
     /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_aade4c72-5fb7-418a-9ff2-254b4d5f0ceb)
     pub async fn order_cash(
         &self,
-        order_division: OrderDivision,
+        order_division: OrderClass,
         order_direction: Direction,
         pdno: String,
         qty: Quantity,
@@ -61,7 +61,7 @@ impl Korea {
     }
     pub async fn order_cash_wo_hash(
         &self,
-        order_division: OrderDivision,
+        order_division: OrderClass,
         order_direction: Direction,
         pdno: String,
         qty: Quantity,
@@ -113,7 +113,7 @@ impl Korea {
     }
     pub async fn order_cash_w_hash(
         &self,
-        order_division: OrderDivision,
+        order_division: OrderClass,
         order_direction: Direction,
         pdno: String,
         qty: Quantity,
@@ -173,10 +173,10 @@ impl Korea {
     /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_4bfdfb2b-34a7-43f6-935a-e637724f960a)
     pub async fn correct(
         &self,
-        order_division: OrderDivision,
+        order_division: OrderClass,
         krx_fwdg_ord_orgno: String,
         orgn_odno: String,
-        rvse_cncl_dvsn_cd: CorrectionDivision,
+        rvse_cncl_dvsn_cd: CorrectionClass,
         qty_all_ord_yn: bool,
         qty: Quantity,
         price: Price,
@@ -210,10 +210,10 @@ impl Korea {
     }
     pub async fn correct_wo_hash(
         &self,
-        order_division: OrderDivision,
+        order_division: OrderClass,
         krx_fwdg_ord_orgno: String,
         orgn_odno: String,
-        rvse_cncl_dvsn_cd: CorrectionDivision,
+        rvse_cncl_dvsn_cd: CorrectionClass,
         qty_all_ord_yn: bool,
         qty: Quantity,
         price: Price,
@@ -261,10 +261,10 @@ impl Korea {
     }
     pub async fn correct_w_hash(
         &self,
-        order_division: OrderDivision,
+        order_division: OrderClass,
         krx_fwdg_ord_orgno: String,
         orgn_odno: String,
-        rvse_cncl_dvsn_cd: CorrectionDivision,
+        rvse_cncl_dvsn_cd: CorrectionClass,
         qty_all_ord_yn: bool,
         qty: Quantity,
         price: Price,

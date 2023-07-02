@@ -4,6 +4,11 @@ mod stock;
 pub mod types;
 pub(crate) mod util;
 
+#[macro_use]
+extern crate log;
+
+pub const BUF_SIZE: usize = 4096;
+
 /// 투자환경
 /// 실전투자: Real
 /// 모의투자: Virtual
@@ -77,6 +82,8 @@ pub enum Error {
     ParseIntError(#[from] std::num::ParseIntError),
     #[error(transparent)]
     ParseFloatError(#[from] std::num::ParseFloatError),
+    #[error(transparent)]
+    Base64DecodeError(#[from] base64::DecodeError),
 
     // custom
     #[error("Auth init failed - None value in {0}")]
@@ -87,4 +94,8 @@ pub enum Error {
     InvalidData,
     #[error("Wrong TrId: {0:?}. Expect {1}")]
     WrongTrId(crate::types::TrId, &'static str),
+    #[error("AES cipher length error")]
+    AesInvalidLength,
+    #[error("AES decrypt error: {0}")]
+    AesDecryptError(String),
 }

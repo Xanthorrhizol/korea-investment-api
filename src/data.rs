@@ -1,10 +1,11 @@
-use crate::types::{CustomerType, Exec, Ordb, Subscribe, SubscribeResult, TrId};
+use crate::types::{CustomerType, Exec, MyExec, Ordb, Subscribe, SubscribeResult, TrId};
 use crate::{auth, Account, Environment, Error};
 use websocket::{Message, OwnedMessage};
 
 pub struct KoreaStockData {
     exec_conn: websocket::client::sync::Client<std::net::TcpStream>,
     ordb_conn: websocket::client::sync::Client<std::net::TcpStream>,
+    my_exec_conn: websocket::client::sync::Client<std::net::TcpStream>,
     endpoint_url: String,
     environment: Environment,
     auth: auth::Auth,
@@ -29,19 +30,29 @@ impl KoreaStockData {
         let mut exec_client = websocket::ClientBuilder::new(&format!(
             "{}/tryitout/{}",
             endpoint_url,
-            Into::<String>::into(TrId::RealtimeExec)
+            Into::<String>::into(TrId::RealtimeExec),
         ))?;
         let mut ordb_client = websocket::ClientBuilder::new(&format!(
             "{}/tryitout/{}",
             endpoint_url,
-            Into::<String>::into(TrId::RealtimeOrdb)
+            Into::<String>::into(TrId::RealtimeOrdb),
+        ))?;
+        let mut my_exec_client = websocket::ClientBuilder::new(&format!(
+            "{}/tryitout/{}",
+            endpoint_url,
+            Into::<String>::into(match environment {
+                Environment::Real => TrId::RealRealtimeMyExec,
+                Environment::Virtual => TrId::VirtualRealtimeMyExec,
+            })
         ))?;
         let exec_conn = exec_client.connect_insecure().unwrap();
         let ordb_conn = ordb_client.connect_insecure().unwrap();
+        let my_exec_conn = my_exec_client.connect_insecure().unwrap();
 
         Ok(Self {
             exec_conn,
             ordb_conn,
+            my_exec_conn,
             endpoint_url,
             environment,
             auth,
@@ -70,6 +81,13 @@ impl KoreaStockData {
             self.exec_conn.recv_message()
         } else if tr_id == TrId::RealtimeOrdb {
             self.ordb_conn.recv_message()
+        } else if tr_id
+            == match self.environment {
+                Environment::Real => TrId::RealRealtimeMyExec,
+                Environment::Virtual => TrId::VirtualRealtimeMyExec,
+            }
+        {
+            self.my_exec_conn.recv_message()
         } else {
             Err(Error::WrongTrId(tr_id, "RealtimeExec, RealtimeOrdb"))?
         } {
@@ -154,6 +172,25 @@ impl KoreaStockData {
         }
     }
 
-    // TODO: 국내주식 실시간체결통보[실시간-005]
-    // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_1e3c056d-1b42-461c-b8fb-631bb48e1ee2)
+    /// 국내주식 실시간체결통보[실시간-005]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_1e3c056d-1b42-461c-b8fb-631bb48e1ee2)
+    pub fn my_exec_recv(&mut self, iv: String, key: String) -> Result<MyExec, Error> {
+        if let Ok(msg) = self.my_exec_conn.recv_message() {
+            let tmp_msg = msg.clone();
+            match msg {
+                OwnedMessage::Text(s) => {
+                    let my_exec = MyExec::parse(s, iv, key)?;
+                    if my_exec.header().tr_id() == &TrId::PingPong {
+                        let _ = self.my_exec_conn.send_message(&tmp_msg);
+                    }
+                    Ok(my_exec)
+                }
+                _ => {
+                    return Err(Error::InvalidData);
+                }
+            }
+        } else {
+            Err(Error::InvalidData)
+        }
+    }
 }

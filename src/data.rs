@@ -11,6 +11,7 @@ pub struct KoreaStockData {
     auth: auth::Auth,
     account: Account,
     usehash: bool,
+    hts_id: String,
 }
 
 impl KoreaStockData {
@@ -21,6 +22,7 @@ impl KoreaStockData {
         auth: auth::Auth,
         account: Account,
         usehash: bool,
+        hts_id: String,
     ) -> Result<Self, Error> {
         let endpoint_url = match environment {
             Environment::Real => "ws://ops.koreainvestment.com:21000",
@@ -58,10 +60,15 @@ impl KoreaStockData {
             auth,
             account,
             usehash,
+            hts_id,
         })
     }
 
-    pub fn subscribe(&mut self, isin: String, tr_id: TrId) -> Result<SubscribeResult, Error> {
+    pub fn subscribe_market(
+        &mut self,
+        isin: String,
+        tr_id: TrId,
+    ) -> Result<SubscribeResult, Error> {
         let app_key = self.auth.get_appkey();
         let app_secret = self.auth.get_appsecret();
         let personalseckey = self.auth.get_approval_key().unwrap();
@@ -81,16 +88,68 @@ impl KoreaStockData {
             self.exec_conn.recv_message()
         } else if tr_id == TrId::RealtimeOrdb {
             self.ordb_conn.recv_message()
-        } else if tr_id
-            == match self.environment {
-                Environment::Real => TrId::RealRealtimeMyExec,
-                Environment::Virtual => TrId::VirtualRealtimeMyExec,
-            }
-        {
-            self.my_exec_conn.recv_message()
         } else {
             Err(Error::WrongTrId(tr_id, "RealtimeExec, RealtimeOrdb"))?
         } {
+            match msg {
+                OwnedMessage::Text(s) => {
+                    let json_value = json::parse(&s)?;
+                    match json_value {
+                        json::JsonValue::Object(obj) => {
+                            if let Some(v) = obj.get("body") {
+                                match v {
+                                    json::JsonValue::Object(o) => {
+                                        if let Some(s) = o.get("msg1") {
+                                            let s = s.to_string();
+                                            if &s == "SUBSCRIBE SUCCESS" {
+                                                result.set_success(true);
+                                            }
+                                            result.set_msg(s);
+                                        }
+                                        if let Some(json::JsonValue::Object(o)) = o.get("output") {
+                                            if let Some(s) = o.get("iv") {
+                                                result.set_iv(Some(s.to_string()));
+                                            }
+                                            if let Some(s) = o.get("key") {
+                                                result.set_key(Some(s.to_string()));
+                                            }
+                                        }
+                                    }
+                                    _ => {}
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                _ => {}
+            }
+        }
+        Ok(result)
+    }
+
+    pub fn subscribe_my_exec(&mut self, isin: String) -> Result<SubscribeResult, Error> {
+        let app_key = self.auth.get_appkey();
+        let app_secret = self.auth.get_appsecret();
+        let personalseckey = self.auth.get_approval_key().unwrap();
+        let tr_id = match self.environment {
+            Environment::Real => TrId::RealRealtimeMyExec,
+            Environment::Virtual => TrId::VirtualRealtimeMyExec,
+        };
+        let msg = Subscribe::new(
+            app_key,
+            app_secret,
+            personalseckey,
+            CustomerType::Personal,
+            self.hts_id.clone(),
+            tr_id.clone(),
+        )
+        .get_json_string();
+        let msg = Message::text(msg);
+        let _ = self.exec_conn.send_message(&msg);
+        let mut result = SubscribeResult::new(false, "".to_string(), None, None);
+
+        if let Ok(msg) = self.my_exec_conn.recv_message() {
             match msg {
                 OwnedMessage::Text(s) => {
                     let json_value = json::parse(&s)?;

@@ -95,7 +95,7 @@ impl Subscribe {
         appsecret: String,
         personalseckey: String,
         custtype: CustomerType,
-        isin: String,
+        tr_key: String,
         tr_id: TrId,
     ) -> Self {
         Self {
@@ -106,10 +106,7 @@ impl Subscribe {
                 custtype,
                 tr_type: TrType::Register,
             },
-            body: Body {
-                tr_id,
-                tr_key: isin,
-            },
+            body: Body { tr_id, tr_key },
         }
     }
 

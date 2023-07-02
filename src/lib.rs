@@ -42,6 +42,7 @@ impl KoreaInvestmentApi {
         appsecret: String,
         account: Account,
         usehash: bool,
+        hts_id: String,
     ) -> Result<KoreaInvestmentApi, Error> {
         let client = reqwest::Client::new();
         let mut auth = auth::Auth::new(&client, acc.clone(), appkey, appsecret);
@@ -50,7 +51,7 @@ impl KoreaInvestmentApi {
         let stock =
             stock::Korea::new(&client, acc.clone(), auth.clone(), account.clone(), usehash)?;
         let k_data =
-            data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), usehash)?;
+            data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), usehash, hts_id)?;
         Ok(Self {
             client,
             auth,

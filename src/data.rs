@@ -128,7 +128,7 @@ impl KoreaStockData {
         Ok(result)
     }
 
-    pub fn subscribe_my_exec(&mut self, isin: String) -> Result<SubscribeResult, Error> {
+    pub fn subscribe_my_exec(&mut self) -> Result<SubscribeResult, Error> {
         let app_key = self.auth.get_appkey();
         let app_secret = self.auth.get_appsecret();
         let personalseckey = self.auth.get_approval_key().unwrap();

@@ -146,7 +146,7 @@ impl KoreaStockData {
         )
         .get_json_string();
         let msg = Message::text(msg);
-        let _ = self.exec_conn.send_message(&msg);
+        let _ = self.my_exec_conn.send_message(&msg);
         let mut result = SubscribeResult::new(false, "".to_string(), None, None);
 
         if let Ok(msg) = self.my_exec_conn.recv_message() {

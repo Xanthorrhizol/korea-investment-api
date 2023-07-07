@@ -41,28 +41,28 @@ impl Ordb {
                 let ask_price = {
                     let mut result = [0u32; 10];
                     for i in 3..13 {
-                        result[i] = splits[i].parse()?;
+                        result[i - 3] = splits[i].parse()?;
                     }
                     result
                 };
                 let bid_price = {
                     let mut result = [0u32; 10];
                     for i in 13..23 {
-                        result[i] = splits[i].parse()?;
+                        result[i - 13] = splits[i].parse()?;
                     }
                     result
                 };
                 let ask_remained = {
                     let mut result = [0u64; 10];
                     for i in 23..33 {
-                        result[i] = splits[i].parse()?;
+                        result[i - 23] = splits[i].parse()?;
                     }
                     result
                 };
                 let bid_remained = {
                     let mut result = [0u64; 10];
                     for i in 33..43 {
-                        result[i] = splits[i].parse()?;
+                        result[i - 33] = splits[i].parse()?;
                     }
                     result
                 };

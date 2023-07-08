@@ -13,4 +13,7 @@ impl Time {
             LocalResult::Ambiguous(_, _) => Err(Error::InvalidData),
         }
     }
+    pub fn inner(&self) -> DateTime<chrono_tz::Tz> {
+        self.0.clone()
+    }
 }

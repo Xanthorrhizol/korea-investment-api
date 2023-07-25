@@ -83,7 +83,7 @@ pub mod Body {
         }
         pub fn get_json_string(self) -> String {
             format!(
-            "{{\"CANO\":\"{}\",\"ACNT_PRDT_CD\":\"{}\",\"PDNO\":\"{}\",\"ORD_DVSN\":\"{}\",\"ORD_QTY\":\"{}\", \"ORD_UNPR\":\"{}\"}}", self.CANO, self.ACNT_PRDT_CD, self.PDNO, Into::<String>::into(self.ORD_DVSN), Into::<String>::into(self.ORD_QTY), Into::<String>::into(self.ORD_UNPR))
+            "{{\"CANO\":\"{}\",\"ACNT_PRDT_CD\":\"{}\",\"PDNO\":\"{}\",\"ORD_DVSN\":\"{}\",\"ORD_QTY\":\"{}\",\"ORD_UNPR\":\"{}\"}}", self.CANO, self.ACNT_PRDT_CD, self.PDNO, Into::<String>::into(self.ORD_DVSN), Into::<String>::into(self.ORD_QTY), Into::<String>::into(self.ORD_UNPR))
         }
     }
 

@@ -10,7 +10,6 @@ pub struct Korea {
     environment: Environment,
     auth: auth::Auth,
     account: Account,
-    usehash: bool,
 }
 
 impl Korea {
@@ -21,7 +20,6 @@ impl Korea {
         environment: Environment,
         auth: auth::Auth,
         account: Account,
-        usehash: bool,
     ) -> Result<Self, Error> {
         let endpoint_url = match environment {
             Environment::Real => "https://openapi.koreainvestment.com:9443",
@@ -34,84 +32,12 @@ impl Korea {
             environment,
             auth,
             account,
-            usehash,
         })
     }
 
     /// 주식주문(현금)[v1_국내주식-001]
     /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_aade4c72-5fb7-418a-9ff2-254b4d5f0ceb)
     pub async fn order_cash(
-        &self,
-        order_division: OrderClass,
-        order_direction: Direction,
-        pdno: String,
-        qty: Quantity,
-        price: Price,
-    ) -> Result<response::stock::Body::Order, Error> {
-        match self.usehash {
-            true => {
-                self.order_cash_w_hash(order_division, order_direction, pdno, qty, price)
-                    .await
-            }
-            false => {
-                self.order_cash_wo_hash(order_division, order_direction, pdno, qty, price)
-                    .await
-            }
-        }
-    }
-    pub async fn order_cash_wo_hash(
-        &self,
-        order_division: OrderClass,
-        order_direction: Direction,
-        pdno: String,
-        qty: Quantity,
-        price: Price,
-    ) -> Result<response::stock::Body::Order, Error> {
-        let request = request::stock::Body::Order::new(
-            self.account.cano.clone(),
-            self.account.acnt_prdt_cd.clone(),
-            pdno,
-            order_division,
-            qty,
-            price,
-        )
-        .get_json_string();
-        let tr_id: String = match self.environment {
-            Environment::Real => match order_direction {
-                Direction::Bid => TrId::RealStockCashBidOrder.into(),
-                Direction::Ask => TrId::RealStockCashAskOrder.into(),
-            },
-            Environment::Virtual => match order_direction {
-                Direction::Bid => TrId::VirtualStockCashBidOrder.into(),
-                Direction::Ask => TrId::VirtualStockCashAskOrder.into(),
-            },
-        };
-        Ok(self
-            .client
-            .post(format!(
-                "{}/uapi/domestic-stock/v1/trading/order-cash",
-                self.endpoint_url
-            ))
-            .header("Content-Type", "application/json")
-            .header(
-                "Authorization",
-                match self.auth.get_token() {
-                    Some(token) => token,
-                    None => {
-                        return Err(Error::AuthInitFailed("token"));
-                    }
-                },
-            )
-            .header("appkey", self.auth.get_appkey())
-            .header("appsecret", self.auth.get_appsecret())
-            .header("tr_id", tr_id)
-            .body(request)
-            .send()
-            .await?
-            .json::<response::stock::Body::Order>()
-            .await?)
-    }
-    pub async fn order_cash_w_hash(
         &self,
         order_division: OrderClass,
         order_direction: Direction,
@@ -149,7 +75,7 @@ impl Korea {
             .header(
                 "Authorization",
                 match self.auth.get_token() {
-                    Some(token) => token,
+                    Some(token) => format!("Bearer {}", token),
                     None => {
                         return Err(Error::AuthInitFailed("token"));
                     }
@@ -159,6 +85,7 @@ impl Korea {
             .header("appsecret", self.auth.get_appsecret())
             .header("tr_id", tr_id)
             .header("hashkey", hash)
+            .header("custtype", "P")
             .body(request)
             .send()
             .await?
@@ -169,97 +96,9 @@ impl Korea {
     // TODO: 주식주문(신용)[v1_국내주식-002]
     // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_f5769e4a-24d5-44f9-a2d8-232d45abf988)
 
-    /// 주식주문(정정취소)[v1_국내주식-003]
+    /// 주식주문(정정취소)[v1_국내주식-003] TODO: test
     /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_4bfdfb2b-34a7-43f6-935a-e637724f960a)
     pub async fn correct(
-        &self,
-        order_division: OrderClass,
-        krx_fwdg_ord_orgno: String,
-        orgn_odno: String,
-        rvse_cncl_dvsn_cd: CorrectionClass,
-        qty_all_ord_yn: bool,
-        qty: Quantity,
-        price: Price,
-    ) -> Result<response::stock::Body::Order, Error> {
-        match self.usehash {
-            true => {
-                self.correct_w_hash(
-                    order_division,
-                    krx_fwdg_ord_orgno,
-                    orgn_odno,
-                    rvse_cncl_dvsn_cd,
-                    qty_all_ord_yn,
-                    qty,
-                    price,
-                )
-                .await
-            }
-            false => {
-                self.correct_wo_hash(
-                    order_division,
-                    krx_fwdg_ord_orgno,
-                    orgn_odno,
-                    rvse_cncl_dvsn_cd,
-                    qty_all_ord_yn,
-                    qty,
-                    price,
-                )
-                .await
-            }
-        }
-    }
-    pub async fn correct_wo_hash(
-        &self,
-        order_division: OrderClass,
-        krx_fwdg_ord_orgno: String,
-        orgn_odno: String,
-        rvse_cncl_dvsn_cd: CorrectionClass,
-        qty_all_ord_yn: bool,
-        qty: Quantity,
-        price: Price,
-    ) -> Result<response::stock::Body::Order, Error> {
-        let request = request::stock::Body::Correction::new(
-            self.account.cano.clone(),
-            self.account.acnt_prdt_cd.clone(),
-            krx_fwdg_ord_orgno,
-            orgn_odno,
-            order_division,
-            rvse_cncl_dvsn_cd,
-            qty,
-            price,
-            qty_all_ord_yn,
-        )
-        .get_json_string();
-        let tr_id: String = match self.environment {
-            Environment::Real => TrId::RealStockCorrection.into(),
-            Environment::Virtual => TrId::VirtualStockCorrection.into(),
-        };
-        Ok(self
-            .client
-            .post(format!(
-                "{}/uapi/domestic-stock/v1/trading/order-rvsecncl",
-                self.endpoint_url
-            ))
-            .header("Content-Type", "application/json")
-            .header(
-                "Authorization",
-                match self.auth.get_token() {
-                    Some(token) => token,
-                    None => {
-                        return Err(Error::AuthInitFailed("token"));
-                    }
-                },
-            )
-            .header("appkey", self.auth.get_appkey())
-            .header("appsecret", self.auth.get_appsecret())
-            .header("tr_id", tr_id)
-            .body(request)
-            .send()
-            .await?
-            .json::<response::stock::Body::Order>()
-            .await?)
-    }
-    pub async fn correct_w_hash(
         &self,
         order_division: OrderClass,
         krx_fwdg_ord_orgno: String,

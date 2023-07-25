@@ -32,7 +32,6 @@ pub struct KoreaInvestmentApi {
     pub auth: auth::Auth,
     pub stock: stock::Korea,
     pub k_data: data::KoreaStockData,
-    usehash: bool,
 }
 
 impl KoreaInvestmentApi {
@@ -41,23 +40,19 @@ impl KoreaInvestmentApi {
         appkey: String,
         appsecret: String,
         account: Account,
-        usehash: bool,
         hts_id: String,
     ) -> Result<KoreaInvestmentApi, Error> {
         let client = reqwest::Client::new();
         let mut auth = auth::Auth::new(&client, acc.clone(), appkey, appsecret);
         auth.create_token().await?;
         auth.create_approval_key().await?;
-        let stock =
-            stock::Korea::new(&client, acc.clone(), auth.clone(), account.clone(), usehash)?;
-        let k_data =
-            data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), usehash, hts_id)?;
+        let stock = stock::Korea::new(&client, acc.clone(), auth.clone(), account.clone())?;
+        let k_data = data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), hts_id)?;
         Ok(Self {
             client,
             auth,
             stock,
             k_data,
-            usehash,
         })
     }
 }

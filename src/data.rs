@@ -10,7 +10,6 @@ pub struct KoreaStockData {
     environment: Environment,
     auth: auth::Auth,
     account: Account,
-    usehash: bool,
     hts_id: String,
 }
 
@@ -21,7 +20,6 @@ impl KoreaStockData {
         environment: Environment,
         auth: auth::Auth,
         account: Account,
-        usehash: bool,
         hts_id: String,
     ) -> Result<Self, Error> {
         let endpoint_url = match environment {
@@ -59,7 +57,6 @@ impl KoreaStockData {
             environment,
             auth,
             account,
-            usehash,
             hts_id,
         })
     }

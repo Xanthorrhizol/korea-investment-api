@@ -17,10 +17,10 @@ pub mod Body {
     /// 주식주문(현금, 신용, 정정취소)
     #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
     pub struct Order {
-        tr_cd: String,         // 0: 성공, 0 이외의 값: 실패
-        msg_cd: String,        // 응답코드
-        msg1: String,          // 응답메시지
-        output: Output::Order, // 응답 상세
+        rt_cd: String,                 // 0: 성공, 0 이외의 값: 실패
+        msg_cd: String,                // 응답코드
+        msg1: String,                  // 응답메시지
+        output: Option<Output::Order>, // 응답 상세
     }
 
     /// 주식정정취소가능주문조회

@@ -17,7 +17,6 @@ pub mod Body {
     /// Hashkey
     #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
     pub struct HashKey {
-        JsonBody: String,
         HASH: String,
     }
     impl HashKey {

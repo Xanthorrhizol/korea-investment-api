@@ -17,8 +17,8 @@ pub use time::Time;
 
 pub fn parse_bool(s: &str) -> bool {
     match s.to_ascii_uppercase().as_str() {
-        "TRUE" | "T" | "Y" => true,
-        "FALSE" | "F" | "N" => false,
+        "1" | "TRUE" | "T" | "Y" => true,
+        "0" | "FALSE" | "F" | "N" => false,
         _ => false,
     }
 }
@@ -108,12 +108,14 @@ impl From<&str> for OrderClass {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum CorrectionClass {
+    None,
     Correction,
     Cancel,
 }
 impl Into<String> for CorrectionClass {
     fn into(self) -> String {
         match self {
+            Self::None => "0",
             Self::Correction => "01",
             Self::Cancel => "02",
         }
@@ -123,6 +125,7 @@ impl Into<String> for CorrectionClass {
 impl From<&str> for CorrectionClass {
     fn from(s: &str) -> CorrectionClass {
         match s {
+            "0" => CorrectionClass::None,
             "01" => CorrectionClass::Correction,
             "02" => CorrectionClass::Cancel,
             _ => todo!(),

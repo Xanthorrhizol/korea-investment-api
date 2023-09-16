@@ -18,6 +18,15 @@ pub enum Environment {
     Virtual,
 }
 
+impl std::fmt::Display for Environment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.write_str(match self {
+            Self::Real => "Real",
+            Self::Virtual => "Virtual",
+        })
+    }
+}
+
 /// 계좌
 /// cano: CANO(계좌번호 체계(8-2)의 앞 8자리)
 /// acnt_prdt_cd: ACNT_PRDT_CD(계좌번호 체계(8-2)의 뒤 2자리)
@@ -43,11 +52,18 @@ impl KoreaInvestmentApi {
         hts_id: String,
     ) -> Result<KoreaInvestmentApi, Error> {
         let client = reqwest::Client::new();
+        info!(
+            "Authorizing: environment={}, appkey={}, appsecret={}",
+            &acc, &appkey, &appsecret
+        );
         let mut auth = auth::Auth::new(&client, acc.clone(), appkey, appsecret);
         auth.create_token().await?;
+        debug!("token: {:?}", auth.get_token());
         auth.create_approval_key().await?;
+        debug!("approval_key: {:?}", auth.get_approval_key());
         let stock = stock::Korea::new(&client, acc.clone(), auth.clone(), account.clone())?;
         let k_data = data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), hts_id)?;
+        info!("API Ready");
         Ok(Self {
             client,
             auth,

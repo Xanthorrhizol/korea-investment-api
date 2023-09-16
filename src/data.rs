@@ -1,4 +1,4 @@
-use crate::types::{CustomerType, Exec, MyExec, Ordb, Subscribe, SubscribeResult, TrId};
+use crate::types::{CustomerType, Exec, MyExec, Ordb, SubscribeRequest, SubscribeResponse, TrId};
 use crate::{auth, Account, Environment, Error};
 use websocket::{Message, OwnedMessage};
 
@@ -65,11 +65,11 @@ impl KoreaStockData {
         &mut self,
         isin: String,
         tr_id: TrId,
-    ) -> Result<SubscribeResult, Error> {
+    ) -> Result<SubscribeResponse, Error> {
         let app_key = self.auth.get_appkey();
         let app_secret = self.auth.get_appsecret();
         let personalseckey = self.auth.get_approval_key().unwrap();
-        let msg = Subscribe::new(
+        let msg = SubscribeRequest::new(
             app_key,
             app_secret,
             personalseckey,
@@ -79,7 +79,7 @@ impl KoreaStockData {
         )
         .get_json_string();
         let msg = Message::text(msg);
-        let mut result = SubscribeResult::new(false, "".to_string(), None, None);
+        let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
         loop {
             if let Ok(msg) = if tr_id == TrId::RealtimeExec {
                 let _ = self.exec_conn.send_message(&msg);
@@ -140,7 +140,7 @@ impl KoreaStockData {
         Ok(result)
     }
 
-    pub fn subscribe_my_exec(&mut self) -> Result<SubscribeResult, Error> {
+    pub fn subscribe_my_exec(&mut self) -> Result<SubscribeResponse, Error> {
         let app_key = self.auth.get_appkey();
         let app_secret = self.auth.get_appsecret();
         let personalseckey = self.auth.get_approval_key().unwrap();
@@ -148,7 +148,7 @@ impl KoreaStockData {
             Environment::Real => TrId::RealRealtimeMyExec,
             Environment::Virtual => TrId::VirtualRealtimeMyExec,
         };
-        let msg = Subscribe::new(
+        let msg = SubscribeRequest::new(
             app_key,
             app_secret,
             personalseckey,
@@ -159,7 +159,7 @@ impl KoreaStockData {
         .get_json_string();
         let msg = Message::text(msg);
         let _ = self.my_exec_conn.send_message(&msg);
-        let mut result = SubscribeResult::new(false, "".to_string(), None, None);
+        let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
 
         loop {
             if let Ok(msg) = self.my_exec_conn.recv_message() {

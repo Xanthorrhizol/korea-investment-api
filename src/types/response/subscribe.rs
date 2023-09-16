@@ -1,14 +1,15 @@
 use crate::types::{CustomerType, TrId};
+use serde::Deserialize;
 
-#[derive(Debug, Clone)]
-pub struct SubscribeResult {
+#[derive(Debug, Clone, Deserialize)]
+pub struct SubscribeResponse {
     success: bool,
     msg: String,
     iv: Option<String>,
     key: Option<String>,
 }
 
-impl SubscribeResult {
+impl SubscribeResponse {
     pub fn new(success: bool, msg: String, iv: Option<String>, key: Option<String>) -> Self {
         Self {
             success,

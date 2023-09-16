@@ -4,15 +4,15 @@ mod my_exec;
 mod ordb;
 pub mod request;
 pub mod response;
-mod subscribe;
 mod time;
 
 pub(crate) use crypto::Aes256CbcDec;
 pub use exec::Exec;
 pub use my_exec::MyExec;
 pub use ordb::Ordb;
+pub use request::subscribe::SubscribeRequest;
+pub use response::subscribe::SubscribeResponse;
 use serde::{Deserialize, Serialize};
-pub use subscribe::{Subscribe, SubscribeResult};
 pub use time::Time;
 
 pub fn parse_bool(s: &str) -> bool {
@@ -196,19 +196,30 @@ impl From<&str> for Price {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum TrId {
     // Order
+    #[serde(rename = "TTTC0802U")]
     RealStockCashBidOrder,
+    #[serde(rename = "TTTC0801U")]
     RealStockCashAskOrder,
+    #[serde(rename = "VTTC0802U")]
     VirtualStockCashBidOrder,
+    #[serde(rename = "VTTC0801U")]
     VirtualStockCashAskOrder,
     // Correction
+    #[serde(rename = "TTTC0803U")]
     RealStockCorrection,
+    #[serde(rename = "VTTC0803U")]
     VirtualStockCorrection,
     // Market data
+    #[serde(rename = "H0STCNT0")]
     RealtimeExec,
+    #[serde(rename = "H0STASP0")]
     RealtimeOrdb,
+    #[serde(rename = "H0STCNI0")]
     RealRealtimeMyExec,
+    #[serde(rename = "H0STCNI9")]
     VirtualRealtimeMyExec,
     // PingPong
+    #[serde(rename = "PINGPONG")]
     PingPong,
 }
 impl Into<String> for TrId {
@@ -259,7 +270,9 @@ impl From<&str> for TrId {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum CustomerType {
+    #[serde(rename = "B")]
     Business,
+    #[serde(rename = "P")]
     Personal,
 }
 impl Into<String> for CustomerType {

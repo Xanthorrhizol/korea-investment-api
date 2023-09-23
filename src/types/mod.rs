@@ -303,12 +303,17 @@ impl From<&str> for ExecClass {
 }
 
 /// 대비구분
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize)]
 pub enum VsPriceSign {
+    #[serde(rename = "1")]
     UpperLimit, // 상한(1)
-    Increase,   // 상승(2)
-    Steady,     // 보합(3)
-    Decrease,   // 하락(4)
+    #[serde(rename = "2")]
+    Increase, // 상승(2)
+    #[serde(rename = "3")]
+    Steady, // 보합(3)
+    #[serde(rename = "4")]
+    Decrease, // 하락(4)
+    #[serde(rename = "5")]
     LowerLimit, // 하한(5)
 }
 
@@ -431,4 +436,40 @@ pub enum What {
     Basket,    // 바스켓(3)
     Clearance, // 정리매매(7)
     BuyIn,     // Buy-in(8)
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum MarketCode {
+    #[serde(rename = "J")]
+    Stock,
+    #[serde(rename = "ETF")]
+    Etf,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum PeriodCode {
+    #[serde(rename = "D")]
+    ThirtyDays,
+    #[serde(rename = "W")]
+    ThirtyWeeks,
+    #[serde(rename = "M")]
+    ThirtyMonths,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ExCode {
+    #[serde(rename = "01")]
+    ExRights,
+    #[serde(rename = "02")]
+    ExDividend,
+    #[serde(rename = "03")]
+    ExEtfDividend,
+    #[serde(rename = "04")]
+    ExRightsAndDividend,
+    #[serde(rename = "05")]
+    MidOrQtrExDividend,
+    #[serde(rename = "06")]
+    MidExRightsAndDividend,
+    #[serde(rename = "07")]
+    QtrExRightsAndDividend,
 }

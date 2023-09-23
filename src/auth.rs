@@ -1,4 +1,4 @@
-use crate::types::response;
+use crate::types::{request, response};
 use crate::{Environment, Error};
 use reqwest::header::{HeaderMap, HeaderValue};
 
@@ -67,10 +67,13 @@ impl Auth {
             .client
             .post(format!("{}/oauth2/Approval", self.endpoint_url))
             .header("Content-Type", "application/json")
-            .body(format!(
-                "{{\"grant_type\":\"client_credentials\",\"secretkey\":\"{}\",\"appkey\":\"{}\"}}",
-                self.appsecret, self.appkey
-            ))
+            .body(
+                serde_json::json!(request::auth::ApprovalKeyCreationBody::new(
+                    self.appsecret.clone(),
+                    self.appkey.clone(),
+                ))
+                .to_string(),
+            )
             .send()
             .await?
             .json::<response::auth::Body::ApprovalKeyCreation>()
@@ -112,10 +115,13 @@ impl Auth {
             .client
             .post(format!("{}/oauth2/tokenP", self.endpoint_url))
             .header("Content-Type", "application/json")
-            .body(format!(
-                "{{\"grant_type\":\"client_credentials\",\"appkey\":\"{}\",\"appsecret\":\"{}\"}}",
-                self.appkey, self.appsecret
-            ))
+            .body(
+                serde_json::json!(request::auth::TokenCreationBody::new(
+                    self.appkey.clone(),
+                    self.appsecret.clone(),
+                ))
+                .to_string(),
+            )
             .send()
             .await?
             .json::<response::auth::Body::TokenCreation>()
@@ -137,12 +143,19 @@ impl Auth {
             .client
             .post(format!("{}/oauth2/revokeP", &self.endpoint_url))
             .header("Content-Type", "application/json")
-            .body(format!(
-                "{{\"appkey\":\"{}\",\"appsecret\":\"{}\",\"token\":\"{}\"}}",
-                self.appkey,
-                self.appsecret,
-                self.token.clone().unwrap()
-            ))
+            .body(
+                serde_json::json!(request::auth::TokenRevokeBody::new(
+                    self.appkey.clone(),
+                    self.appsecret.clone(),
+                    match self.token.clone() {
+                        Some(token) => token,
+                        None => {
+                            return Err(Error::AuthInitFailed("token"));
+                        }
+                    }
+                ))
+                .to_string(),
+            )
             .send()
             .await?
             .json::<response::auth::Body::TokenRevoke>()

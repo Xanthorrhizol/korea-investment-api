@@ -1,6 +1,7 @@
 mod auth;
 mod data;
 mod order;
+mod quote;
 pub mod types;
 pub(crate) mod util;
 
@@ -40,6 +41,7 @@ pub struct KoreaInvestmentApi {
     client: reqwest::Client,
     pub auth: auth::Auth,
     pub order: order::Korea,
+    pub quote: quote::Quote,
     pub k_data: data::KoreaStockData,
 }
 
@@ -62,12 +64,14 @@ impl KoreaInvestmentApi {
         auth.create_approval_key().await?;
         debug!("approval_key: {:?}", auth.get_approval_key());
         let order = order::Korea::new(&client, acc.clone(), auth.clone(), account.clone())?;
+        let quote = quote::Quote::new(&client, acc.clone(), auth.clone(), account.clone())?;
         let k_data = data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), hts_id)?;
         info!("API Ready");
         Ok(Self {
             client,
             auth,
             order,
+            quote,
             k_data,
         })
     }
@@ -96,6 +100,8 @@ pub enum Error {
     ParseFloatError(#[from] std::num::ParseFloatError),
     #[error(transparent)]
     Base64DecodeError(#[from] base64::DecodeError),
+    #[error(transparent)]
+    UrlParseError(#[from] url::ParseError),
 
     // custom
     #[error("Auth init failed - None value in {0}")]

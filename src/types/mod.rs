@@ -8,6 +8,7 @@ pub(crate) use crypto::Aes256CbcDec;
 pub use request::subscribe::SubscribeRequest;
 pub use response::subscribe::SubscribeResponse;
 use serde::{Deserialize, Serialize};
+use serde_with::SerializeDisplay;
 pub use stream::exec::Exec;
 pub use stream::my_exec::MyExec;
 pub use stream::ordb::Ordb;
@@ -207,6 +208,9 @@ pub enum TrId {
     RealStockCorrection,
     #[serde(rename = "VTTC0803U")]
     VirtualStockCorrection,
+    // Quote
+    #[serde(rename = "FHKST01010400")]
+    DailyPrice,
     // Market data
     #[serde(rename = "H0STCNT0")]
     RealtimeExec,
@@ -231,6 +235,8 @@ impl Into<String> for TrId {
             // Correction
             TrId::RealStockCorrection => "TTTC0803U",
             TrId::VirtualStockCorrection => "VTTC0803U",
+            // Quote
+            TrId::DailyPrice => "FHKST01010400",
             // Market data
             TrId::RealtimeExec => "H0STCNT0",
             TrId::RealtimeOrdb => "H0STASP0",
@@ -254,6 +260,8 @@ impl From<&str> for TrId {
             // Correction
             "TTTC0803U" => TrId::RealStockCorrection,
             "VTTC0803U" => TrId::VirtualStockCorrection,
+            // Quote
+            "FHKST01010400" => TrId::DailyPrice,
             // Market data
             "H0STCNT0" => TrId::RealtimeExec,
             "H0STASP0" => TrId::RealtimeOrdb,
@@ -438,15 +446,23 @@ pub enum What {
     BuyIn,     // Buy-in(8)
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, SerializeDisplay)]
 pub enum MarketCode {
     #[serde(rename = "J")]
     Stock,
     #[serde(rename = "ETF")]
     Etf,
 }
+impl std::fmt::Display for MarketCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Stock => "J",
+            Self::Etf => "ETF",
+        })
+    }
+}
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, SerializeDisplay)]
 pub enum PeriodCode {
     #[serde(rename = "D")]
     ThirtyDays,
@@ -455,21 +471,43 @@ pub enum PeriodCode {
     #[serde(rename = "M")]
     ThirtyMonths,
 }
+impl std::fmt::Display for PeriodCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::ThirtyDays => "D",
+            Self::ThirtyWeeks => "W",
+            Self::ThirtyMonths => "M",
+        })
+    }
+}
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Deserialize, SerializeDisplay)]
 pub enum ExCode {
     #[serde(rename = "01")]
-    ExRights,
+    ExRights, // 권리락
     #[serde(rename = "02")]
-    ExDividend,
+    ExDividend, // 배당락
     #[serde(rename = "03")]
-    ExEtfDividend,
+    ExEtfDividend, // 분배락
     #[serde(rename = "04")]
-    ExRightsAndDividend,
+    ExRightsAndDividend, // 권배락
     #[serde(rename = "05")]
-    MidOrQtrExDividend,
+    MidOrQtrExDividend, // 중간(분기)배당락
     #[serde(rename = "06")]
-    MidExRightsAndDividend,
+    MidExRightsAndDividend, // 권리중간배당락
     #[serde(rename = "07")]
-    QtrExRightsAndDividend,
+    QtrExRightsAndDividend, // 권리분기배당락
+}
+impl std::fmt::Display for ExCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::ExRights => "01",
+            Self::ExDividend => "02",
+            Self::ExEtfDividend => "03",
+            Self::ExRightsAndDividend => "04",
+            Self::MidOrQtrExDividend => "05",
+            Self::MidExRightsAndDividend => "06",
+            Self::QtrExRightsAndDividend => "07",
+        })
+    }
 }

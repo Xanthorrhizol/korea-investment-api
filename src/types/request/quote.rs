@@ -50,4 +50,19 @@ impl DailyPriceParameter {
             },
         }
     }
+
+    pub fn into_iter(&self) -> [(&'static str, String); 4] {
+        [
+            (
+                "FID_COND_MRKT_DIV_CODE",
+                format!("{}", self.fid_cond_mrkt_div_code),
+            ),
+            ("FID_INPUT_ISCD", self.fid_input_iscd.clone()),
+            (
+                "FID_PERIOD_DIV_CODE",
+                format!("{}", self.fid_period_div_code),
+            ),
+            ("FID_ORG_ADJ_PRC", format!("{}", self.fid_org_adj_prc)),
+        ]
+    }
 }

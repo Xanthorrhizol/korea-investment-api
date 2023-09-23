@@ -1,6 +1,7 @@
 use getset::Getters;
+use serde::Deserialize;
 
-#[derive(Debug, Getters)]
+#[derive(Clone, Debug, Deserialize, Getters)]
 pub struct DailyPriceResponse {
     #[getset(get = "pub")]
     rt_cd: String, // 0: 성공, 0 이외의 값: 실패
@@ -17,7 +18,7 @@ pub mod output {
     use getset::Getters;
     use serde::Deserialize;
 
-    #[derive(Debug, Deserialize, Getters)]
+    #[derive(Clone, Debug, Deserialize, Getters)]
     pub struct DailyPrice {
         #[getset(get = "pub")]
         stck_bsop_date: String, // 주식 영업 일자

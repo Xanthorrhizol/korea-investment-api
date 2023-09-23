@@ -1,18 +1,16 @@
 mod crypto;
-mod exec;
-mod my_exec;
-mod ordb;
 pub mod request;
 pub mod response;
+pub mod stream;
 mod time;
 
 pub(crate) use crypto::Aes256CbcDec;
-pub use exec::Exec;
-pub use my_exec::MyExec;
-pub use ordb::Ordb;
 pub use request::subscribe::SubscribeRequest;
 pub use response::subscribe::SubscribeResponse;
 use serde::{Deserialize, Serialize};
+pub use stream::exec::Exec;
+pub use stream::my_exec::MyExec;
+pub use stream::ordb::Ordb;
 pub use time::Time;
 
 pub fn parse_bool(s: &str) -> bool {

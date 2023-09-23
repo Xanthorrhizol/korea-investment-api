@@ -44,8 +44,8 @@ impl Korea {
         pdno: String,
         qty: Quantity,
         price: Price,
-    ) -> Result<response::stock::Body::Order, Error> {
-        let request = request::stock::Body::Order::new(
+    ) -> Result<response::order::Body::Order, Error> {
+        let request = request::order::Body::Order::new(
             self.account.cano.clone(),
             self.account.acnt_prdt_cd.clone(),
             pdno,
@@ -89,7 +89,7 @@ impl Korea {
             .body(request)
             .send()
             .await?
-            .json::<response::stock::Body::Order>()
+            .json::<response::order::Body::Order>()
             .await?)
     }
 
@@ -107,8 +107,8 @@ impl Korea {
         qty_all_ord_yn: bool,
         qty: Quantity,
         price: Price,
-    ) -> Result<response::stock::Body::Order, Error> {
-        let request = request::stock::Body::Correction::new(
+    ) -> Result<response::order::Body::Order, Error> {
+        let request = request::order::Body::Correction::new(
             self.account.cano.clone(),
             self.account.acnt_prdt_cd.clone(),
             krx_fwdg_ord_orgno,
@@ -148,7 +148,7 @@ impl Korea {
             .body(request)
             .send()
             .await?
-            .json::<response::stock::Body::Order>()
+            .json::<response::order::Body::Order>()
             .await?)
     }
 

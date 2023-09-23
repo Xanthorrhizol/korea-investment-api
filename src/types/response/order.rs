@@ -40,10 +40,11 @@ pub mod Output {
 
     /// 주식주문(현금, 신용, 정정취소)
     #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[serde(rename_all = "UPPERCASE")]
     pub struct Order {
-        KRX_FWDG_ORD_ORGNO: String, // 주문시 한국투자증권 시스템에서 지정된 영업점코드
-        ODNO: String,               // 주문번호(주문시 한국투자증권 시스템에서 채번된 주문번호)
-        ORD_TMD: String,            // 주문시각(시분초HHMMSS)
+        krx_fwdg_ord_orgno: String, // 주문시 한국투자증권 시스템에서 지정된 영업점코드
+        odno: String,               // 주문번호(주문시 한국투자증권 시스템에서 채번된 주문번호)
+        ord_tmd: String,            // 주문시각(시분초HHMMSS)
     }
 
     /// 주식정정취소가능주문조회

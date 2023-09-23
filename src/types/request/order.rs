@@ -12,7 +12,7 @@ pub struct Header {
 }
 
 impl Header {
-    fn new(token: String, appkey: String, appsecret: String, tr_id: TrId) -> Self {
+    pub fn new(token: String, appkey: String, appsecret: String, tr_id: TrId) -> Self {
         Self {
             authorization: token,
             appkey,

@@ -117,8 +117,8 @@ impl Auth {
             .header("Content-Type", "application/json")
             .body(
                 serde_json::json!(request::auth::TokenCreationBody::new(
-                    self.appkey.clone(),
                     self.appsecret.clone(),
+                    self.appkey.clone(),
                 ))
                 .to_string(),
             )

@@ -16,7 +16,21 @@ impl ApprovalKeyCreationBody {
     }
 }
 
-pub type TokenCreationBody = ApprovalKeyCreationBody;
+#[derive(Debug, Serialize)]
+pub struct TokenCreationBody {
+    grant_type: String,
+    appsecret: String,
+    appkey: String,
+}
+impl TokenCreationBody {
+    pub fn new(appsecret: String, appkey: String) -> Self {
+        Self {
+            grant_type: "client_credentials".to_string(),
+            appsecret,
+            appkey,
+        }
+    }
+}
 
 #[derive(Debug, Serialize)]
 pub struct TokenRevokeBody {

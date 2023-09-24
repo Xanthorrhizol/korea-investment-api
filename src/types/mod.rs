@@ -483,6 +483,8 @@ impl std::fmt::Display for PeriodCode {
 
 #[derive(Clone, Debug, Deserialize, SerializeDisplay)]
 pub enum ExCode {
+    #[serde(rename = "00")]
+    None,
     #[serde(rename = "01")]
     ExRights, // 권리락
     #[serde(rename = "02")]
@@ -501,6 +503,7 @@ pub enum ExCode {
 impl std::fmt::Display for ExCode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.write_str(match self {
+            Self::None => "00",
             Self::ExRights => "01",
             Self::ExDividend => "02",
             Self::ExEtfDividend => "03",

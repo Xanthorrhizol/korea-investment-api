@@ -10,7 +10,7 @@ pub struct DailyPriceResponse {
     #[getset(get = "pub")]
     msg1: String, // 응답메시지
     #[getset(get = "pub")]
-    output: Option<output::DailyPrice>, // 응답 상세
+    output: Option<Vec<output::DailyPrice>>, // 응답 상세
 }
 
 pub mod output {

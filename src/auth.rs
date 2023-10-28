@@ -21,8 +21,8 @@ impl Auth {
     pub fn new(
         client: &reqwest::Client,
         environment: Environment,
-        appkey: String,
-        appsecret: String,
+        appkey: &str,
+        appsecret: &str,
     ) -> Self {
         let endpoint_url = match environment {
             Environment::Real => "https://openapi.koreainvestment.com:9443",
@@ -32,8 +32,8 @@ impl Auth {
         Self {
             client: client.clone(),
             endpoint_url,
-            appkey,
-            appsecret,
+            appkey: appkey.to_string(),
+            appsecret: appsecret.to_string(),
             token: None,
             approval_key: None,
         }

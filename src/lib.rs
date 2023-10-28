@@ -48,10 +48,10 @@ pub struct KoreaInvestmentApi {
 impl KoreaInvestmentApi {
     pub async fn new(
         acc: Environment,
-        appkey: String,
-        appsecret: String,
+        appkey: &str,
+        appsecret: &str,
         account: Account,
-        hts_id: String,
+        hts_id: &str,
     ) -> Result<KoreaInvestmentApi, Error> {
         let client = reqwest::Client::new();
         info!(

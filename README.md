@@ -33,10 +33,10 @@ async fn get_api() -> Result<KoreaInvestmentApi, Error> {
     };
     KoreaInvestmentApi::new(
         Environment::Virtual, // 실전투자: Real, 모의투자: Virtual
-        APPKEY.to_string(),
-        APPSECRET.to_string(),
+        APPKEY,
+        APPSECRET,
         account,
-        hts_id: HTS_ID.to_string(),
+        HTS_ID,
     ).await
 }
 ```
@@ -53,12 +53,12 @@ async fn main() {
     // 삼성전자 일자별 가격(단일 API 호출)
     let samsung_electronics_daily_prices = api.quote.daily_price(
         MarketCode::Stock, // 주식(Stock) vs ETF(Etf)
-        "005930".to_string(), // 6자리 종목 코드
+        "005930", // 6자리 종목 코드
         PeriodCode::ThirtyDays, // 기간 코드(ThirtyDays(30일), ThirtyWeeks(30주), ThirtyMonths(30달))
     ).await;
     
     // 삼성전자 호가 실시간 시세 구독
-    let subscribe_response = api.k_data.subscribe_market("KR7005930003".to_string(), TrId::RealtimeOrdb).unwrap();
+    let subscribe_response = api.k_data.subscribe_market("KR7005930003", TrId::RealtimeOrdb).unwrap();
 
     // 구독한 시세 읽기
     while let Ok(ordb) = api.k_data.ordb_recv() {

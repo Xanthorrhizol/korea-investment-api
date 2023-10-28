@@ -20,7 +20,7 @@ impl KoreaStockData {
         environment: Environment,
         auth: auth::Auth,
         account: Account,
-        hts_id: String,
+        hts_id: &str,
     ) -> Result<Self, Error> {
         let endpoint_url = match environment {
             Environment::Real => "ws://ops.koreainvestment.com:21000",
@@ -57,14 +57,14 @@ impl KoreaStockData {
             environment,
             auth,
             account,
-            hts_id,
+            hts_id: hts_id.to_string(),
         })
     }
 
     /// 종목 시세 구독
     pub fn subscribe_market(
         &mut self,
-        isin: String,
+        isin: &str,
         tr_id: TrId,
     ) -> Result<SubscribeResponse, Error> {
         let app_key = self.auth.get_appkey();
@@ -75,7 +75,7 @@ impl KoreaStockData {
             app_secret,
             personalseckey,
             CustomerType::Personal,
-            isin,
+            isin.to_string(),
             tr_id.clone(),
         )
         .get_json_string();
@@ -209,7 +209,6 @@ impl KoreaStockData {
                     }
                     _ => {}
                 }
-                독
             }
             break;
         }

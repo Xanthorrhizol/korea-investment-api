@@ -37,14 +37,14 @@ impl Quote {
     pub async fn daily_price(
         &self,
         market_code: MarketCode,
-        shortcode: String,
+        shortcode: &str,
         period_code: PeriodCode,
         is_adjust_price: bool,
     ) -> Result<response::quote::DailyPriceResponse, Error> {
         let tr_id = TrId::DailyPrice;
         let param = request::quote::DailyPriceParameter::new(
             market_code,
-            shortcode,
+            shortcode.to_string(),
             period_code,
             is_adjust_price,
         );

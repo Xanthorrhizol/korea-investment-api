@@ -41,14 +41,14 @@ impl Korea {
         &self,
         order_division: OrderClass,
         order_direction: Direction,
-        pdno: String,
+        pdno: &str,
         qty: Quantity,
         price: Price,
     ) -> Result<response::order::Body::Order, Error> {
         let request = request::order::Body::Order::new(
             self.account.cano.clone(),
             self.account.acnt_prdt_cd.clone(),
-            pdno,
+            pdno.to_string(),
             order_division,
             qty,
             price,
@@ -101,8 +101,8 @@ impl Korea {
     pub async fn correct(
         &self,
         order_division: OrderClass,
-        krx_fwdg_ord_orgno: String,
-        orgn_odno: String,
+        krx_fwdg_ord_orgno: &str,
+        orgn_odno: &str,
         rvse_cncl_dvsn_cd: CorrectionClass,
         qty_all_ord_yn: bool,
         qty: Quantity,
@@ -111,8 +111,8 @@ impl Korea {
         let request = request::order::Body::Correction::new(
             self.account.cano.clone(),
             self.account.acnt_prdt_cd.clone(),
-            krx_fwdg_ord_orgno,
-            orgn_odno,
+            krx_fwdg_ord_orgno.to_string(),
+            orgn_odno.to_string(),
             order_division,
             rvse_cncl_dvsn_cd,
             qty,

@@ -44,16 +44,25 @@ async fn get_api() -> Result<KoreaInvestmentApi, Error> {
 - API 사용
 
 ```rust
-use korea_investment_api::types::{MarketCode, PeriodCode};
+use korea_investment_api::types::{MarketCode, PeriodCode, TrId};
 
 #[tokio::main]
 async fn main() {
     let api = get_api().await.unwrap();
+
+    // 삼성전자 일자별 가격(단일 API 호출)
     let samsung_electronics_daily_prices = api.quote.daily_price(
         MarketCode::Stock, // 주식(Stock) vs ETF(Etf)
         "005930".to_string(), // 6자리 종목 코드
         PeriodCode::ThirtyDays, // 기간 코드(ThirtyDays(30일), ThirtyWeeks(30주), ThirtyMonths(30달))
     ).await;
-    ...
+    
+    // 삼성전자 호가 실시간 시세 구독
+    let subscribe_response = api.k_data.subscribe_market("KR7005930003".to_string(), TrId::RealtimeOrdb).unwrap();
+
+    // 구독한 시세 읽기
+    while let Ok(ordb) = api.k_data.ordb_recv() {
+        println!("Got orderbook: {:?}", ordb);
+    }
 }
 ```

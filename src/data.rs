@@ -15,7 +15,7 @@ pub struct KoreaStockData {
 
 impl KoreaStockData {
     /// 국내 주식 실시간 시세에 관한 API
-    /// [국내주식시세](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock-quotations#L_07802512-4f49-4486-91b4-1050b6f5dc9d)
+    /// [실시간시세(국내주식)](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_714d1437-8f62-43db-a73c-cf509d3f6aa7)
     pub fn new(
         environment: Environment,
         auth: auth::Auth,
@@ -61,6 +61,7 @@ impl KoreaStockData {
         })
     }
 
+    /// 종목 시세 구독
     pub fn subscribe_market(
         &mut self,
         isin: String,
@@ -140,6 +141,7 @@ impl KoreaStockData {
         Ok(result)
     }
 
+    /// 체결통보 구독
     pub fn subscribe_my_exec(&mut self) -> Result<SubscribeResponse, Error> {
         let app_key = self.auth.get_appkey();
         let app_secret = self.auth.get_appsecret();
@@ -207,6 +209,7 @@ impl KoreaStockData {
                     }
                     _ => {}
                 }
+                독
             }
             break;
         }

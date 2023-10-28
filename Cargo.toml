@@ -1,8 +1,13 @@
 [package]
 name = "korea-investment-api"
-authors = ["xanthorrhizol<xanthorrhizol@proton.me>"]
-version = "0.1.0"
+authors = ["Xanthorrhizol <xanthorrhizol@proton.me>"]
+version = "0.3.0"
 edition = "2021"
+description = "Korea Investment API client for Rust(Not official)"
+repository = "https://github.com/Xanthorrhizol/korea-investment-api"
+readme = "README.md"
+license = "MIT"
+keywords = ["api", "client", "korea-investment", "stock", "trading"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

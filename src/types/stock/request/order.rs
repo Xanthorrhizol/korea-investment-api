@@ -24,7 +24,10 @@ impl Header {
 }
 
 pub mod Body {
-    use crate::types::{CorrectionClass, OrderClass, Price, Quantity};
+    use crate::types::{
+        stock::{CorrectionClass, OrderClass},
+        Price, Quantity,
+    };
     use serde::{Deserialize, Serialize};
 
     #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

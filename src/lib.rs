@@ -1,7 +1,5 @@
 mod auth;
-mod data;
-mod order;
-mod quote;
+mod stock;
 pub mod types;
 pub(crate) mod util;
 
@@ -40,9 +38,9 @@ pub struct Account {
 pub struct KoreaInvestmentApi {
     client: reqwest::Client,
     pub auth: auth::Auth,
-    pub order: order::Korea,
-    pub quote: quote::Quote,
-    pub k_data: data::KoreaStockData,
+    pub order: stock::order::Korea,
+    pub quote: stock::quote::Quote,
+    pub k_data: stock::data::KoreaStockData,
 }
 
 impl KoreaInvestmentApi {
@@ -63,9 +61,10 @@ impl KoreaInvestmentApi {
         debug!("token: {:?}", auth.get_token());
         auth.create_approval_key().await?;
         debug!("approval_key: {:?}", auth.get_approval_key());
-        let order = order::Korea::new(&client, acc.clone(), auth.clone(), account.clone())?;
-        let quote = quote::Quote::new(&client, acc.clone(), auth.clone(), account.clone())?;
-        let k_data = data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), hts_id)?;
+        let order = stock::order::Korea::new(&client, acc.clone(), auth.clone(), account.clone())?;
+        let quote = stock::quote::Quote::new(&client, acc.clone(), auth.clone(), account.clone())?;
+        let k_data =
+            stock::data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), hts_id)?;
         info!("API Ready");
         Ok(Self {
             client,

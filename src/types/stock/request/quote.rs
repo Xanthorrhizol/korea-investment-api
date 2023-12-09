@@ -1,4 +1,4 @@
-use crate::types::{CustomerType, MarketCode, PeriodCode, TrId};
+use crate::types::{stock::MarketCode, stock::PeriodCode, CustomerType, TrId};
 use getset::{CopyGetters, Getters};
 use serde::{Deserialize, Serialize};
 

@@ -1,4 +1,4 @@
-use crate::types::{request, response};
+use crate::types::auth::{request, response};
 use crate::{Environment, Error};
 use reqwest::header::{HeaderMap, HeaderValue};
 
@@ -68,7 +68,7 @@ impl Auth {
             .post(format!("{}/oauth2/Approval", self.endpoint_url))
             .header("Content-Type", "application/json")
             .body(
-                serde_json::json!(request::auth::ApprovalKeyCreationBody::new(
+                serde_json::json!(request::ApprovalKeyCreationBody::new(
                     self.appsecret.clone(),
                     self.appkey.clone(),
                 ))
@@ -76,7 +76,7 @@ impl Auth {
             )
             .send()
             .await?
-            .json::<response::auth::Body::ApprovalKeyCreation>()
+            .json::<response::Body::ApprovalKeyCreation>()
             .await?
             .get_approval_key();
         self.approval_key = Some(approval_key.clone());
@@ -101,7 +101,7 @@ impl Auth {
             .body(json)
             .send()
             .await?
-            .json::<response::auth::Body::HashKey>()
+            .json::<response::Body::HashKey>()
             .await?
             .get_hash();
         Ok(hash)
@@ -116,7 +116,7 @@ impl Auth {
             .post(format!("{}/oauth2/tokenP", self.endpoint_url))
             .header("Content-Type", "application/json")
             .body(
-                serde_json::json!(request::auth::TokenCreationBody::new(
+                serde_json::json!(request::TokenCreationBody::new(
                     self.appsecret.clone(),
                     self.appkey.clone(),
                 ))
@@ -124,7 +124,7 @@ impl Auth {
             )
             .send()
             .await?
-            .json::<response::auth::Body::TokenCreation>()
+            .json::<response::Body::TokenCreation>()
             .await?
             .get_access_token();
         self.token = Some(token.clone());
@@ -138,13 +138,13 @@ impl Auth {
     ///     code: u32,
     ///     message: String,
     /// }
-    pub async fn revoke_token(&self) -> Result<response::auth::Body::TokenRevoke, Error> {
+    pub async fn revoke_token(&self) -> Result<response::Body::TokenRevoke, Error> {
         Ok(self
             .client
             .post(format!("{}/oauth2/revokeP", &self.endpoint_url))
             .header("Content-Type", "application/json")
             .body(
-                serde_json::json!(request::auth::TokenRevokeBody::new(
+                serde_json::json!(request::TokenRevokeBody::new(
                     self.appkey.clone(),
                     self.appsecret.clone(),
                     match self.token.clone() {
@@ -158,7 +158,7 @@ impl Auth {
             )
             .send()
             .await?
-            .json::<response::auth::Body::TokenRevoke>()
+            .json::<response::Body::TokenRevoke>()
             .await?)
     }
 }

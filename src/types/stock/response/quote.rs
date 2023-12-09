@@ -14,7 +14,7 @@ pub struct DailyPriceResponse {
 }
 
 pub mod output {
-    use crate::types::{ExCode, VsPriceSign};
+    use crate::types::stock::{ExCode, VsPriceSign};
     use getset::Getters;
     use serde::Deserialize;
 

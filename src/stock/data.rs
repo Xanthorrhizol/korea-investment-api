@@ -1,4 +1,10 @@
-use crate::types::{CustomerType, Exec, MyExec, Ordb, SubscribeRequest, SubscribeResponse, TrId};
+use crate::types::{
+    stock::{
+        request::subscribe::SubscribeRequest, response::subscribe::SubscribeResponse,
+        stream::exec::Exec, stream::my_exec::MyExec, stream::ordb::Ordb,
+    },
+    CustomerType, TrId,
+};
 use crate::{auth, Account, Environment, Error};
 use websocket::{Message, OwnedMessage};
 

@@ -1,12 +1,11 @@
 use crate::types::{
-    parse_bool, Aes256CbcDec, CorrectionClass, Direction, Header, OrderClass, Time,
+    parse_bool,
+    stock::{CorrectionClass, Header, OrderClass},
+    Aes256CbcDec, Direction, Time,
 };
 use crate::util::get_json_inner;
 use crate::{Error, BUF_SIZE};
-use aes::cipher::{
-    block_padding::{Pkcs7, ZeroPadding},
-    BlockDecryptMut, KeyIvInit,
-};
+use aes::cipher::{block_padding::ZeroPadding, BlockDecryptMut, KeyIvInit};
 use base64::Engine;
 
 #[derive(Debug, Clone)]

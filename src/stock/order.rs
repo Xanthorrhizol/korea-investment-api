@@ -1,5 +1,6 @@
 use crate::types::{
-    request, response, CorrectionClass, Direction, OrderClass, Price, Quantity, TrId,
+    stock::{request, response, CorrectionClass, OrderClass},
+    Direction, Price, Quantity, TrId,
 };
 use crate::{auth, Account, Environment, Error};
 

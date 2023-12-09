@@ -1,6 +1,6 @@
 use crate::types::{
-    parse_bool, DealClassCode, ExecClass, Header, MarketOperationClassCode,
-    MarketTerminationClassCode, Time, TimeClassCode, VsPriceSign,
+    stock::{DealClassCode, Header, TimeClassCode, VsPriceSign},
+    Time,
 };
 use crate::util::get_json_inner;
 use crate::Error;

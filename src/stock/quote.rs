@@ -1,4 +1,7 @@
-use crate::types::{request, response, MarketCode, PeriodCode, TrId};
+use crate::types::{
+    stock::{request, response, MarketCode, PeriodCode},
+    TrId,
+};
 use crate::{auth, Account, Environment, Error};
 
 #[derive(Clone)]

@@ -1,5 +1,6 @@
 pub mod auth;
 mod crypto;
+pub mod futureoption;
 pub mod stock;
 mod time;
 

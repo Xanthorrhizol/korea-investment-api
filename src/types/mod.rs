@@ -17,6 +17,7 @@ pub fn parse_bool(s: &str) -> bool {
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum TrId {
+    // === Stock === //
     // Order
     #[serde(rename = "TTTC0802U")]
     RealStockCashBidOrder,
@@ -33,7 +34,7 @@ pub enum TrId {
     VirtualStockCorrection,
     // Quote
     #[serde(rename = "FHKST01010400")]
-    DailyPrice,
+    DailyStockPrice,
     // Market data
     #[serde(rename = "H0STCNT0")]
     RealtimeExec,
@@ -43,6 +44,17 @@ pub enum TrId {
     RealRealtimeMyExec,
     #[serde(rename = "H0STCNI9")]
     VirtualRealtimeMyExec,
+    // === FutureOption === //
+    // Order
+    #[serde(rename = "TTTO1101U")]
+    RealDaytimeFutureOptionOrder,
+    #[serde(rename = "JTCE1001U")]
+    RealNightFutureOptionOrder,
+    #[serde(rename = "VTTO1101U")]
+    VirtualDaytimeFutureOptionOrder,
+    #[serde(rename = "VTCE1001U")]
+    VirtualNightFutureOptionOrder,
+    // === Connection === //
     // PingPong
     #[serde(rename = "PINGPONG")]
     PingPong,
@@ -50,6 +62,7 @@ pub enum TrId {
 impl Into<String> for TrId {
     fn into(self) -> String {
         match self {
+            // === Stock === //
             // Order
             TrId::RealStockCashBidOrder => "TTTC0802U",
             TrId::RealStockCashAskOrder => "TTTC0801U",
@@ -59,12 +72,19 @@ impl Into<String> for TrId {
             TrId::RealStockCorrection => "TTTC0803U",
             TrId::VirtualStockCorrection => "VTTC0803U",
             // Quote
-            TrId::DailyPrice => "FHKST01010400",
+            TrId::DailyStockPrice => "FHKST01010400",
             // Market data
             TrId::RealtimeExec => "H0STCNT0",
             TrId::RealtimeOrdb => "H0STASP0",
             TrId::RealRealtimeMyExec => "H0STCNI0",
             TrId::VirtualRealtimeMyExec => "H0STCNI9",
+            // === FutureOption === //
+            // Order
+            TrId::RealDaytimeFutureOptionOrder => "TTTO1101U",
+            TrId::RealNightFutureOptionOrder => "JTCE1001U",
+            TrId::VirtualDaytimeFutureOptionOrder => "VTTO1101U",
+            TrId::VirtualNightFutureOptionOrder => "VTCE1001U",
+            // === Connection === //
             // PingPong
             TrId::PingPong => "PINGPONG",
         }
@@ -74,6 +94,7 @@ impl Into<String> for TrId {
 impl From<&str> for TrId {
     fn from(s: &str) -> Self {
         match s {
+            // === Stock === //
             // Order
             "TTTC0802U" => TrId::RealStockCashBidOrder,
             "TTTC0801U" => TrId::RealStockCashAskOrder,
@@ -83,12 +104,19 @@ impl From<&str> for TrId {
             "TTTC0803U" => TrId::RealStockCorrection,
             "VTTC0803U" => TrId::VirtualStockCorrection,
             // Quote
-            "FHKST01010400" => TrId::DailyPrice,
+            "FHKST01010400" => TrId::DailyStockPrice,
             // Market data
             "H0STCNT0" => TrId::RealtimeExec,
             "H0STASP0" => TrId::RealtimeOrdb,
             "H0STCNI0" => TrId::RealRealtimeMyExec,
             "H0STCNI9" => TrId::VirtualRealtimeMyExec,
+            // === FutureOption === //
+            // Order
+            "TTTO1101U" => TrId::RealDaytimeFutureOptionOrder,
+            "JTCE1001U" => TrId::RealNightFutureOptionOrder,
+            "VTTO1101U" => TrId::VirtualDaytimeFutureOptionOrder,
+            "VTCE1001U" => TrId::VirtualNightFutureOptionOrder,
+            // === Connection === //
             // PingPong
             "PINGPONG" => TrId::PingPong,
             _ => todo!(),

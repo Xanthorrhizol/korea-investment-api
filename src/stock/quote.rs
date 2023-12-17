@@ -44,7 +44,7 @@ impl Quote {
         period_code: PeriodCode,
         is_adjust_price: bool,
     ) -> Result<response::quote::DailyPriceResponse, Error> {
-        let tr_id = TrId::DailyPrice;
+        let tr_id = TrId::DailyStockPrice;
         let param = request::quote::DailyPriceParameter::new(
             market_code,
             shortcode.to_string(),

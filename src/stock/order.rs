@@ -1,7 +1,8 @@
 use crate::types::{
-    request, response, CorrectionClass, Direction, OrderClass, Price, Quantity, TrId,
+    request, response, Account, CorrectionClass, Direction, Environment, OrderClass, Price,
+    Quantity, TrId,
 };
-use crate::{auth, Account, Environment, Error};
+use crate::{auth, Error};
 
 #[derive(Clone)]
 pub struct Korea {
@@ -44,8 +45,8 @@ impl Korea {
         pdno: &str,
         qty: Quantity,
         price: Price,
-    ) -> Result<response::order::Body::Order, Error> {
-        let request = request::order::Body::Order::new(
+    ) -> Result<response::stock::order::Body::Order, Error> {
+        let request = request::stock::order::Body::Order::new(
             self.account.cano.clone(),
             self.account.acnt_prdt_cd.clone(),
             pdno.to_string(),
@@ -89,7 +90,7 @@ impl Korea {
             .body(request)
             .send()
             .await?
-            .json::<response::order::Body::Order>()
+            .json::<response::stock::order::Body::Order>()
             .await?)
     }
 
@@ -107,8 +108,8 @@ impl Korea {
         qty_all_ord_yn: bool,
         qty: Quantity,
         price: Price,
-    ) -> Result<response::order::Body::Order, Error> {
-        let request = request::order::Body::Correction::new(
+    ) -> Result<response::stock::order::Body::Order, Error> {
+        let request = request::stock::order::Body::Correction::new(
             self.account.cano.clone(),
             self.account.acnt_prdt_cd.clone(),
             krx_fwdg_ord_orgno.to_string(),
@@ -148,7 +149,7 @@ impl Korea {
             .body(request)
             .send()
             .await?
-            .json::<response::order::Body::Order>()
+            .json::<response::stock::order::Body::Order>()
             .await?)
     }
 

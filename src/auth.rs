@@ -1,5 +1,5 @@
-use crate::types::{request, response};
-use crate::{Environment, Error};
+use crate::types::{request, response, Environment};
+use crate::Error;
 use reqwest::header::{HeaderMap, HeaderValue};
 
 /// Auth

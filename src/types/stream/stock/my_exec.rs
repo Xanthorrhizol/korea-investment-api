@@ -1,6 +1,5 @@
-use crate::types::{
-    parse_bool, Aes256CbcDec, CorrectionClass, Direction, Header, OrderClass, Time,
-};
+use super::Header;
+use crate::types::{parse_bool, Aes256CbcDec, CorrectionClass, Direction, OrderClass, Time};
 use crate::util::get_json_inner;
 use crate::{Error, BUF_SIZE};
 use aes::cipher::{

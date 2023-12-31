@@ -5,13 +5,8 @@ pub mod stream;
 mod time;
 
 pub(crate) use crypto::Aes256CbcDec;
-pub use request::subscribe::SubscribeRequest;
-pub use response::subscribe::SubscribeResponse;
 use serde::{Deserialize, Serialize};
 use serde_with::SerializeDisplay;
-pub use stream::exec::Exec;
-pub use stream::my_exec::MyExec;
-pub use stream::ordb::Ordb;
 pub use time::Time;
 
 pub fn parse_bool(s: &str) -> bool {
@@ -22,19 +17,43 @@ pub fn parse_bool(s: &str) -> bool {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct Header {
-    tr_id: TrId,
-    datetime: Time,
+/// 투자환경
+/// 실전투자: Real
+/// 모의투자: Virtual
+#[derive(Clone, Debug, Default, serde_with::DeserializeFromStr)]
+pub enum Environment {
+    Real,
+    #[default]
+    Virtual,
 }
-impl Header {
-    pub fn tr_id(&self) -> &TrId {
-        &self.tr_id
-    }
 
-    pub fn datetime(&self) -> &Time {
-        &self.datetime
+impl std::str::FromStr for Environment {
+    type Err = crate::Error;
+    fn from_str(s: &str) -> Result<Self, crate::Error> {
+        Ok(match s.to_lowercase().as_str() {
+            "real" => Self::Real,
+            "virtual" => Self::Virtual,
+            _ => Self::default(),
+        })
     }
+}
+
+impl std::fmt::Display for Environment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.write_str(match self {
+            Self::Real => "Real",
+            Self::Virtual => "Virtual",
+        })
+    }
+}
+
+/// 계좌
+/// cano: CANO(계좌번호 체계(8-2)의 앞 8자리)
+/// acnt_prdt_cd: ACNT_PRDT_CD(계좌번호 체계(8-2)의 뒤 2자리)
+#[derive(Clone)]
+pub struct Account {
+    pub cano: String,
+    pub acnt_prdt_cd: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

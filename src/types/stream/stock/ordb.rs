@@ -1,6 +1,7 @@
+use super::Header;
 use crate::types::{
-    parse_bool, DealClassCode, ExecClass, Header, MarketOperationClassCode,
-    MarketTerminationClassCode, Time, TimeClassCode, VsPriceSign,
+    parse_bool, DealClassCode, ExecClass, MarketOperationClassCode, MarketTerminationClassCode,
+    Time, TimeClassCode, VsPriceSign,
 };
 use crate::util::get_json_inner;
 use crate::Error;

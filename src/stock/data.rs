@@ -1,5 +1,8 @@
-use crate::types::{CustomerType, Exec, MyExec, Ordb, SubscribeRequest, SubscribeResponse, TrId};
-use crate::{auth, Account, Environment, Error};
+use crate::types::request::stock::subscribe::SubscribeRequest;
+use crate::types::response::stock::subscribe::SubscribeResponse;
+use crate::types::stream::stock::{Exec, MyExec, Ordb};
+use crate::types::{Account, CustomerType, Environment, TrId};
+use crate::{auth, Error};
 use websocket::{Message, OwnedMessage};
 
 pub struct KoreaStockData {

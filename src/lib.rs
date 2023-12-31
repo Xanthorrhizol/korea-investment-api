@@ -1,7 +1,5 @@
 mod auth;
-mod data;
-mod order;
-mod quote;
+mod stock;
 pub mod types;
 pub(crate) mod util;
 
@@ -10,47 +8,20 @@ extern crate log;
 
 pub const BUF_SIZE: usize = 4096;
 
-/// 투자환경
-/// 실전투자: Real
-/// 모의투자: Virtual
-#[derive(Clone)]
-pub enum Environment {
-    Real,
-    Virtual,
-}
-
-impl std::fmt::Display for Environment {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
-        f.write_str(match self {
-            Self::Real => "Real",
-            Self::Virtual => "Virtual",
-        })
-    }
-}
-
-/// 계좌
-/// cano: CANO(계좌번호 체계(8-2)의 앞 8자리)
-/// acnt_prdt_cd: ACNT_PRDT_CD(계좌번호 체계(8-2)의 뒤 2자리)
-#[derive(Clone)]
-pub struct Account {
-    pub cano: String,
-    pub acnt_prdt_cd: String,
-}
-
 pub struct KoreaInvestmentApi {
     client: reqwest::Client,
     pub auth: auth::Auth,
-    pub order: order::Korea,
-    pub quote: quote::Quote,
-    pub k_data: data::KoreaStockData,
+    pub order: stock::order::Korea,
+    pub quote: stock::quote::Quote,
+    pub k_data: stock::data::KoreaStockData,
 }
 
 impl KoreaInvestmentApi {
     pub async fn new(
-        acc: Environment,
+        acc: types::Environment,
         appkey: &str,
         appsecret: &str,
-        account: Account,
+        account: types::Account,
         hts_id: &str,
     ) -> Result<KoreaInvestmentApi, Error> {
         let client = reqwest::Client::new();
@@ -63,9 +34,10 @@ impl KoreaInvestmentApi {
         debug!("token: {:?}", auth.get_token());
         auth.create_approval_key().await?;
         debug!("approval_key: {:?}", auth.get_approval_key());
-        let order = order::Korea::new(&client, acc.clone(), auth.clone(), account.clone())?;
-        let quote = quote::Quote::new(&client, acc.clone(), auth.clone(), account.clone())?;
-        let k_data = data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), hts_id)?;
+        let order = stock::order::Korea::new(&client, acc.clone(), auth.clone(), account.clone())?;
+        let quote = stock::quote::Quote::new(&client, acc.clone(), auth.clone(), account.clone())?;
+        let k_data =
+            stock::data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), hts_id)?;
         info!("API Ready");
         Ok(Self {
             client,

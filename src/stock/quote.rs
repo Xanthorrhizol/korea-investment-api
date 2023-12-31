@@ -1,5 +1,5 @@
-use crate::types::{request, response, MarketCode, PeriodCode, TrId};
-use crate::{auth, Account, Environment, Error};
+use crate::types::{request, response, Account, Environment, MarketCode, PeriodCode, TrId};
+use crate::{auth, Error};
 
 #[derive(Clone)]
 pub struct Quote {
@@ -40,9 +40,9 @@ impl Quote {
         shortcode: &str,
         period_code: PeriodCode,
         is_adjust_price: bool,
-    ) -> Result<response::quote::DailyPriceResponse, Error> {
+    ) -> Result<response::stock::quote::DailyPriceResponse, Error> {
         let tr_id = TrId::DailyPrice;
-        let param = request::quote::DailyPriceParameter::new(
+        let param = request::stock::quote::DailyPriceParameter::new(
             market_code,
             shortcode.to_string(),
             period_code,
@@ -73,7 +73,7 @@ impl Quote {
             .header("custtype", "P")
             .send()
             .await?
-            .json::<response::quote::DailyPriceResponse>()
+            .json::<response::stock::quote::DailyPriceResponse>()
             .await?)
     }
 }

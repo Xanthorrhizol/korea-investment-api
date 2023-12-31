@@ -55,6 +55,7 @@ async fn main() {
         MarketCode::Stock, // 주식(Stock) vs ETF(Etf)
         "005930", // 6자리 종목 코드
         PeriodCode::ThirtyDays, // 기간 코드(ThirtyDays(30일), ThirtyWeeks(30주), ThirtyMonths(30달))
+        false, // 수정주가 원주가 가격 여부(수정주가 반영: true)
     ).await;
     
     // 삼성전자 호가 실시간 시세 구독

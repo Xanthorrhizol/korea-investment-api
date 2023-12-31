@@ -1,0 +1,10 @@
+# to view
+hts_id = ""
+# account
+cano = "" # first ????????-xx
+acnt_prdt_cd = "" # last xxxxxxxx-??
+# auth
+app_key = ""
+app_secret=""
+# environment
+environment=""

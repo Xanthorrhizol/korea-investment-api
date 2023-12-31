@@ -1,3 +1,5 @@
+#[cfg(feature = "example")]
+pub mod config;
 mod crypto;
 pub mod request;
 pub mod response;

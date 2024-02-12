@@ -144,25 +144,19 @@ impl VolumeRankParameter {
             ),
             (
                 "FID_INPUT_PRICE_1",
-                format!(
-                    "{}",
-                    if let Some(price) = self.fid_input_price_1 {
-                        price.inner
-                    } else {
-                        0
-                    }
-                ),
+                if let Some(price) = self.fid_input_price_1 {
+                    format!("{}", price.inner)
+                } else {
+                    "".to_string()
+                },
             ),
             (
                 "FID_INPUT_PRICE_2",
-                format!(
-                    "{}",
-                    if let Some(price) = self.fid_input_price_2 {
-                        price.inner
-                    } else {
-                        0
-                    }
-                ),
+                if let Some(price) = self.fid_input_price_2 {
+                    format!("{}", price.inner)
+                } else {
+                    "".to_string()
+                },
             ),
             (
                 "FID_VOL_CNT",

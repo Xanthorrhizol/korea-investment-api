@@ -76,4 +76,38 @@ impl Quote {
             .json::<response::stock::quote::DailyPriceResponse>()
             .await?)
     }
+
+    /// 거래량순위[v1_국내주식-047]
+    pub async fn volume_rank(
+        &self,
+        params: request::stock::quote::VolumeRankParameter,
+    ) -> Result<response::stock::quote::VolumeRankResponse, Error> {
+        let tr_id = TrId::VolumeRank;
+        let url = format!(
+            "{}/uapi/domestic-stock/v1/quotations/volume-rank",
+            self.endpoint_url
+        );
+        let url = reqwest::Url::parse_with_params(&url, &params.into_iter())?;
+        Ok(self
+            .client
+            .get(url)
+            .header("Content-Type", "application/json")
+            .header(
+                "Authorization",
+                match self.auth.get_token() {
+                    Some(token) => format!("Bearer {}", token),
+                    None => {
+                        return Err(Error::AuthInitFailed("token"));
+                    }
+                },
+            )
+            .header("appkey", self.auth.get_appkey())
+            .header("appsecret", self.auth.get_appsecret())
+            .header("tr_id", Into::<String>::into(tr_id))
+            .header("custtype", "P")
+            .send()
+            .await?
+            .json::<response::stock::quote::VolumeRankResponse>()
+            .await?)
+    }
 }

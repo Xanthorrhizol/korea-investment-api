@@ -566,7 +566,7 @@ impl std::fmt::Display for BelongClassCode {
     }
 }
 
-#[derive(Debug, SerializeDisplay)]
+#[derive(Debug, Clone, Copy, SerializeDisplay)]
 pub struct TargetClassCode {
     pub margin_30: bool,
     pub margin_40: bool,
@@ -596,7 +596,7 @@ impl std::fmt::Display for TargetClassCode {
     }
 }
 
-#[derive(Debug, SerializeDisplay)]
+#[derive(Debug, Clone, Copy, SerializeDisplay)]
 pub struct TargetExeceptClassCode {
     pub overheat: bool,             // 투자위험/경고/주의
     pub administrated: bool,        // 관리종목

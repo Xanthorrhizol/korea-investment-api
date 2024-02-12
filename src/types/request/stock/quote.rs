@@ -25,7 +25,7 @@ impl Header {
     }
 }
 
-#[derive(Getters, CopyGetters, Serialize)]
+#[derive(Debug, Clone, Getters, CopyGetters, Serialize)]
 pub struct DailyPriceParameter {
     #[getset(get = "pub")]
     fid_cond_mrkt_div_code: MarketCode, // FID 조건 시장 분류 코드
@@ -70,7 +70,7 @@ impl DailyPriceParameter {
     }
 }
 
-#[derive(Getters, CopyGetters, Serialize)]
+#[derive(Debug, Clone, Getters, CopyGetters, Serialize)]
 pub struct VolumeRankParameter {
     #[getset(get = "pub")]
     fid_cond_mrkt_div_code: MarketCode, // 조건 시장 분류 코드(J)

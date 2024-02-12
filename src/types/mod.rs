@@ -191,7 +191,7 @@ impl From<&str> for Quantity {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Price {
     inner: u32,
 }
@@ -532,6 +532,106 @@ impl std::fmt::Display for ExCode {
             Self::MidOrQtrExDividend => "05",
             Self::MidExRightsAndDividend => "06",
             Self::QtrExRightsAndDividend => "07",
+        })
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, SerializeDisplay)]
+pub enum BelongClassCode {
+    #[serde(rename = "0")]
+    MeanVolume, // 평균거래량
+    #[serde(rename = "1")]
+    IncreasedVolumeRate, // 거래증가율
+    #[serde(rename = "2")]
+    MeanRotationRate, // 평균거래회전율
+    #[serde(rename = "3")]
+    Amount, // 거래금액순
+    #[serde(rename = "4")]
+    AmountRotationRate, // 평균거래금액회전율
+}
+
+impl std::fmt::Display for BelongClassCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::MeanVolume => "0",
+            Self::IncreasedVolumeRate => "1",
+            Self::MeanRotationRate => "2",
+            Self::Amount => "3",
+            Self::AmountRotationRate => "4",
+        })
+    }
+}
+
+#[derive(Debug, SerializeDisplay)]
+pub struct TargetClassCode {
+    pub margin_30: bool,
+    pub margin_40: bool,
+    pub margin_50: bool,
+    pub margin_60: bool,
+    pub margin_100: bool,
+    pub credit_30: bool,
+    pub credit_40: bool,
+    pub credit_50: bool,
+    pub credit_60: bool,
+}
+
+impl std::fmt::Display for TargetClassCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_fmt(format_args!(
+            "{}{}{}{}{}{}{}{}{}",
+            if self.margin_30 { '1' } else { '0' },
+            if self.margin_40 { '1' } else { '0' },
+            if self.margin_50 { '1' } else { '0' },
+            if self.margin_60 { '1' } else { '0' },
+            if self.margin_100 { '1' } else { '0' },
+            if self.credit_30 { '1' } else { '0' },
+            if self.credit_40 { '1' } else { '0' },
+            if self.credit_50 { '1' } else { '0' },
+            if self.credit_60 { '1' } else { '0' },
+        ))
+    }
+}
+
+#[derive(Debug, SerializeDisplay)]
+pub struct TargetExeceptClassCode {
+    pub overheat: bool,             // 투자위험/경고/주의
+    pub administrated: bool,        // 관리종목
+    pub settlement_trading: bool,   // 정리매매
+    pub insufficient_posting: bool, // 불성실공시
+    pub preferred_share: bool,      // 우선주
+    pub suspended: bool,            // 거래정지
+}
+
+impl std::fmt::Display for TargetExeceptClassCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_fmt(format_args!(
+            "{}{}{}{}{}{}",
+            if self.overheat { '1' } else { '0' },
+            if self.administrated { '1' } else { '0' },
+            if self.settlement_trading { '1' } else { '0' },
+            if self.insufficient_posting { '1' } else { '0' },
+            if self.preferred_share { '1' } else { '0' },
+            if self.suspended { '1' } else { '0' },
+        ))
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, SerializeDisplay)]
+pub enum ShareClassCode {
+    #[serde(rename = "0")]
+    Whole,
+    #[serde(rename = "1")]
+    Common,
+    #[serde(rename = "2")]
+    Preferred,
+}
+
+impl std::fmt::Display for ShareClassCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::Whole => "0",
+            Self::Common => "1",
+            Self::Preferred => "2",
         })
     }
 }

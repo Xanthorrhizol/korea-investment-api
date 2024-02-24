@@ -196,7 +196,7 @@ pub struct Price {
     inner: u32,
 }
 impl Price {
-    fn from(price: u32) -> Self {
+    fn new(price: u32) -> Self {
         Self { inner: price }
     }
 }

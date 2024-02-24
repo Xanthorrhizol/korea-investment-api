@@ -174,7 +174,7 @@ pub struct Quantity {
     inner: u32,
 }
 impl Quantity {
-    fn from(quantity: u32) -> Self {
+    fn new(quantity: u32) -> Self {
         Self { inner: quantity }
     }
 }

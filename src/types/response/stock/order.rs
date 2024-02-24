@@ -1,12 +1,16 @@
 #![allow(non_snake_case)]
 pub mod Header {
+    use getset::Getters;
     use serde::{Deserialize, Serialize};
 
-    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Getters)]
     pub struct Stock {
-        tr_id: String,   // 거래ID(요청한 tr_id)
+        #[getset(get = "pub")]
+        tr_id: String, // 거래ID(요청한 tr_id)
+        #[getset(get = "pub")]
         tr_cont: String, // 연속 거래 여부(F or M: 다음 데이터 있음 / D or E: 마지막 데이터)
-        gt_uid: String,  // Global UID(거래고유번호)
+        #[getset(get = "pub")]
+        gt_uid: String, // Global UID(거래고유번호)
     }
 }
 
@@ -18,20 +22,30 @@ pub mod Body {
     /// 주식주문(현금, 신용, 정정취소)
     #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Getters)]
     pub struct Order {
-        rt_cd: String,                 // 0: 성공, 0 이외의 값: 실패
-        msg_cd: String,                // 응답코드
-        msg1: String,                  // 응답메시지
+        #[getset(get = "pub")]
+        rt_cd: String, // 0: 성공, 0 이외의 값: 실패
+        #[getset(get = "pub")]
+        msg_cd: String, // 응답코드
+        #[getset(get = "pub")]
+        msg1: String, // 응답메시지
+        #[getset(get = "pub")]
         output: Option<Output::Order>, // 응답 상세
     }
 
     /// 주식정정취소가능주문조회
     #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Getters)]
     pub struct InquirePsblRvsecncl {
-        tr_cd: String,                       // 0: 성공, 0 이외의 값: 실패
-        msg_cd: String,                      // 응답코드
-        msg1: String,                        // 응답메시지
-        ctx_area_fk100: Option<String>,      // 연속조회검색조건100
-        ctx_area_nk100: Option<String>,      // 연속조회키100
+        #[getset(get = "pub")]
+        tr_cd: String, // 0: 성공, 0 이외의 값: 실패
+        #[getset(get = "pub")]
+        msg_cd: String, // 응답코드
+        #[getset(get = "pub")]
+        msg1: String, // 응답메시지
+        #[getset(get = "pub")]
+        ctx_area_fk100: Option<String>, // 연속조회검색조건100
+        #[getset(get = "pub")]
+        ctx_area_nk100: Option<String>, // 연속조회키100
+        #[getset(get = "pub")]
         output: Output::InquirePsblRvsecncl, // 응답 상세
     }
 }

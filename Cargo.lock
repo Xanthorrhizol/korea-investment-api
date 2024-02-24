@@ -853,7 +853,7 @@ dependencies = [
 
 [[package]]
 name = "korea-investment-api"
-version = "1.1.6"
+version = "1.1.7"
 dependencies = [
  "aes",
  "base64 0.21.7",

@@ -1,11 +1,16 @@
 use crate::types::{CustomerType, TrId};
+use getset::{Getters, Setters};
 use serde::Deserialize;
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Getters, Setters)]
 pub struct SubscribeResponse {
+    #[getset(get = "pub", set = "pub")]
     success: bool,
+    #[getset(get = "pub", set = "pub")]
     msg: String,
+    #[getset(get = "pub", set = "pub")]
     iv: Option<String>,
+    #[getset(get = "pub", set = "pub")]
     key: Option<String>,
 }
 
@@ -17,38 +22,6 @@ impl SubscribeResponse {
             iv,
             key,
         }
-    }
-
-    pub fn success(&self) -> bool {
-        self.success
-    }
-
-    pub fn msg(&self) -> &str {
-        &self.msg
-    }
-
-    pub fn iv(&self) -> &Option<String> {
-        &self.iv
-    }
-
-    pub fn key(&self) -> &Option<String> {
-        &self.key
-    }
-
-    pub fn set_success(&mut self, success: bool) {
-        self.success = success;
-    }
-
-    pub fn set_msg(&mut self, msg: String) {
-        self.msg = msg;
-    }
-
-    pub fn set_iv(&mut self, iv: Option<String>) {
-        self.iv = iv;
-    }
-
-    pub fn set_key(&mut self, key: Option<String>) {
-        self.key = key;
     }
 }
 
@@ -75,18 +48,25 @@ impl Into<String> for TrType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Getters, Setters)]
 pub struct Header {
+    #[getset(get = "pub", set = "pub")]
     app_key: String,
+    #[getset(get = "pub", set = "pub")]
     appsecret: String,
+    #[getset(get = "pub", set = "pub")]
     personalseckey: String,
+    #[getset(get = "pub", set = "pub")]
     custtype: CustomerType,
+    #[getset(get = "pub", set = "pub")]
     tr_type: TrType,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Getters, Setters)]
 pub struct Body {
+    #[getset(get = "pub", set = "pub")]
     tr_id: TrId,
+    #[getset(get = "pub", set = "pub")]
     tr_key: String,
 }
 
@@ -130,37 +110,5 @@ impl Subscribe {
             Into::<String>::into(self.body().tr_id().to_owned()),
             self.body().tr_key(),
         )
-    }
-}
-
-impl Header {
-    pub fn app_key(&self) -> &str {
-        &self.app_key
-    }
-
-    pub fn appsecret(&self) -> &str {
-        &self.appsecret
-    }
-
-    pub fn personalseckey(&self) -> &str {
-        &self.personalseckey
-    }
-
-    pub fn custtype(&self) -> &CustomerType {
-        &self.custtype
-    }
-
-    pub fn tr_type(&self) -> &TrType {
-        &self.tr_type
-    }
-}
-
-impl Body {
-    pub fn tr_id(&self) -> &TrId {
-        &self.tr_id
-    }
-
-    pub fn tr_key(&self) -> &str {
-        &self.tr_key
     }
 }

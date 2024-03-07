@@ -231,9 +231,25 @@ impl KoreaStockData {
                     }
                     Ok(exec)
                 }
-                _ => {
-                    return Err(Error::InvalidData);
+                _ => Err(Error::InvalidData),
+            }
+        } else {
+            Err(Error::InvalidData)
+        }
+    }
+
+    pub async fn exec_recv_async(&mut self) -> Result<Exec, Error> {
+        if let Ok(msg) = self.exec_conn.recv_message() {
+            let tmp_msg = msg.clone();
+            match msg {
+                OwnedMessage::Text(s) => {
+                    let exec = Exec::parse(s)?;
+                    if exec.header().tr_id() == &TrId::PingPong {
+                        let _ = self.exec_conn.send_message(&tmp_msg);
+                    }
+                    Ok(exec)
                 }
+                _ => Err(Error::InvalidData),
             }
         } else {
             Err(Error::InvalidData)
@@ -253,9 +269,25 @@ impl KoreaStockData {
                     }
                     Ok(ordb)
                 }
-                _ => {
-                    return Err(Error::InvalidData);
+                _ => Err(Error::InvalidData),
+            }
+        } else {
+            Err(Error::InvalidData)
+        }
+    }
+
+    pub async fn ordb_recv_async(&mut self) -> Result<Ordb, Error> {
+        if let Ok(msg) = self.ordb_conn.recv_message() {
+            let tmp_msg = msg.clone();
+            match msg {
+                OwnedMessage::Text(s) => {
+                    let ordb = Ordb::parse(s)?;
+                    if ordb.header().tr_id() == &TrId::PingPong {
+                        let _ = self.ordb_conn.send_message(&tmp_msg);
+                    }
+                    Ok(ordb)
                 }
+                _ => Err(Error::InvalidData),
             }
         } else {
             Err(Error::InvalidData)
@@ -275,9 +307,25 @@ impl KoreaStockData {
                     }
                     Ok(my_exec)
                 }
-                _ => {
-                    return Err(Error::InvalidData);
+                _ => Err(Error::InvalidData),
+            }
+        } else {
+            Err(Error::InvalidData)
+        }
+    }
+
+    pub async fn my_exec_recv_async(&mut self, iv: String, key: String) -> Result<MyExec, Error> {
+        if let Ok(msg) = self.my_exec_conn.recv_message() {
+            let tmp_msg = msg.clone();
+            match msg {
+                OwnedMessage::Text(s) => {
+                    let my_exec = MyExec::parse(s, iv, key)?;
+                    if my_exec.header().tr_id() == &TrId::PingPong {
+                        let _ = self.my_exec_conn.send_message(&tmp_msg);
+                    }
+                    Ok(my_exec)
                 }
+                _ => Err(Error::InvalidData),
             }
         } else {
             Err(Error::InvalidData)

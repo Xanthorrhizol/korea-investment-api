@@ -1,22 +1,24 @@
 use crate::types::request::stock::subscribe::SubscribeRequest;
 use crate::types::response::stock::subscribe::SubscribeResponse;
-use crate::types::stream::stock::{Exec, MyExec, Ordb};
+use crate::types::stream::stock::{MyExec, StreamParser};
 use crate::types::{Account, CustomerType, Environment, TrId};
 use crate::{auth, Error};
+use std::collections::HashMap;
 use websocket::{Message, OwnedMessage};
 
-pub struct KoreaStockData {
-    exec_conn: websocket::client::sync::Client<std::net::TcpStream>,
-    ordb_conn: websocket::client::sync::Client<std::net::TcpStream>,
-    my_exec_conn: websocket::client::sync::Client<std::net::TcpStream>,
+pub struct KoreaStockData<'a> {
+    exec_client: websocket::ClientBuilder<'a>,
+    ordb_client: websocket::ClientBuilder<'a>,
+    my_exec_client: websocket::ClientBuilder<'a>,
     endpoint_url: String,
     environment: Environment,
     auth: auth::Auth,
     account: Account,
     hts_id: String,
+    handles: HashMap<TrId, tokio::task::JoinHandle<()>>,
 }
 
-impl KoreaStockData {
+impl<'a> KoreaStockData<'a> {
     /// 국내 주식 실시간 시세에 관한 API
     /// [실시간시세(국내주식)](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_714d1437-8f62-43db-a73c-cf509d3f6aa7)
     pub fn new(
@@ -30,17 +32,17 @@ impl KoreaStockData {
             Environment::Virtual => "ws://ops.koreainvestment.com:31000",
         }
         .to_string();
-        let mut exec_client = websocket::ClientBuilder::new(&format!(
+        let exec_client = websocket::ClientBuilder::new(&format!(
             "{}/tryitout/{}",
             endpoint_url,
             Into::<String>::into(TrId::RealtimeExec),
         ))?;
-        let mut ordb_client = websocket::ClientBuilder::new(&format!(
+        let ordb_client = websocket::ClientBuilder::new(&format!(
             "{}/tryitout/{}",
             endpoint_url,
             Into::<String>::into(TrId::RealtimeOrdb),
         ))?;
-        let mut my_exec_client = websocket::ClientBuilder::new(&format!(
+        let my_exec_client = websocket::ClientBuilder::new(&format!(
             "{}/tryitout/{}",
             endpoint_url,
             Into::<String>::into(match environment {
@@ -48,28 +50,32 @@ impl KoreaStockData {
                 Environment::Virtual => TrId::VirtualRealtimeMyExec,
             })
         ))?;
-        let exec_conn = exec_client.connect_insecure().unwrap();
-        let ordb_conn = ordb_client.connect_insecure().unwrap();
-        let my_exec_conn = my_exec_client.connect_insecure().unwrap();
 
         Ok(Self {
-            exec_conn,
-            ordb_conn,
-            my_exec_conn,
+            exec_client,
+            ordb_client,
+            my_exec_client,
             endpoint_url,
             environment,
             auth,
             account,
             hts_id: hts_id.to_string(),
+            handles: HashMap::new(),
         })
     }
 
     /// 종목 시세 구독
-    pub fn subscribe_market(
+    pub fn subscribe_market<T: StreamParser<R> + Send + 'static, R: Clone + Send + 'static>(
         &mut self,
         isin: &str,
         tr_id: TrId,
-    ) -> Result<SubscribeResponse, Error> {
+    ) -> Result<
+        (
+            Option<tokio::sync::mpsc::UnboundedReceiver<T>>,
+            SubscribeResponse,
+        ),
+        Error,
+    > {
         let app_key = self.auth.get_appkey();
         let app_secret = self.auth.get_appsecret();
         let personalseckey = self.auth.get_approval_key().unwrap();
@@ -84,15 +90,17 @@ impl KoreaStockData {
         .get_json_string();
         let msg = Message::text(msg);
         let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
+        let mut conn = match tr_id {
+            TrId::RealtimeExec => self.exec_client.connect_insecure().unwrap(),
+            TrId::RealtimeOrdb => self.ordb_client.connect_insecure().unwrap(),
+            _ => {
+                return Err(Error::WrongTrId(tr_id, "RealtimeExec or RealtimeOrdb"));
+            }
+        };
         loop {
-            if let Ok(msg) = if tr_id == TrId::RealtimeExec {
-                let _ = self.exec_conn.send_message(&msg);
-                self.exec_conn.recv_message()
-            } else if tr_id == TrId::RealtimeOrdb {
-                let _ = self.ordb_conn.send_message(&msg);
-                self.ordb_conn.recv_message()
-            } else {
-                return Err(Error::WrongTrId(tr_id, "RealtimeExec, RealtimeOrdb"));
+            if let Ok(msg) = {
+                let _ = conn.send_message(&msg);
+                conn.recv_message()
             } {
                 match msg {
                     OwnedMessage::Text(s) => {
@@ -141,11 +149,50 @@ impl KoreaStockData {
             }
             break;
         }
-        Ok(result)
+        let handle_ref = self.handles.get(&tr_id);
+        if handle_ref.is_none() || handle_ref.unwrap().is_finished() {
+            let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
+            let handle = tokio::spawn(async move {
+                loop {
+                    if let Ok(msg) = conn.recv_message() {
+                        let tmp_msg = msg.clone();
+                        match msg {
+                            OwnedMessage::Text(s) => {
+                                let data = T::parse(s).expect("Failed to parse message");
+                                if *data.header().tr_id() == TrId::PingPong {
+                                    let _ = conn.send_message(&tmp_msg);
+                                } else {
+                                    let _ = tx.send(data);
+                                }
+                            }
+                            _ => {
+                                error!("Get wrong data from stream={:?}", msg);
+                                panic!();
+                            }
+                        }
+                    } else {
+                        error!("Failed to get message from stream");
+                        panic!();
+                    }
+                }
+            });
+            self.handles.insert(tr_id, handle);
+
+            return Ok((Some(rx), result));
+        }
+        Ok((None, result))
     }
 
     /// 체결통보 구독
-    pub fn subscribe_my_exec(&mut self) -> Result<SubscribeResponse, Error> {
+    pub fn subscribe_my_exec(
+        &mut self,
+    ) -> Result<
+        (
+            tokio::sync::mpsc::UnboundedReceiver<MyExec>,
+            SubscribeResponse,
+        ),
+        Error,
+    > {
         let app_key = self.auth.get_appkey();
         let app_secret = self.auth.get_appsecret();
         let personalseckey = self.auth.get_approval_key().unwrap();
@@ -163,11 +210,21 @@ impl KoreaStockData {
         )
         .get_json_string();
         let msg = Message::text(msg);
-        let _ = self.my_exec_conn.send_message(&msg);
+        let mut conn = match tr_id {
+            TrId::RealRealtimeMyExec => self.my_exec_client.connect_insecure().unwrap(),
+            TrId::VirtualRealtimeMyExec => self.my_exec_client.connect_insecure().unwrap(),
+            _ => {
+                return Err(Error::WrongTrId(
+                    tr_id,
+                    "RealRealtimeMyExec or VirtualRealtimeMyExec",
+                ));
+            }
+        };
+        let _ = conn.send_message(&msg);
         let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
 
         loop {
-            if let Ok(msg) = self.my_exec_conn.recv_message() {
+            if let Ok(msg) = conn.recv_message() {
                 match msg {
                     OwnedMessage::Text(s) => {
                         let json_value = json::parse(&s)?;
@@ -215,120 +272,41 @@ impl KoreaStockData {
             }
             break;
         }
-        Ok(result)
-    }
-
-    /// 국내주식 실시간체결가[실시간-003]
-    /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_714d1437-8f62-43db-a73c-cf509d3f6aa7)
-    pub fn exec_recv(&mut self) -> Result<Exec, Error> {
-        if let Ok(msg) = self.exec_conn.recv_message() {
-            let tmp_msg = msg.clone();
-            match msg {
-                OwnedMessage::Text(s) => {
-                    let exec = Exec::parse(s)?;
-                    if exec.header().tr_id() == &TrId::PingPong {
-                        let _ = self.exec_conn.send_message(&tmp_msg);
-                    }
-                    Ok(exec)
-                }
-                _ => Err(Error::InvalidData),
-            }
-        } else {
-            Err(Error::InvalidData)
+        let handle_ref = self.handles.get(&tr_id);
+        if handle_ref.is_some() {
+            handle_ref.unwrap().abort();
         }
-    }
-
-    pub async fn exec_recv_async(&mut self) -> Result<Exec, Error> {
-        if let Ok(msg) = self.exec_conn.recv_message() {
-            let tmp_msg = msg.clone();
-            match msg {
-                OwnedMessage::Text(s) => {
-                    let exec = Exec::parse(s)?;
-                    if exec.header().tr_id() == &TrId::PingPong {
-                        let _ = self.exec_conn.send_message(&tmp_msg);
+        let (iv, key) = (
+            result.iv().clone().expect("no iv"),
+            result.key().clone().expect("no key"),
+        );
+        let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
+        let handle = tokio::spawn(async move {
+            loop {
+                if let Ok(msg) = conn.recv_message() {
+                    let tmp_msg = msg.clone();
+                    match msg {
+                        OwnedMessage::Text(s) => {
+                            let data = MyExec::parse(s, iv.clone(), key.clone())
+                                .expect("Failed to parse message");
+                            if data.header().tr_id() == &TrId::PingPong {
+                                let _ = conn.send_message(&tmp_msg);
+                            } else {
+                                let _ = tx.send(data);
+                            }
+                        }
+                        _ => {
+                            error!("Get wrong data from stream={:?}", msg);
+                            panic!();
+                        }
                     }
-                    Ok(exec)
+                } else {
+                    error!("Failed to get message from stream");
+                    panic!();
                 }
-                _ => Err(Error::InvalidData),
             }
-        } else {
-            Err(Error::InvalidData)
-        }
-    }
-
-    /// 국내주식 실시간호가[실시간-004]
-    /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_9cda726b-6f0b-48b5-8369-6d66bea05a2a)
-    pub fn ordb_recv(&mut self) -> Result<Ordb, Error> {
-        if let Ok(msg) = self.ordb_conn.recv_message() {
-            let tmp_msg = msg.clone();
-            match msg {
-                OwnedMessage::Text(s) => {
-                    let ordb = Ordb::parse(s)?;
-                    if ordb.header().tr_id() == &TrId::PingPong {
-                        let _ = self.ordb_conn.send_message(&tmp_msg);
-                    }
-                    Ok(ordb)
-                }
-                _ => Err(Error::InvalidData),
-            }
-        } else {
-            Err(Error::InvalidData)
-        }
-    }
-
-    pub async fn ordb_recv_async(&mut self) -> Result<Ordb, Error> {
-        if let Ok(msg) = self.ordb_conn.recv_message() {
-            let tmp_msg = msg.clone();
-            match msg {
-                OwnedMessage::Text(s) => {
-                    let ordb = Ordb::parse(s)?;
-                    if ordb.header().tr_id() == &TrId::PingPong {
-                        let _ = self.ordb_conn.send_message(&tmp_msg);
-                    }
-                    Ok(ordb)
-                }
-                _ => Err(Error::InvalidData),
-            }
-        } else {
-            Err(Error::InvalidData)
-        }
-    }
-
-    /// 국내주식 실시간체결통보[실시간-005]
-    /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_1e3c056d-1b42-461c-b8fb-631bb48e1ee2)
-    pub fn my_exec_recv(&mut self, iv: String, key: String) -> Result<MyExec, Error> {
-        if let Ok(msg) = self.my_exec_conn.recv_message() {
-            let tmp_msg = msg.clone();
-            match msg {
-                OwnedMessage::Text(s) => {
-                    let my_exec = MyExec::parse(s, iv, key)?;
-                    if my_exec.header().tr_id() == &TrId::PingPong {
-                        let _ = self.my_exec_conn.send_message(&tmp_msg);
-                    }
-                    Ok(my_exec)
-                }
-                _ => Err(Error::InvalidData),
-            }
-        } else {
-            Err(Error::InvalidData)
-        }
-    }
-
-    pub async fn my_exec_recv_async(&mut self, iv: String, key: String) -> Result<MyExec, Error> {
-        if let Ok(msg) = self.my_exec_conn.recv_message() {
-            let tmp_msg = msg.clone();
-            match msg {
-                OwnedMessage::Text(s) => {
-                    let my_exec = MyExec::parse(s, iv, key)?;
-                    if my_exec.header().tr_id() == &TrId::PingPong {
-                        let _ = self.my_exec_conn.send_message(&tmp_msg);
-                    }
-                    Ok(my_exec)
-                }
-                _ => Err(Error::InvalidData),
-            }
-        } else {
-            Err(Error::InvalidData)
-        }
+        });
+        self.handles.insert(tr_id, handle);
+        Ok((rx, result))
     }
 }

@@ -2,10 +2,7 @@ use super::Header;
 use crate::types::{parse_bool, Aes256CbcDec, CorrectionClass, Direction, OrderClass, Time};
 use crate::util::get_json_inner;
 use crate::{Error, BUF_SIZE};
-use aes::cipher::{
-    block_padding::{Pkcs7, ZeroPadding},
-    BlockDecryptMut, KeyIvInit,
-};
+use aes::cipher::{block_padding::ZeroPadding, BlockDecryptMut, KeyIvInit};
 use base64::Engine;
 
 #[derive(Debug, Clone)]
@@ -13,6 +10,8 @@ pub struct MyExec {
     header: Header,
     body: Option<Body>,
 }
+
+unsafe impl Send for MyExec {}
 
 impl MyExec {
     pub fn parse(s: String, iv: String, key: String) -> Result<Self, Error> {

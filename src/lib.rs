@@ -8,22 +8,22 @@ extern crate log;
 
 pub const BUF_SIZE: usize = 4096;
 
-pub struct KoreaInvestmentApi {
+pub struct KoreaInvestmentApi<'a> {
     client: reqwest::Client,
     pub auth: auth::Auth,
     pub order: stock::order::Korea,
     pub quote: stock::quote::Quote,
-    pub k_data: stock::data::KoreaStockData,
+    pub k_data: stock::data::KoreaStockData<'a>,
 }
 
-impl KoreaInvestmentApi {
+impl<'a> KoreaInvestmentApi<'a> {
     pub async fn new(
         acc: types::Environment,
         appkey: &str,
         appsecret: &str,
         account: types::Account,
         hts_id: &str,
-    ) -> Result<KoreaInvestmentApi, Error> {
+    ) -> Result<KoreaInvestmentApi<'a>, Error> {
         let client = reqwest::Client::new();
         info!(
             "Authorizing: environment={}, appkey={}, appsecret={}",

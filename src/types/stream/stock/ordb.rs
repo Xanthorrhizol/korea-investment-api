@@ -1,8 +1,5 @@
-use super::Header;
-use crate::types::{
-    parse_bool, DealClassCode, ExecClass, MarketOperationClassCode, MarketTerminationClassCode,
-    Time, TimeClassCode, VsPriceSign,
-};
+use super::{Header, StreamParser};
+use crate::types::{DealClassCode, Time, TimeClassCode, VsPriceSign};
 use crate::util::get_json_inner;
 use crate::Error;
 
@@ -12,8 +9,10 @@ pub struct Ordb {
     body: Option<Body>,
 }
 
-impl Ordb {
-    pub fn parse(s: String) -> Result<Self, Error> {
+unsafe impl Send for Ordb {}
+
+impl StreamParser<Body> for Ordb {
+    fn parse(s: String) -> Result<Self, Error> {
         if let Ok(j) = json::parse(&s) {
             let header = Header {
                 tr_id: get_json_inner(&j, "header.tr_id")?.as_str().unwrap().into(),
@@ -97,11 +96,11 @@ impl Ordb {
         }
     }
 
-    pub fn header(&self) -> &Header {
+    fn header(&self) -> &Header {
         &self.header
     }
 
-    pub fn body(&self) -> &Option<Body> {
+    fn body(&self) -> &Option<Body> {
         &self.body
     }
 }

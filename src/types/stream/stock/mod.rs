@@ -2,7 +2,10 @@ pub mod exec;
 pub mod my_exec;
 pub mod ordb;
 
-use crate::types::{Time, TrId};
+use crate::{
+    types::{Time, TrId},
+    Error,
+};
 pub use exec::Exec;
 pub use my_exec::MyExec;
 pub use ordb::Ordb;
@@ -20,4 +23,14 @@ impl Header {
     pub fn datetime(&self) -> &Time {
         &self.datetime
     }
+}
+
+pub trait StreamParser<T>
+where
+    Self: Sized + 'static,
+    T: Clone,
+{
+    fn parse(s: String) -> Result<Self, Error>;
+    fn header(&self) -> &Header;
+    fn body(&self) -> &Option<T>;
 }

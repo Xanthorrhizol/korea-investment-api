@@ -1,4 +1,5 @@
 use korea_investment_api::types::config::Config;
+use korea_investment_api::types::stream::stock::{ordb::Body as OrdbBody, Ordb};
 use korea_investment_api::types::{Account, MarketCode, PeriodCode, TrId};
 use korea_investment_api::KoreaInvestmentApi;
 use std::io::Read;
@@ -58,13 +59,15 @@ async fn main() {
         .unwrap();
 
     // 삼성전자 호가 실시간 시세 구독
-    let subscribe_response = api
+    let (rx, subscribe_response) = api
         .k_data
-        .subscribe_market("KR7005930003", TrId::RealtimeOrdb)
+        .subscribe_market::<Ordb, OrdbBody>("KR7005930003", TrId::RealtimeOrdb)
         .unwrap();
 
     // 구독한 시세 읽기
-    while let Ok(ordb) = api.k_data.ordb_recv() {
-        println!("Got orderbook: {:?}", ordb);
+    if let Some(mut rx) = rx {
+        while let Some(ordb) = rx.recv().await {
+            println!("Got orderbook: {:?}", ordb);
+        }
     }
 }

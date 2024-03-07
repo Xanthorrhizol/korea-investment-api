@@ -1,4 +1,4 @@
-use super::Header;
+use super::{Header, StreamParser};
 use crate::types::{
     parse_bool, ExecClass, MarketOperationClassCode, MarketTerminationClassCode, Time,
     TimeClassCode, VsPriceSign,
@@ -12,8 +12,10 @@ pub struct Exec {
     body: Option<Body>,
 }
 
-impl Exec {
-    pub fn parse(s: String) -> Result<Self, Error> {
+unsafe impl Send for Exec {}
+
+impl StreamParser<Body> for Exec {
+    fn parse(s: String) -> Result<Self, Error> {
         if let Ok(j) = json::parse(&s) {
             let header = Header {
                 tr_id: get_json_inner(&j, "header.tr_id")?.as_str().unwrap().into(),
@@ -104,11 +106,11 @@ impl Exec {
         }
     }
 
-    pub fn header(&self) -> &Header {
+    fn header(&self) -> &Header {
         &self.header
     }
 
-    pub fn body(&self) -> &Option<Body> {
+    fn body(&self) -> &Option<Body> {
         &self.body
     }
 }

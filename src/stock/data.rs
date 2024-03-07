@@ -6,10 +6,10 @@ use crate::{auth, Error};
 use std::collections::HashMap;
 use websocket::{Message, OwnedMessage};
 
-pub struct KoreaStockData<'a> {
-    exec_client: websocket::ClientBuilder<'a>,
-    ordb_client: websocket::ClientBuilder<'a>,
-    my_exec_client: websocket::ClientBuilder<'a>,
+pub struct KoreaStockData {
+    exec_client: websocket::ClientBuilder<'static>,
+    ordb_client: websocket::ClientBuilder<'static>,
+    my_exec_client: websocket::ClientBuilder<'static>,
     endpoint_url: String,
     environment: Environment,
     auth: auth::Auth,
@@ -18,7 +18,7 @@ pub struct KoreaStockData<'a> {
     handles: HashMap<TrId, tokio::task::JoinHandle<()>>,
 }
 
-impl<'a> KoreaStockData<'a> {
+impl KoreaStockData {
     /// 국내 주식 실시간 시세에 관한 API
     /// [실시간시세(국내주식)](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_714d1437-8f62-43db-a73c-cf509d3f6aa7)
     pub fn new(
@@ -65,7 +65,7 @@ impl<'a> KoreaStockData<'a> {
     }
 
     /// 종목 시세 구독
-    pub fn subscribe_market<T: StreamParser<R> + Send + 'static, R: Clone + Send + 'static>(
+    pub fn subscribe_market<T: StreamParser<R> + Send, R: Clone + Send>(
         &mut self,
         isin: &str,
         tr_id: TrId,

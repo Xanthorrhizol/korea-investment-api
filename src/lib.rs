@@ -16,7 +16,7 @@ pub struct KoreaInvestmentApi {
     pub k_data: stock::data::KoreaStockData,
 }
 
-impl<'a> KoreaInvestmentApi {
+impl KoreaInvestmentApi {
     pub async fn new(
         acc: types::Environment,
         appkey: &str,

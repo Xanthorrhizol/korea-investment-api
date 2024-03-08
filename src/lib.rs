@@ -23,16 +23,26 @@ impl KoreaInvestmentApi {
         appsecret: &str,
         account: types::Account,
         hts_id: &str,
+        token: Option<String>,
+        approval_key: Option<String>,
     ) -> Result<KoreaInvestmentApi, Error> {
         let client = reqwest::Client::new();
-        info!(
-            "Authorizing: environment={}, appkey={}, appsecret={}",
-            &acc, &appkey, &appsecret
-        );
         let mut auth = auth::Auth::new(&client, acc.clone(), appkey, appsecret);
-        auth.create_token().await?;
+        info!(
+            "Authorizing: acc={}, appkey={}, appsecret={}",
+            &acc, &appkey, &appsecret,
+        );
+        if let Some(token) = token {
+            auth.set_token(token);
+        } else {
+            auth.create_token().await?;
+        }
         debug!("token: {:?}", auth.get_token());
-        auth.create_approval_key().await?;
+        if let Some(approval_key) = approval_key {
+            auth.set_approval_key(approval_key);
+        } else {
+            auth.create_approval_key().await?;
+        }
         debug!("approval_key: {:?}", auth.get_approval_key());
         let order = stock::order::Korea::new(&client, acc.clone(), auth.clone(), account.clone())?;
         let quote = stock::quote::Quote::new(&client, acc.clone(), auth.clone(), account.clone())?;

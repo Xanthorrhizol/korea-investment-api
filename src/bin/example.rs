@@ -41,6 +41,8 @@ async fn get_api(config: &Config) -> Result<KoreaInvestmentApi, Error> {
         config.app_secret(),
         account,
         config.hts_id(),
+        None,
+        None,
     )
     .await?)
 }

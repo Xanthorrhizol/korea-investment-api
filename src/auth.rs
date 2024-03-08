@@ -83,6 +83,10 @@ impl Auth {
         Ok(approval_key)
     }
 
+    pub fn set_approval_key(&mut self, approval_key: String) {
+        self.approval_key = Some(approval_key);
+    }
+
     /// Hashkey
     /// [Docs](https://apiportal.koreainvestment.com/apiservice/oauth2#L_214b9e22-8f2e-4fba-9688-587279f1061a)
     /// hash값을 얻어와서 반환
@@ -129,6 +133,10 @@ impl Auth {
             .get_access_token();
         self.token = Some(token.clone());
         Ok(token)
+    }
+
+    pub fn set_token(&mut self, token: String) {
+        self.token = Some(token);
     }
 
     /// 접근토큰폐기(P)[인증-002]

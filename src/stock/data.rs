@@ -195,7 +195,7 @@ impl KoreaStockData {
     > {
         let app_key = self.auth.get_appkey();
         let app_secret = self.auth.get_appsecret();
-        let personalseckey = self.auth.get_approval_key().unwrap();
+        let personalseckey = self.auth.get_approval_key().expect("No approval key");
         let tr_id = match self.environment {
             Environment::Real => TrId::RealRealtimeMyExec,
             Environment::Virtual => TrId::VirtualRealtimeMyExec,

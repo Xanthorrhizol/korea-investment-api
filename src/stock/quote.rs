@@ -85,7 +85,7 @@ impl Quote {
         let tr_id = TrId::VolumeRank;
         let url = format!(
             "{}/uapi/domestic-stock/v1/quotations/volume-rank",
-            self.endpoint_url
+            "https://openapi.koreainvestment.com:9443", // no VirtualMarket support
         );
         let url = reqwest::Url::parse_with_params(&url, &params.into_iter())?;
         Ok(self

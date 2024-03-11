@@ -14,10 +14,6 @@ keywords = ["api", "client", "korea-investment", "stock", "trading"]
 [features]
 example = ["toml", "structopt"]
 
-[[bin]]
-name = "example"
-path = "src/bin/example.rs"
-
 [dependencies]
 aes = "0.8.3"
 base64 = "0.21.2"

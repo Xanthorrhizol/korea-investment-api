@@ -1,6 +1,8 @@
 mod auth;
 mod stock;
 pub mod types;
+pub use types::{Account, Environment};
+
 pub(crate) mod util;
 
 #[macro_use]

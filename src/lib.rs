@@ -57,6 +57,16 @@ impl KoreaInvestmentApi {
             k_data,
         })
     }
+
+    pub fn export_config(&self, config: &types::config::Config) -> Result<(), Error> {
+        let mut config = config.clone();
+        config.set_approval_key(self.auth.get_approval_key());
+        config.set_token(self.auth.get_token());
+        let toml = toml::to_string(&config)?;
+        std::fs::write("config.toml", toml)?;
+
+        Ok(())
+    }
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -84,7 +94,10 @@ pub enum Error {
     Base64DecodeError(#[from] base64::DecodeError),
     #[error(transparent)]
     UrlParseError(#[from] url::ParseError),
-
+    #[error(transparent)]
+    TomlSerializeError(#[from] toml::ser::Error),
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
     // custom
     #[error("Auth init failed - None value in {0}")]
     AuthInitFailed(&'static str),

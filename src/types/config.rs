@@ -1,7 +1,8 @@
 use crate::types::Environment;
-use getset::Getters;
+use getset::{Getters, Setters};
+use serde::{Deserialize, Serialize};
 
-#[derive(serde::Deserialize, Debug, Clone, Default, Getters)]
+#[derive(Deserialize, Serialize, Debug, Clone, Default, Getters, Setters)]
 pub struct Config {
     #[getset(get = "pub")]
     hts_id: String,
@@ -13,6 +14,10 @@ pub struct Config {
     app_key: String,
     #[getset(get = "pub")]
     app_secret: String,
+    #[getset(get = "pub", set = "pub")]
+    approval_key: Option<String>,
+    #[getset(get = "pub", set = "pub")]
+    token: Option<String>,
     #[getset(get = "pub")]
     environment: Environment,
 }

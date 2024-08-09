@@ -170,3 +170,86 @@ impl VolumeRankParameter {
         ]
     }
 }
+
+#[derive(Debug, Clone, Getters, CopyGetters, Serialize)]
+pub struct GroupListParameter {
+    #[getset(get = "pub")]
+    type_: String,
+    #[getset(get = "pub")]
+    fid_etc_cls_code: String,
+    #[getset(get = "pub")]
+    user_id: String,
+}
+
+impl GroupListParameter {
+    pub fn new(user_id: &str) -> Self {
+        let user_id = user_id.to_string();
+        Self {
+            type_: "1".to_string(),
+            fid_etc_cls_code: "00".to_string(),
+            user_id,
+        }
+    }
+
+    pub fn into_iter(&self) -> [(&'static str, String); 3] {
+        [
+            ("TYPE", self.type_.clone()),
+            ("FID_ETC_CLS_CODE", self.fid_etc_cls_code.clone()),
+            ("USER_ID", self.user_id.clone()),
+        ]
+    }
+}
+
+#[derive(Debug, Clone, Getters, CopyGetters, Serialize)]
+pub struct GroupItemParameter {
+    #[getset(get = "pub")]
+    type_: String,
+    #[getset(get = "pub")]
+    user_id: String,
+    #[getset(get = "pub")]
+    data_rank: String,
+    #[getset(get = "pub")]
+    inter_grp_code: String,
+    #[getset(get = "pub")]
+    inter_grp_name: String,
+    #[getset(get = "pub")]
+    hts_kor_isnm: String,
+    #[getset(get = "pub")]
+    cntg_cls_code: String,
+    #[getset(get = "pub")]
+    fid_etc_cls_code: String,
+}
+
+impl GroupItemParameter {
+    pub fn new(user_id: &str, inter_grp_code: &str) -> Self {
+        let user_id = user_id.to_string();
+        let data_rank = "".to_string();
+        let inter_grp_code = inter_grp_code.to_string();
+        let inter_grp_name = "".to_string();
+        let hts_kor_isnm = "".to_string();
+        let cntg_cls_code = "".to_string();
+        Self {
+            type_: "1".to_string(),
+            user_id,
+            data_rank,
+            inter_grp_code,
+            inter_grp_name,
+            hts_kor_isnm,
+            cntg_cls_code,
+            fid_etc_cls_code: "4".to_string(),
+        }
+    }
+
+    pub fn into_iter(&self) -> [(&'static str, String); 8] {
+        [
+            ("TYPE", self.type_.clone()),
+            ("USER_ID", self.user_id.clone()),
+            ("DATA_RANK", self.data_rank.clone()),
+            ("INTER_GRP_CODE", self.inter_grp_code.clone()),
+            ("INTER_GRP_NAME", self.inter_grp_name.clone()),
+            ("HTS_KOR_ISNM", self.hts_kor_isnm.clone()),
+            ("CNTG_CLS_CODE", self.cntg_cls_code.clone()),
+            ("FID_ETC_CLS_CODE", self.fid_etc_cls_code.clone()),
+        ]
+    }
+}

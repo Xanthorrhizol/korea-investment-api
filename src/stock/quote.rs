@@ -110,4 +110,62 @@ impl Quote {
             .json::<response::stock::quote::VolumeRankResponse>()
             .await?)
     }
+
+    /// 관심종목 그룹별 종목조회[국내주식-203]
+    pub async fn group_item(
+        &self,
+        params: request::stock::quote::GroupItemParameter,
+    ) -> Result<response::stock::quote::GroupItemResponse, Error> {
+        let tr_id = TrId::InstockGroupItem;
+        let url = format!(
+            "{}/uapi/domestic-stock/v1/quotations/intstock-stocklist-by-group",
+            "https://openapi.koreainvestment.com:9443", // no VirtualMarket support
+        );
+        let url = reqwest::Url::parse_with_params(&url, &params.into_iter())?;
+        Ok(self
+            .create_request(tr_id, url)?
+            .send()
+            .await?
+            .json::<response::stock::quote::GroupItemResponse>()
+            .await?)
+    }
+
+    /// 관심종목 그룹조회[국내주식-204]
+    pub async fn group_list(
+        &self,
+        params: request::stock::quote::GroupListParameter,
+    ) -> Result<response::stock::quote::GroupListResponse, Error> {
+        let tr_id = TrId::InstockGrouplist;
+        let url = format!(
+            "{}/uapi/domestic-stock/v1/quotations/intstock-grouplist",
+            "https://openapi.koreainvestment.com:9443", // no VirtualMarket support
+        );
+        let url = reqwest::Url::parse_with_params(&url, &params.into_iter())?;
+        Ok(self
+            .create_request(tr_id, url)?
+            .send()
+            .await?
+            .json::<response::stock::quote::GroupListResponse>()
+            .await?)
+    }
+
+    fn create_request(&self, tr_id: TrId, url: url::Url) -> Result<reqwest::RequestBuilder, Error> {
+        Ok(self
+            .client
+            .get(url)
+            .header("Content-Type", "application/json")
+            .header(
+                "Authorization",
+                match self.auth.get_token() {
+                    Some(token) => format!("Bearer {}", token),
+                    None => {
+                        return Err(Error::AuthInitFailed("token"));
+                    }
+                },
+            )
+            .header("appkey", self.auth.get_appkey())
+            .header("appsecret", self.auth.get_appsecret())
+            .header("tr_id", Into::<String>::into(tr_id))
+            .header("custtype", "P"))
+    }
 }

@@ -1,11 +1,13 @@
 use getset::Getters;
 use serde::Deserialize;
 
-pub type DailyPriceResponse = QuoteResponse<output::DailyPrice>;
-pub type VolumeRankResponse = QuoteResponse<output::VolumeRank>;
+pub type DailyPriceResponse = QuoteResponse<output::DailyPrice, output::DailyPrice>;
+pub type VolumeRankResponse = QuoteResponse<output::VolumeRank, output::VolumeRank>;
+pub type GroupListResponse = QuoteResponse<output::GroupList, output::GroupList>;
+pub type GroupItemResponse = QuoteResponse<output::GroupInfo, output::GroupItem>;
 
 #[derive(Clone, Debug, Deserialize, Getters)]
-pub struct QuoteResponse<T> {
+pub struct QuoteResponse<T, R> {
     #[getset(get = "pub")]
     rt_cd: String, // 0: 성공, 0 이외의 값: 실패
     #[getset(get = "pub")]
@@ -14,6 +16,10 @@ pub struct QuoteResponse<T> {
     msg1: String, // 응답메시지
     #[getset(get = "pub")]
     output: Option<Vec<T>>, // 응답 상세
+    #[getset(get = "pub")]
+    output1: Option<T>, // 응답 상세1
+    #[getset(get = "pub")]
+    output2: Option<Vec<R>>, // 응답 상세2
 }
 
 pub mod output {
@@ -93,5 +99,71 @@ pub mod output {
         nday_tr_pbmn_tnrt: String, // N일 거래대금 회전율
         #[getset(get = "pub")]
         acml_tr_pbmn: String, // 누적 거래 대금
+    }
+
+    #[derive(Clone, Debug, Deserialize, Getters)]
+    pub struct GroupList {
+        /// 일자
+        #[getset(get = "pub")]
+        date: String,
+        /// 전송 시간
+        #[getset(get = "pub")]
+        tmm_hour: Option<String>,
+        /// 데이터 순위
+        #[getset(get = "pub")]
+        data_rank: String,
+        /// 관심 그룹 코드
+        #[getset(get = "pub")]
+        inter_grp_code: String,
+        /// 관심 그룹 명
+        #[getset(get = "pub")]
+        inter_grp_name: String,
+        /// 요청 개수
+        #[getset(get = "pub")]
+        ask_cnt: String,
+    }
+
+    #[derive(Clone, Debug, Deserialize, Getters)]
+    pub struct GroupInfo {
+        /// 데이터 순위
+        #[getset(get = "pub")]
+        data_rank: String,
+        /// 관심 그룹 코드
+        #[getset(get = "pub")]
+        inter_grp_code: Option<String>,
+    }
+
+    #[derive(Clone, Debug, Deserialize, Getters)]
+    pub struct GroupItem {
+        /// FID 시장 구분 코드
+        #[getset(get = "pub")]
+        fid_mrkt_cls_code: String,
+        /// 데이터 순위
+        #[getset(get = "pub")]
+        data_rank: String,
+        /// 거래소 코드
+        #[getset(get = "pub")]
+        exch_code: String,
+        /// 종목 코드
+        #[getset(get = "pub")]
+        jong_code: String,
+        /// 색상 코드
+        #[getset(get = "pub")]
+        color_code: String,
+        /// 메모
+        #[getset(get = "pub")]
+        memo: String,
+        /// HTS 한글 종목명
+        #[getset(get = "pub")]
+        hts_kor_isnm: String,
+        /// 기준일 순매수 수량
+        #[getset(get = "pub")]
+        fxdt_ntby_qty: String,
+        /// 체결단가
+        #[getset(get = "pub")]
+        cntg_unpr: String,
+        /// 체결 구분 코드
+        #[getset(get = "pub")]
+        cntg_cls_code: String,
     }
 }

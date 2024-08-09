@@ -22,7 +22,7 @@ pub fn parse_bool(s: &str) -> bool {
 /// 투자환경
 /// 실전투자: Real
 /// 모의투자: Virtual
-#[derive(Clone, Debug, Default, serde_with::DeserializeFromStr)]
+#[derive(Clone, Debug, Default, serde_with::DeserializeFromStr, serde_with::SerializeDisplay)]
 pub enum Environment {
     Real,
     #[default]
@@ -234,6 +234,10 @@ pub enum TrId {
     DailyPrice,
     #[serde(rename = "FHPST01710000")]
     VolumeRank,
+    #[serde(rename = "HHKCM113004C7")]
+    InstockGrouplist,
+    #[serde(rename = "HHKCM113004C6")]
+    InstockGroupItem,
     // Market data
     #[serde(rename = "H0STCNT0")]
     RealtimeExec,
@@ -261,6 +265,8 @@ impl Into<String> for TrId {
             // Quote
             TrId::DailyPrice => "FHKST01010400",
             TrId::VolumeRank => "FHPST01710000",
+            TrId::InstockGrouplist => "HHKCM113004C7",
+            TrId::InstockGroupItem => "HHKCM113004C6",
             // Market data
             TrId::RealtimeExec => "H0STCNT0",
             TrId::RealtimeOrdb => "H0STASP0",
@@ -287,6 +293,8 @@ impl From<&str> for TrId {
             // Quote
             "FHKST01010400" => TrId::DailyPrice,
             "FHPST01710000" => TrId::VolumeRank,
+            "HHKCM113004C7" => TrId::InstockGrouplist,
+            "HHKCM113004C6" => TrId::InstockGroupItem,
             // Market data
             "H0STCNT0" => TrId::RealtimeExec,
             "H0STASP0" => TrId::RealtimeOrdb,

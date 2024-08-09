@@ -55,22 +55,7 @@ impl Quote {
         let params = param.into_iter();
         let url = reqwest::Url::parse_with_params(&url, &params)?;
         Ok(self
-            .client
-            .get(url)
-            .header("Content-Type", "application/json")
-            .header(
-                "Authorization",
-                match self.auth.get_token() {
-                    Some(token) => format!("Bearer {}", token),
-                    None => {
-                        return Err(Error::AuthInitFailed("token"));
-                    }
-                },
-            )
-            .header("appkey", self.auth.get_appkey())
-            .header("appsecret", self.auth.get_appsecret())
-            .header("tr_id", Into::<String>::into(tr_id))
-            .header("custtype", "P")
+            .create_request(tr_id, url)?
             .send()
             .await?
             .json::<response::stock::quote::DailyPriceResponse>()
@@ -89,22 +74,7 @@ impl Quote {
         );
         let url = reqwest::Url::parse_with_params(&url, &params.into_iter())?;
         Ok(self
-            .client
-            .get(url)
-            .header("Content-Type", "application/json")
-            .header(
-                "Authorization",
-                match self.auth.get_token() {
-                    Some(token) => format!("Bearer {}", token),
-                    None => {
-                        return Err(Error::AuthInitFailed("token"));
-                    }
-                },
-            )
-            .header("appkey", self.auth.get_appkey())
-            .header("appsecret", self.auth.get_appsecret())
-            .header("tr_id", Into::<String>::into(tr_id))
-            .header("custtype", "P")
+            .create_request(tr_id, url)?
             .send()
             .await?
             .json::<response::stock::quote::VolumeRankResponse>()

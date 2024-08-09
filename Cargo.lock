@@ -879,6 +879,7 @@ dependencies = [
  "toml",
  "url 2.5.2",
  "websocket",
+ "xan-log",
 ]
 
 [[package]]
@@ -2566,4 +2567,15 @@ checksum = "d59cefebd0c892fa2dd6de581e937301d8552cb44489cdff035c6187cb63fa5e"
 dependencies = [
  "winapi 0.2.8",
  "winapi-build",
+]
+
+[[package]]
+name = "xan-log"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4689dad7d33ccabfb7f18ee33bd856406aaee884c8a29c5f231bfaa757be7954"
+dependencies = [
+ "chrono",
+ "log 0.4.22",
+ "serde_json",
 ]

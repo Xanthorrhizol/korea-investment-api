@@ -1,13 +1,13 @@
 use getset::Getters;
 use serde::Deserialize;
 
-pub type DailyPriceResponse = QuoteResponse<output::DailyPrice, output::DailyPrice>;
-pub type VolumeRankResponse = QuoteResponse<output::VolumeRank, output::VolumeRank>;
-pub type GroupListResponse = QuoteResponse<output::GroupList, output::GroupList>;
-pub type GroupItemResponse = QuoteResponse<output::GroupInfo, output::GroupItem>;
+pub type DailyPriceResponse = QuoteResponse<Vec<output::DailyPrice>, (), ()>;
+pub type VolumeRankResponse = QuoteResponse<Vec<output::VolumeRank>, (), ()>;
+pub type GroupListResponse = QuoteResponse<Vec<output::GroupList>, (), Vec<output::GroupList>>;
+pub type GroupItemResponse = QuoteResponse<(), output::GroupInfo, Vec<output::GroupItem>>;
 
 #[derive(Clone, Debug, Deserialize, Getters)]
-pub struct QuoteResponse<T, R> {
+pub struct QuoteResponse<A, B, C> {
     #[getset(get = "pub")]
     rt_cd: String, // 0: 성공, 0 이외의 값: 실패
     #[getset(get = "pub")]
@@ -15,11 +15,11 @@ pub struct QuoteResponse<T, R> {
     #[getset(get = "pub")]
     msg1: String, // 응답메시지
     #[getset(get = "pub")]
-    output: Option<Vec<T>>, // 응답 상세
+    output: Option<A>, // 응답 상세
     #[getset(get = "pub")]
-    output1: Option<T>, // 응답 상세1
+    output1: Option<B>, // 응답 상세1
     #[getset(get = "pub")]
-    output2: Option<Vec<R>>, // 응답 상세2
+    output2: Option<C>, // 응답 상세2
 }
 
 pub mod output {

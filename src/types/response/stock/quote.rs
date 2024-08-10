@@ -9,17 +9,23 @@ pub type GroupItemResponse = QuoteResponse<(), output::GroupInfo, Vec<output::Gr
 #[derive(Clone, Debug, Deserialize, Getters)]
 pub struct QuoteResponse<A, B, C> {
     #[getset(get = "pub")]
-    rt_cd: String, // 0: 성공, 0 이외의 값: 실패
+    /// 0: 성공, 0 이외의 값: 실패
+    rt_cd: String,
     #[getset(get = "pub")]
-    msg_cd: String, // 응답코드
+    /// 응답코드
+    msg_cd: String,
     #[getset(get = "pub")]
-    msg1: String, // 응답메시지
+    /// 응답메시지
+    msg1: String,
     #[getset(get = "pub")]
-    output: Option<A>, // 응답 상세
+    /// 응답 상세
+    output: Option<A>,
     #[getset(get = "pub")]
-    output1: Option<B>, // 응답 상세1
+    /// 응답 상세1
+    output1: Option<B>,
     #[getset(get = "pub")]
-    output2: Option<C>, // 응답 상세2
+    /// 응답 상세2
+    output2: Option<C>,
 }
 
 pub mod output {
@@ -30,140 +36,173 @@ pub mod output {
     #[derive(Clone, Debug, Deserialize, Getters)]
     pub struct DailyPrice {
         #[getset(get = "pub")]
-        stck_bsop_date: String, // 주식 영업 일자
+        /// 주식 영업 일자
+        stck_bsop_date: String,
         #[getset(get = "pub")]
-        stck_oprc: String, // 주식 시가
+        /// 주식 시가
+        stck_oprc: String,
         #[getset(get = "pub")]
-        stck_hgpr: String, // 주식 최고가
+        /// 주식 최고가
+        stck_hgpr: String,
         #[getset(get = "pub")]
-        stck_lwpr: String, // 주식 최저가
+        /// 주식 최저가
+        stck_lwpr: String,
         #[getset(get = "pub")]
-        stck_clpr: String, // 주식 종가
+        /// 주식 종가
+        stck_clpr: String,
         #[getset(get = "pub")]
-        acml_vol: String, // 누적 거래량
+        /// 누적 거래량
+        acml_vol: String,
         #[getset(get = "pub")]
-        prdy_vrss_vol_rate: String, // 전일 대비 거래량 비율
+        /// 전일 대비 거래량 비율
+        prdy_vrss_vol_rate: String,
         #[getset(get = "pub")]
-        prdy_vrss: String, // 전일 대비
+        /// 전일 대비
+        prdy_vrss: String,
         #[getset(get = "pub")]
-        prdy_vrss_sign: VsPriceSign, // 전일 대비 부호
+        /// 전일 대비 부호
+        prdy_vrss_sign: VsPriceSign,
         #[getset(get = "pub")]
-        prdy_ctrt: String, // 전일 대비율
+        /// 전일 대비율
+        prdy_ctrt: String,
         #[getset(get = "pub")]
-        hts_frgn_ehrt: String, // HTS 외국인 소진율
+        /// HTS 외국인 소진율
+        hts_frgn_ehrt: String,
         #[getset(get = "pub")]
-        frgn_ntby_qty: String, // 외국인 순매수 수량
+        /// 외국인 순매수 수량
+        frgn_ntby_qty: String,
         #[getset(get = "pub")]
-        flng_cls_code: ExCode, // 락 구분 코드
+        /// 락 구분 코드
+        flng_cls_code: ExCode,
         #[getset(get = "pub")]
-        acml_prtt_rate: String, // 누적 분할 비율
+        /// 누적 분할 비율
+        acml_prtt_rate: String,
     }
 
     #[derive(Clone, Debug, Deserialize, Getters)]
     pub struct VolumeRank {
         #[getset(get = "pub")]
-        hts_kor_isnm: String, // HTS 한글 종목명
+        /// HTS 한글 종목명
+        hts_kor_isnm: String,
         #[getset(get = "pub")]
-        mksc_shrn_iscd: String, // 유가증권 단축 종목코드
+        /// 유가증권 단축 종목코드
+        mksc_shrn_iscd: String,
         #[getset(get = "pub")]
-        data_rank: String, // 데이터 순위
+        /// 데이터 순위
+        data_rank: String,
         #[getset(get = "pub")]
-        stck_prpr: String, // 주식 현재가
+        /// 주식 현재가
+        stck_prpr: String,
         #[getset(get = "pub")]
-        prdy_vrss_sign: VsPriceSign, // 전일 대비 부호
+        /// 전일 대비 부호
+        prdy_vrss_sign: VsPriceSign,
         #[getset(get = "pub")]
-        prdy_vrss: String, // 전일 대비
+        /// 전일 대비
+        prdy_vrss: String,
         #[getset(get = "pub")]
-        prdy_ctrt: String, // 전일 대비율
+        /// 전일 대비율
+        prdy_ctrt: String,
         #[getset(get = "pub")]
-        acml_vol: String, // 누적 거래량
+        /// 누적 거래량
+        acml_vol: String,
         #[getset(get = "pub")]
-        prdy_vol: String, // 전일 거래량
+        /// 전일 거래량
+        prdy_vol: String,
         #[getset(get = "pub")]
-        lstn_stcn: String, // 상장 주수
+        /// 상장 주수
+        lstn_stcn: String,
         #[getset(get = "pub")]
-        avrg_vol: String, // 평균 거래량
+        /// 평균 거래량
+        avrg_vol: String,
         #[getset(get = "pub")]
-        n_befr_clpr_vrss_prpr_rate: String, // N일전종가대비현재가대비율
+        /// N일전종가대비현재가대비율
+        n_befr_clpr_vrss_prpr_rate: String,
         #[getset(get = "pub")]
-        vol_inrt: String, // 거래량 증가율
+        /// 거래량 증가율
+        vol_inrt: String,
         #[getset(get = "pub")]
-        vol_tnrt: String, // 거래량 회전율
+        /// 거래량 회전율
+        vol_tnrt: String,
         #[getset(get = "pub")]
-        nday_vol_tnrt: String, // N일 거래량 회전율
+        /// N일 거래량 회전율
+        nday_vol_tnrt: String,
         #[getset(get = "pub")]
-        avrg_tr_pbmn: String, // 평균 거래 대금
+        /// 평균 거래 대금
+        avrg_tr_pbmn: String,
         #[getset(get = "pub")]
-        tr_pbmn_tnrt: String, // 거래대금회전율
+        /// 거래대금회전율
+        tr_pbmn_tnrt: String,
         #[getset(get = "pub")]
-        nday_tr_pbmn_tnrt: String, // N일 거래대금 회전율
+        /// N일 거래대금 회전율
+        nday_tr_pbmn_tnrt: String,
         #[getset(get = "pub")]
-        acml_tr_pbmn: String, // 누적 거래 대금
+        /// 누적 거래 대금
+        acml_tr_pbmn: String,
     }
 
     #[derive(Clone, Debug, Deserialize, Getters)]
     pub struct GroupList {
+        #[getset(get = "pub")]
         /// 일자
-        #[getset(get = "pub")]
         date: String,
+        #[getset(get = "pub")]
         /// 전송 시간
-        #[getset(get = "pub")]
         tmm_hour: Option<String>,
+        #[getset(get = "pub")]
         /// 데이터 순위
-        #[getset(get = "pub")]
         data_rank: String,
+        #[getset(get = "pub")]
         /// 관심 그룹 코드
-        #[getset(get = "pub")]
         inter_grp_code: String,
+        #[getset(get = "pub")]
         /// 관심 그룹 명
-        #[getset(get = "pub")]
         inter_grp_name: String,
-        /// 요청 개수
         #[getset(get = "pub")]
+        /// 요청 개수
         ask_cnt: String,
     }
 
     #[derive(Clone, Debug, Deserialize, Getters)]
     pub struct GroupInfo {
+        #[getset(get = "pub")]
         /// 데이터 순위
-        #[getset(get = "pub")]
         data_rank: String,
-        /// 관심 그룹 코드
         #[getset(get = "pub")]
+        /// 관심 그룹 코드
         inter_grp_code: Option<String>,
     }
 
     #[derive(Clone, Debug, Deserialize, Getters)]
     pub struct GroupItem {
+        #[getset(get = "pub")]
         /// FID 시장 구분 코드
-        #[getset(get = "pub")]
         fid_mrkt_cls_code: String,
+        #[getset(get = "pub")]
         /// 데이터 순위
-        #[getset(get = "pub")]
         data_rank: String,
+        #[getset(get = "pub")]
         /// 거래소 코드
-        #[getset(get = "pub")]
         exch_code: String,
+        #[getset(get = "pub")]
         /// 종목 코드
-        #[getset(get = "pub")]
         jong_code: String,
+        #[getset(get = "pub")]
         /// 색상 코드
-        #[getset(get = "pub")]
         color_code: String,
+        #[getset(get = "pub")]
         /// 메모
-        #[getset(get = "pub")]
         memo: String,
+        #[getset(get = "pub")]
         /// HTS 한글 종목명
-        #[getset(get = "pub")]
         hts_kor_isnm: String,
+        #[getset(get = "pub")]
         /// 기준일 순매수 수량
-        #[getset(get = "pub")]
         fxdt_ntby_qty: String,
+        #[getset(get = "pub")]
         /// 체결단가
-        #[getset(get = "pub")]
         cntg_unpr: String,
-        /// 체결 구분 코드
         #[getset(get = "pub")]
+        /// 체결 구분 코드
         cntg_cls_code: String,
     }
 }

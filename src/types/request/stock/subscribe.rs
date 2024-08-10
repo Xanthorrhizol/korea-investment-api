@@ -1,11 +1,14 @@
 use crate::types::{CustomerType, TrId};
+use getset::{Getters, Setters};
 use serde::Serialize;
 
 /// 국내주식 실시간체결가[실시간-003]
 /// 국내주식 실시간호가[실시간-004]
-#[derive(Serialize)]
+#[derive(Debug, Clone, Getters, Setters, Serialize)]
 pub struct SubscribeRequest {
+    #[getset(get = "pub", set = "pub")]
     header: Header,
+    #[getset(get = "pub", set = "pub")]
     body: Body,
 }
 
@@ -18,25 +21,34 @@ pub enum TrType {
     Unregister = 2,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Getters, Setters, Serialize)]
 pub struct Header {
+    #[getset(get = "pub", set = "pub")]
     appkey: String,
+    #[getset(get = "pub", set = "pub")]
     appsecret: String,
+    #[getset(get = "pub", set = "pub")]
     personalseckey: String,
+    #[getset(get = "pub", set = "pub")]
     custtype: CustomerType,
+    #[getset(get = "pub", set = "pub")]
     tr_type: TrType,
+    #[getset(get = "pub", set = "pub")]
     #[serde(rename = "Content-Type")]
     content_type: String,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Debug, Clone, Getters, Setters, Serialize)]
 pub struct Body {
+    #[getset(get = "pub", set = "pub")]
     input: BodyInner,
 }
 
-#[derive(Clone, Serialize)]
+#[derive(Debug, Clone, Getters, Setters, Serialize)]
 pub struct BodyInner {
+    #[getset(get = "pub", set = "pub")]
     tr_id: TrId,
+    #[getset(get = "pub", set = "pub")]
     tr_key: String,
 }
 
@@ -64,47 +76,7 @@ impl SubscribeRequest {
         }
     }
 
-    pub fn header(&self) -> &Header {
-        &self.header
-    }
-
-    pub fn body(&self) -> &Body {
-        &self.body
-    }
-
     pub fn get_json_string(&self) -> String {
         serde_json::json!(self).to_string()
-    }
-}
-
-impl Header {
-    pub fn appkey(&self) -> &str {
-        &self.appkey
-    }
-
-    pub fn appsecret(&self) -> &str {
-        &self.appsecret
-    }
-
-    pub fn personalseckey(&self) -> &str {
-        &self.personalseckey
-    }
-
-    pub fn custtype(&self) -> &CustomerType {
-        &self.custtype
-    }
-
-    pub fn tr_type(&self) -> &TrType {
-        &self.tr_type
-    }
-}
-
-impl Body {
-    pub fn tr_id(&self) -> &TrId {
-        &self.input.tr_id
-    }
-
-    pub fn tr_key(&self) -> &str {
-        &self.input.tr_key
     }
 }

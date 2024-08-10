@@ -268,3 +268,34 @@ impl GroupItemParameter {
         ]
     }
 }
+
+#[derive(Debug, Clone, Getters, CopyGetters, Serialize)]
+pub struct BasicStockInfoParameter {
+    #[getset(get = "pub")]
+    /// 상품유형코드
+    /// 300: 주식, ETF, ETN, ELW
+    /// 301: 선물옵션
+    /// 302: 채권
+    /// 306: ELS
+    prdt_type_cd: String,
+    #[getset(get = "pub")]
+    /// 상품번호
+    /// 주식: 종목번호(6자리)
+    /// ETN: Q로 시작
+    pdno: String,
+}
+
+impl BasicStockInfoParameter {
+    pub fn new(prdt_type_cd: &str, pdno: &str) -> Self {
+        let prdt_type_cd = prdt_type_cd.to_string();
+        let pdno = pdno.to_string();
+        Self { prdt_type_cd, pdno }
+    }
+
+    pub fn into_iter(&self) -> [(&'static str, String); 2] {
+        [
+            ("PRDT_TYPE_CD", self.prdt_type_cd.clone()),
+            ("PDNO", self.pdno.clone()),
+        ]
+    }
+}

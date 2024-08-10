@@ -237,6 +237,8 @@ pub enum TrId {
     InstockGrouplist,
     #[serde(rename = "HHKCM113004C6")]
     InstockGroupItem,
+    #[serde(rename = "CTPF1002R")]
+    BasicStockInfo,
     // Market data
     #[serde(rename = "H0STCNT0")]
     RealtimeExec,
@@ -266,6 +268,7 @@ impl Into<String> for TrId {
             TrId::VolumeRank => "FHPST01710000",
             TrId::InstockGrouplist => "HHKCM113004C7",
             TrId::InstockGroupItem => "HHKCM113004C6",
+            TrId::BasicStockInfo => "CTPF1002R",
             // Market data
             TrId::RealtimeExec => "H0STCNT0",
             TrId::RealtimeOrdb => "H0STASP0",
@@ -294,6 +297,7 @@ impl From<&str> for TrId {
             "FHPST01710000" => TrId::VolumeRank,
             "HHKCM113004C7" => TrId::InstockGrouplist,
             "HHKCM113004C6" => TrId::InstockGroupItem,
+            "CTPF1002R" => TrId::BasicStockInfo,
             // Market data
             "H0STCNT0" => TrId::RealtimeExec,
             "H0STASP0" => TrId::RealtimeOrdb,

@@ -118,6 +118,27 @@ impl Quote {
             .json::<response::stock::quote::GroupListResponse>()
             .await?)
     }
+    /// 주식기본조회[v1_국내주식-067]
+    pub async fn basic_stock_info(
+        &self,
+        prdt_type_cd: &str,
+        pdno: &str,
+    ) -> Result<response::stock::quote::BasicStockInfoResponse, Error> {
+        let tr_id = TrId::BasicStockInfo;
+        let param = request::stock::quote::BasicStockInfoParameter::new(prdt_type_cd, pdno);
+        let url = format!(
+            "{}/uapi/domestic-stock/v1/quotations/search-stock-info",
+            "https://openapi.koreainvestment.com:9443", // no VirtualMarket support
+        );
+        let params = param.into_iter();
+        let url = reqwest::Url::parse_with_params(&url, &params)?;
+        Ok(self
+            .create_request(tr_id, url)?
+            .send()
+            .await?
+            .json::<response::stock::quote::BasicStockInfoResponse>()
+            .await?)
+    }
 
     fn create_request(&self, tr_id: TrId, url: url::Url) -> Result<reqwest::RequestBuilder, Error> {
         Ok(self

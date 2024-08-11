@@ -1,7 +1,7 @@
 [package]
 name = "korea-investment-api"
 authors = ["Xanthorrhizol <xanthorrhizol@proton.me>"]
-version = "1.6.0"
+version = "1.6.1"
 edition = "2021"
 description = "Korea Investment API client for Rust(Not official)"
 repository = "https://github.com/Xanthorrhizol/korea-investment-api"

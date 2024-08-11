@@ -923,7 +923,7 @@ pub enum ExchangeCode {
     Gold,
     #[serde(rename = "50")]
     /// 50.미국주간
-    USWeekly,
+    USDaytime,
     #[serde(rename = "51")]
     /// 51.홍콩
     HongKong,
@@ -976,7 +976,7 @@ impl std::fmt::Display for ExchangeCode {
             ExchangeCode::CME => "06",
             ExchangeCode::EUREX => "07",
             ExchangeCode::Gold => "21",
-            ExchangeCode::USWeekly => "50",
+            ExchangeCode::USDaytime => "50",
             ExchangeCode::HongKong => "51",
             ExchangeCode::ShanghaiB => "52",
             ExchangeCode::Shenzhen => "53",
@@ -1006,7 +1006,7 @@ impl std::str::FromStr for ExchangeCode {
             "06" => Self::CME,
             "07" => Self::EUREX,
             "21" => Self::Gold,
-            "50" => Self::USWeekly,
+            "50" => Self::USDaytime,
             "51" => Self::HongKong,
             "52" => Self::ShanghaiB,
             "53" => Self::Shenzhen,

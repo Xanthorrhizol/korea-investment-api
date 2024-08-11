@@ -5,6 +5,7 @@ pub mod response;
 pub mod stream;
 mod time;
 
+use crate::Error;
 pub(crate) use crypto::Aes256CbcDec;
 use serde::{Deserialize, Serialize};
 use serde_with::SerializeDisplay;
@@ -57,25 +58,45 @@ pub struct Account {
     pub acnt_prdt_cd: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub enum OrderClass {
-    Limit,                // 지정가
-    Market,               // 시장가
-    ConditionalLimit,     // 조건부지정가
-    Best,                 // 최유리지정가
-    First,                // 최우선지정가
-    PreMarket,            // 장전시간외
-    PostMarket,           // 장후시간외
-    OutMarketSinglePrice, // 시간외단일가
-    MyStock,              // 자기주식
-    MyStockSOption,       // 자기주식S-Option
-    MyStockMoneyTrust,    // 자시주식금전신탁
-    IOCLimit,             // IOC지정가
-    FOKLimit,             // FOK지정가
-    IOCMarket,            // IOC시장가
-    FOKMarket,            // FOK시장가
-    IOCBest,              // IOC최유리
-    FOKBest,              // FOK최유리
+    #[default]
+    /// 지정가
+    Limit,
+    /// 시장가
+    Market,
+    /// 조건부지정가
+    ConditionalLimit,
+    /// 최유리지정가
+    Best,
+    /// 최우선지정가
+    First,
+    /// 장전시간외
+    PreMarket,
+    /// 장후시간외
+    PostMarket,
+    /// 시간외단일가
+    OutMarketSinglePrice,
+    /// 자기주식
+    MyStock,
+    /// 자기주식S-Option
+    MyStockSOption,
+    /// 자시주식금전신탁
+    MyStockMoneyTrust,
+    /// IOC지정가(즉시체결, 잔량취소)
+    IOCLimit,
+    /// FOK지정가(즉시체결, 잔량취소)
+    FOKLimit,
+    /// IOC시장가(즉시체결, 잔량취소)
+    IOCMarket,
+    /// FOK시장가(즉시체결, 잔량취소)
+    FOKMarket,
+    /// IOC최유리(즉시체결, 잔량취소)
+    IOCBest,
+    /// FOK최유리(즉시체결, 잔량취소)
+    FOKBest,
+    /// 장중대량(즉시체결, 잔량취소)
+    MidMarketMassive,
 }
 impl Into<String> for OrderClass {
     fn into(self) -> String {
@@ -97,6 +118,7 @@ impl Into<String> for OrderClass {
             Self::FOKMarket => "14".to_string(),
             Self::IOCBest => "15".to_string(),
             Self::FOKBest => "16".to_string(),
+            Self::MidMarketMassive => "51".to_string(),
         }
     }
 }
@@ -120,6 +142,7 @@ impl From<&str> for OrderClass {
             "14" => OrderClass::FOKMarket,
             "15" => OrderClass::IOCBest,
             "16" => OrderClass::FOKBest,
+            "51" => OrderClass::MidMarketMassive,
             _ => todo!(),
         }
     }
@@ -453,7 +476,7 @@ impl From<&str> for MarketOperationClassCode {
             "2" => What::Massive,
             "3" => What::Basket,
             "7" => What::Clearance,
-            "7" => What::BuyIn,
+            "8" => What::BuyIn,
             _ => unreachable!(),
         };
         Self(first, second)
@@ -647,6 +670,546 @@ impl std::fmt::Display for ShareClassCode {
             Self::Whole => "0",
             Self::Common => "1",
             Self::Preferred => "2",
+        })
+    }
+}
+
+/// 시장ID코드
+#[derive(Clone, Debug, Deserialize, SerializeDisplay)]
+pub enum MarketId {
+    #[serde(rename = "AGR")]
+    /// AGR.농축산물파생
+    Agricultural,
+    #[serde(rename = "BON")]
+    /// BON.채권파생
+    Bond,
+    #[serde(rename = "CMD")]
+    /// CMD.일반상품시장
+    Commodity,
+    #[serde(rename = "CUR")]
+    /// CUR.통화파생
+    Currency,
+    #[serde(rename = "ENG")]
+    /// ENG.에너지파생
+    Energy,
+    #[serde(rename = "EQU")]
+    /// EQU.주식파생
+    Equity,
+    #[serde(rename = "ETF")]
+    /// ETF.ETF파생
+    Etf,
+    #[serde(rename = "IRT")]
+    /// IRT.금리파생
+    InterestRate,
+    #[serde(rename = "KNX")]
+    /// KNX.코넥스
+    Konex,
+    #[serde(rename = "KSQ")]
+    /// KSQ.코스닥
+    Kosdaq,
+    #[serde(rename = "MTL")]
+    /// MTL.금속파생
+    Metal,
+    #[serde(rename = "SPI")]
+    /// SPI.주가지수파생
+    StockPriceIndex,
+    #[serde(rename = "STK")]
+    /// STK.유가증권
+    Stock,
+}
+impl std::fmt::Display for MarketId {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(match self {
+            MarketId::Agricultural => "AGR",
+            MarketId::Bond => "BON",
+            MarketId::Commodity => "CMD",
+            MarketId::Currency => "CUR",
+            MarketId::Energy => "ENG",
+            MarketId::Equity => "EQU",
+            MarketId::Etf => "ETF",
+            MarketId::InterestRate => "IRT",
+            MarketId::Konex => "KNX",
+            MarketId::Kosdaq => "KSQ",
+            MarketId::Metal => "MTL",
+            MarketId::StockPriceIndex => "SPI",
+            MarketId::Stock => "STK",
+        })
+    }
+}
+
+impl std::str::FromStr for MarketId {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Error> {
+        Ok(match s {
+            "AGR" => Self::Agricultural,
+            "BON" => Self::Bond,
+            "CMD" => Self::Commodity,
+            "CUR" => Self::Currency,
+            "ENG" => Self::Energy,
+            "EQU" => Self::Equity,
+            "ETF" => Self::Etf,
+            "IRT" => Self::InterestRate,
+            "KNX" => Self::Konex,
+            "KSQ" => Self::Kosdaq,
+            "MTL" => Self::Metal,
+            "SPI" => Self::StockPriceIndex,
+            "STK" => Self::Stock,
+            _ => {
+                return Err(Error::BrokenProtocol("MarketId", s.to_string()));
+            }
+        })
+    }
+}
+
+/// 증권그룹ID코드
+#[derive(Clone, Debug, Deserialize, SerializeDisplay)]
+pub enum SecurityGroupId {
+    #[serde(rename = "BC")]
+    /// BC.수익증권
+    Income,
+    #[serde(rename = "DR")]
+    /// DR.주식예탁증서
+    StockDepositaryReceipt,
+    #[serde(rename = "EF")]
+    /// EF.ETF
+    Etf,
+    #[serde(rename = "EN")]
+    /// EN.ETN
+    Etn,
+    #[serde(rename = "EW")]
+    /// EW.ELW
+    Elw,
+    #[serde(rename = "FE")]
+    /// FE.해외ETF
+    ForeignEtf,
+    #[serde(rename = "FO")]
+    /// FO.선물옵션
+    FutureOption,
+    #[serde(rename = "FS")]
+    /// FS.외국주권
+    ForeignStock,
+    #[serde(rename = "FU")]
+    /// FU.선물
+    Future,
+    #[serde(rename = "FX")]
+    /// FX.플렉스 선물
+    FlexFuture,
+    #[serde(rename = "GD")]
+    /// GD.금현물
+    Gold,
+    #[serde(rename = "IC")]
+    /// IC.투자계약증권
+    InvestmentContract,
+    #[serde(rename = "IF")]
+    /// IF.사회간접자본투융자회사
+    IndirectCapitalInvestmentCompany,
+    #[serde(rename = "KN")]
+    /// KN.코넥스주권
+    KonexStock,
+    #[serde(rename = "MF")]
+    /// MF.투자회사
+    InvestmentCompany,
+    #[serde(rename = "OP")]
+    /// OP.옵션
+    Option,
+    #[serde(rename = "RT")]
+    /// RT.부동산투자회사
+    RealEstateInvestmentCompany,
+    #[serde(rename = "SC")]
+    /// SC.선박투자회사
+    ShipInvestmentCompany,
+    #[serde(rename = "SR")]
+    /// SR.신주인수권증서
+    Warrant,
+    #[serde(rename = "ST")]
+    /// ST.주권
+    Stock,
+    #[serde(rename = "SW")]
+    /// SW.신주인수권증권
+    WarrantSecurity,
+    #[serde(rename = "TC")]
+    /// TC.신탁수익증권
+    TrustIncome,
+}
+
+impl std::fmt::Display for SecurityGroupId {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(match self {
+            SecurityGroupId::Income => "BC",
+            SecurityGroupId::StockDepositaryReceipt => "DR",
+            SecurityGroupId::Etf => "EF",
+            SecurityGroupId::Etn => "EN",
+            SecurityGroupId::Elw => "EW",
+            SecurityGroupId::ForeignEtf => "FE",
+            SecurityGroupId::FutureOption => "FO",
+            SecurityGroupId::ForeignStock => "FS",
+            SecurityGroupId::Future => "FU",
+            SecurityGroupId::FlexFuture => "FX",
+            SecurityGroupId::Gold => "GD",
+            SecurityGroupId::InvestmentContract => "IC",
+            SecurityGroupId::IndirectCapitalInvestmentCompany => "IF",
+            SecurityGroupId::KonexStock => "KN",
+            SecurityGroupId::InvestmentCompany => "MF",
+            SecurityGroupId::Option => "OP",
+            SecurityGroupId::RealEstateInvestmentCompany => "RT",
+            SecurityGroupId::ShipInvestmentCompany => "SC",
+            SecurityGroupId::Warrant => "SR",
+            SecurityGroupId::Stock => "ST",
+            SecurityGroupId::WarrantSecurity => "SW",
+            SecurityGroupId::TrustIncome => "TC",
+        })
+    }
+}
+
+impl std::str::FromStr for SecurityGroupId {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Error> {
+        Ok(match s {
+            "BC" => Self::Income,
+            "DR" => Self::StockDepositaryReceipt,
+            "EF" => Self::Etf,
+            "EN" => Self::Etn,
+            "EW" => Self::Elw,
+            "FE" => Self::ForeignEtf,
+            "FO" => Self::FutureOption,
+            "FS" => Self::ForeignStock,
+            "FU" => Self::Future,
+            "FX" => Self::FlexFuture,
+            "GD" => Self::Gold,
+            "IC" => Self::InvestmentContract,
+            "IF" => Self::IndirectCapitalInvestmentCompany,
+            "KN" => Self::KonexStock,
+            "MF" => Self::InvestmentCompany,
+            "OP" => Self::Option,
+            "RT" => Self::RealEstateInvestmentCompany,
+            "SC" => Self::ShipInvestmentCompany,
+            "SR" => Self::Warrant,
+            "ST" => Self::Stock,
+            "SW" => Self::WarrantSecurity,
+            "TC" => Self::TrustIncome,
+            _ => {
+                return Err(Error::BrokenProtocol("SecurityGroupId", s.to_string()));
+            }
+        })
+    }
+}
+
+/// 거래소구분코드
+#[derive(Debug, Clone, Deserialize, SerializeDisplay)]
+pub enum ExchangeCode {
+    #[serde(rename = "01")]
+    /// 01.한국증권
+    KoreaSecurities,
+    #[serde(rename = "02")]
+    /// 02.증권거래소
+    SecuritiesExchange,
+    #[serde(rename = "03")]
+    /// 03.코스닥
+    Kosdaq,
+    #[serde(rename = "04")]
+    /// 04.K-OTC
+    KOTC,
+    #[serde(rename = "05")]
+    /// 05.선물거래소
+    FutureExchange,
+    #[serde(rename = "06")]
+    /// 06.CME
+    CME,
+    #[serde(rename = "07")]
+    /// 07.EUREX
+    EUREX,
+    #[serde(rename = "21")]
+    /// 21.금현물
+    Gold,
+    #[serde(rename = "50")]
+    /// 50.미국주간
+    USWeekly,
+    #[serde(rename = "51")]
+    /// 51.홍콩
+    HongKong,
+    #[serde(rename = "52")]
+    /// 52.상해B
+    ShanghaiB,
+    #[serde(rename = "53")]
+    /// 53.심천
+    Shenzhen,
+    #[serde(rename = "54")]
+    /// 54.홍콩거래소
+    HongKongExchange,
+    #[serde(rename = "55")]
+    /// 55.미국
+    US,
+    #[serde(rename = "56")]
+    /// 56.일본
+    Japan,
+    #[serde(rename = "57")]
+    /// 57.상해A
+    ShanghaiA,
+    #[serde(rename = "58")]
+    /// 58.심천A
+    ShenzhenA,
+    #[serde(rename = "59")]
+    /// 59.베트남
+    Vietnam,
+    #[serde(rename = "61")]
+    /// 61.장전시간외시장
+    PreMarket,
+    #[serde(rename = "64")]
+    /// 64.경쟁대량매매
+    CompetitiveMassive,
+    #[serde(rename = "65")]
+    /// 65.경매매시장
+    AuctionMarket,
+    #[serde(rename = "81")]
+    /// 81.시간외단일가시장
+    OutMarketSinglePrice,
+}
+
+impl std::fmt::Display for ExchangeCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(match self {
+            ExchangeCode::KoreaSecurities => "01",
+            ExchangeCode::SecuritiesExchange => "02",
+            ExchangeCode::Kosdaq => "03",
+            ExchangeCode::KOTC => "04",
+            ExchangeCode::FutureExchange => "05",
+            ExchangeCode::CME => "06",
+            ExchangeCode::EUREX => "07",
+            ExchangeCode::Gold => "21",
+            ExchangeCode::USWeekly => "50",
+            ExchangeCode::HongKong => "51",
+            ExchangeCode::ShanghaiB => "52",
+            ExchangeCode::Shenzhen => "53",
+            ExchangeCode::HongKongExchange => "54",
+            ExchangeCode::US => "55",
+            ExchangeCode::Japan => "56",
+            ExchangeCode::ShanghaiA => "57",
+            ExchangeCode::ShenzhenA => "58",
+            ExchangeCode::Vietnam => "59",
+            ExchangeCode::PreMarket => "61",
+            ExchangeCode::CompetitiveMassive => "64",
+            ExchangeCode::AuctionMarket => "65",
+            ExchangeCode::OutMarketSinglePrice => "81",
+        })
+    }
+}
+
+impl std::str::FromStr for ExchangeCode {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Error> {
+        Ok(match s {
+            "01" => Self::KoreaSecurities,
+            "02" => Self::SecuritiesExchange,
+            "03" => Self::Kosdaq,
+            "04" => Self::KOTC,
+            "05" => Self::FutureExchange,
+            "06" => Self::CME,
+            "07" => Self::EUREX,
+            "21" => Self::Gold,
+            "50" => Self::USWeekly,
+            "51" => Self::HongKong,
+            "52" => Self::ShanghaiB,
+            "53" => Self::Shenzhen,
+            "54" => Self::HongKongExchange,
+            "55" => Self::US,
+            "56" => Self::Japan,
+            "57" => Self::ShanghaiA,
+            "58" => Self::ShenzhenA,
+            "59" => Self::Vietnam,
+            "61" => Self::PreMarket,
+            "64" => Self::CompetitiveMassive,
+            "65" => Self::AuctionMarket,
+            "81" => Self::OutMarketSinglePrice,
+            _ => {
+                return Err(Error::BrokenProtocol("ExchangeCode", s.to_string()));
+            }
+        })
+    }
+}
+
+/// 주식종류코드
+#[derive(Debug, Clone, Deserialize, SerializeDisplay)]
+pub enum StockKindCode {
+    #[serde(rename = "000")]
+    /// 000.해당사항없음
+    None,
+    #[serde(rename = "101")]
+    /// 101.보통주
+    Common,
+    #[serde(rename = "201")]
+    /// 201.우선주
+    Preferred,
+    #[serde(rename = "202")]
+    /// 202.2우선주
+    Preferred2,
+    #[serde(rename = "203")]
+    /// 203.3우선주
+    Preferred3,
+    #[serde(rename = "204")]
+    /// 204.4우선주
+    Preferred4,
+    #[serde(rename = "205")]
+    /// 205.5우선주
+    Preferred5,
+    #[serde(rename = "206")]
+    /// 206.6우선주
+    Preferred6,
+    #[serde(rename = "207")]
+    /// 207.7우선주
+    Preferred7,
+    #[serde(rename = "208")]
+    /// 208.8우선주
+    Preferred8,
+    #[serde(rename = "209")]
+    /// 209.9우선주
+    Preferred9,
+    #[serde(rename = "210")]
+    /// 210.10우선주
+    Preferred10,
+    #[serde(rename = "211")]
+    /// 211.11우선주
+    Preferred11,
+    #[serde(rename = "212")]
+    /// 212.12우선주
+    Preferred12,
+    #[serde(rename = "213")]
+    /// 213.13우선주
+    Preferred13,
+    #[serde(rename = "214")]
+    /// 214.14우선주
+    Preferred14,
+    #[serde(rename = "215")]
+    /// 215.15우선주
+    Preferred15,
+    #[serde(rename = "216")]
+    /// 216.16우선주
+    Preferred16,
+    #[serde(rename = "217")]
+    /// 217.17우선주
+    Preferred17,
+    #[serde(rename = "218")]
+    /// 218.18우선주
+    Preferred18,
+    #[serde(rename = "219")]
+    /// 219.19우선주
+    Preferred19,
+    #[serde(rename = "220")]
+    /// 220.20우선주
+    Preferred20,
+    #[serde(rename = "301")]
+    /// 301.후배주
+    After,
+    #[serde(rename = "401")]
+    /// 401.혼합주
+    Mixed,
+}
+
+impl std::fmt::Display for StockKindCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(match self {
+            StockKindCode::None => "000",
+            StockKindCode::Common => "101",
+            StockKindCode::Preferred => "201",
+            StockKindCode::Preferred2 => "202",
+            StockKindCode::Preferred3 => "203",
+            StockKindCode::Preferred4 => "204",
+            StockKindCode::Preferred5 => "205",
+            StockKindCode::Preferred6 => "206",
+            StockKindCode::Preferred7 => "207",
+            StockKindCode::Preferred8 => "208",
+            StockKindCode::Preferred9 => "209",
+            StockKindCode::Preferred10 => "210",
+            StockKindCode::Preferred11 => "211",
+            StockKindCode::Preferred12 => "212",
+            StockKindCode::Preferred13 => "213",
+            StockKindCode::Preferred14 => "214",
+            StockKindCode::Preferred15 => "215",
+            StockKindCode::Preferred16 => "216",
+            StockKindCode::Preferred17 => "217",
+            StockKindCode::Preferred18 => "218",
+            StockKindCode::Preferred19 => "219",
+            StockKindCode::Preferred20 => "220",
+            StockKindCode::After => "301",
+            StockKindCode::Mixed => "401",
+        })
+    }
+}
+
+impl std::str::FromStr for StockKindCode {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Error> {
+        Ok(match s {
+            "000" => Self::None,
+            "101" => Self::Common,
+            "201" => Self::Preferred,
+            "202" => Self::Preferred2,
+            "203" => Self::Preferred3,
+            "204" => Self::Preferred4,
+            "205" => Self::Preferred5,
+            "206" => Self::Preferred6,
+            "207" => Self::Preferred7,
+            "208" => Self::Preferred8,
+            "209" => Self::Preferred9,
+            "210" => Self::Preferred10,
+            "211" => Self::Preferred11,
+            "212" => Self::Preferred12,
+            "213" => Self::Preferred13,
+            "214" => Self::Preferred14,
+            "215" => Self::Preferred15,
+            "216" => Self::Preferred16,
+            "217" => Self::Preferred17,
+            "218" => Self::Preferred18,
+            "219" => Self::Preferred19,
+            "220" => Self::Preferred20,
+            "301" => Self::After,
+            "401" => Self::Mixed,
+            _ => {
+                return Err(Error::BrokenProtocol("StockKindCode", s.to_string()));
+            }
+        })
+    }
+}
+
+/// 상품유형코드
+#[derive(Debug, Clone, Deserialize, SerializeDisplay, Default)]
+pub enum ProductTypeCode {
+    #[default]
+    #[serde(rename = "300")]
+    /// 300: 주식, ETF, ETN, ELW
+    Stock,
+    #[serde(rename = "301")]
+    /// 301: 선물옵션
+    FutureOption,
+    #[serde(rename = "302")]
+    /// 302: 채권
+    Bond,
+    #[serde(rename = "306")]
+    /// 306: ELS
+    ELS,
+}
+
+impl std::fmt::Display for ProductTypeCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(match self {
+            ProductTypeCode::Stock => "300",
+            ProductTypeCode::FutureOption => "301",
+            ProductTypeCode::Bond => "302",
+            ProductTypeCode::ELS => "306",
+        })
+    }
+}
+
+impl std::str::FromStr for ProductTypeCode {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Error> {
+        Ok(match s {
+            "300" => Self::Stock,
+            "301" => Self::FutureOption,
+            "302" => Self::Bond,
+            "306" => Self::ELS,
+            _ => {
+                return Err(Error::BrokenProtocol("ProductTypeCode", s.to_string()));
+            }
         })
     }
 }

@@ -64,6 +64,7 @@ pub mod Body {
 }
 
 pub mod Output {
+    use crate::types::OrderClass;
     use getset::Getters;
     use serde::{Deserialize, Serialize};
 
@@ -129,25 +130,7 @@ pub mod Output {
         sll_buy_dvsn_cd: String,
         #[getset(get = "pub")]
         /// 주문구분코드
-        /// 00: 지정가,
-        /// 01: 시장가,
-        /// 02: 조건부지정가,
-        /// 03: 최유리지정가,
-        /// 04: 최우선지정가,
-        /// 05: 장전 시간외,
-        /// 06: 장후 시간외,
-        /// 07: 시간외 단일가,
-        /// 08: 자기주식,
-        /// 09: 자기주식S-Option,
-        /// 10: 자기주식금전신탁,
-        /// 11: IOC지정가(즉시체결, 잔량취소)
-        /// 12: FOK지정가(즉시체결, 잔량취소)
-        /// 13: IOC시장가(즉시체결, 잔량취소)
-        /// 14: FOK시장가(즉시체결, 잔량취소)
-        /// 15: IOC최유리(즉시체결, 잔량취소)
-        /// 16: FOK최유리(즉시체결, 잔량취소)
-        /// 51: 장중대량
-        ord_dvsn_cd: String,
+        ord_dvsn_cd: OrderClass,
         #[getset(get = "pub")]
         /// 운용사지정주문번호(주문번호(운용사 통한 주문))
         mgco_aptm_odno: String,

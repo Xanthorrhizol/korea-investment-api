@@ -1,9 +1,10 @@
 use crate::types::{
-    BelongClassCode, CustomerType, MarketCode, PeriodCode, Price, ShareClassCode, TargetClassCode,
-    TargetExeceptClassCode, TrId,
+    BelongClassCode, CustomerType, MarketCode, PeriodCode, Price, ProductTypeCode, ShareClassCode,
+    TargetClassCode, TargetExeceptClassCode, TrId,
 };
 use getset::{CopyGetters, Getters, Setters};
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Header {
@@ -189,10 +190,13 @@ impl VolumeRankParameter {
 #[derive(Debug, Clone, Getters, CopyGetters, Setters, Serialize)]
 pub struct GroupListParameter {
     #[getset(get = "pub", set = "pub")]
+    /// 관심종목구분코드(1)
     type_: String,
     #[getset(get = "pub", set = "pub")]
+    /// FID 기타분류코드(00)
     fid_etc_cls_code: String,
     #[getset(get = "pub", set = "pub")]
+    /// 사용자ID
     user_id: String,
 }
 
@@ -218,20 +222,28 @@ impl GroupListParameter {
 #[derive(Debug, Clone, Getters, CopyGetters, Setters, Serialize)]
 pub struct GroupItemParameter {
     #[getset(get = "pub", set = "pub")]
+    /// 관심종목구분코드(1)
     type_: String,
     #[getset(get = "pub", set = "pub")]
+    /// 사용자ID
     user_id: String,
     #[getset(get = "pub", set = "pub")]
+    /// 데이터 순위
     data_rank: String,
     #[getset(get = "pub", set = "pub")]
+    /// 관심 그룹 코드
     inter_grp_code: String,
     #[getset(get = "pub", set = "pub")]
+    /// 관심 그룹 명
     inter_grp_name: String,
     #[getset(get = "pub", set = "pub")]
+    /// HTS 한글 종목명
     hts_kor_isnm: String,
     #[getset(get = "pub", set = "pub")]
+    /// 체결 구분 코드
     cntg_cls_code: String,
     #[getset(get = "pub", set = "pub")]
+    /// 기타 분류 코드
     fid_etc_cls_code: String,
 }
 
@@ -273,11 +285,7 @@ impl GroupItemParameter {
 pub struct BasicStockInfoParameter {
     #[getset(get = "pub")]
     /// 상품유형코드
-    /// 300: 주식, ETF, ETN, ELW
-    /// 301: 선물옵션
-    /// 302: 채권
-    /// 306: ELS
-    prdt_type_cd: String,
+    prdt_type_cd: ProductTypeCode,
     #[getset(get = "pub")]
     /// 상품번호
     /// 주식: 종목번호(6자리)
@@ -287,14 +295,14 @@ pub struct BasicStockInfoParameter {
 
 impl BasicStockInfoParameter {
     pub fn new(prdt_type_cd: &str, pdno: &str) -> Self {
-        let prdt_type_cd = prdt_type_cd.to_string();
+        let prdt_type_cd = ProductTypeCode::from_str(prdt_type_cd).unwrap_or_default();
         let pdno = pdno.to_string();
         Self { prdt_type_cd, pdno }
     }
 
     pub fn into_iter(&self) -> [(&'static str, String); 2] {
         [
-            ("PRDT_TYPE_CD", self.prdt_type_cd.clone()),
+            ("PRDT_TYPE_CD", self.prdt_type_cd.to_string()),
             ("PDNO", self.pdno.clone()),
         ]
     }

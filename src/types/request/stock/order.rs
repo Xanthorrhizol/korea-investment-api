@@ -85,34 +85,34 @@ pub mod Body {
     #[derive(Debug, Clone, PartialEq, Getters, Setters, Serialize, Deserialize)]
     #[serde(rename_all = "UPPERCASE")]
     pub struct Correction {
-        #[getset(get = "pub", set = "pub")]
         /// 종합계좌번호(계좌번호 체계(8-2)의 앞 8자리)
+        #[getset(get = "pub", set = "pub")]
         cano: String,
-        #[getset(get = "pub", set = "pub")]
         /// 계좌상품코드(계좌번호 체계(8-2)의 뒤 2자리)
-        acnt_prdt_cd: String,
         #[getset(get = "pub", set = "pub")]
+        acnt_prdt_cd: String,
         /// 한국거래소전송주문조직번호(주문시 한국투자증권 시스템에서
         /// 지정된 영업점코드)
-        krx_fwdg_ord_orgno: String,
         #[getset(get = "pub", set = "pub")]
+        krx_fwdg_ord_orgno: String,
         /// 원주문번호(주식일별주문체결조회 API output1의 odno(주문번호) 값 입력.
         /// 주문시 한국투자증권 시스템에서 채번된 주문번호)
+        #[getset(get = "pub", set = "pub")]
         orgn_odno: String,
-        #[getset(get = "pub", set = "pub")]
         /// 주문구분
+        #[getset(get = "pub", set = "pub")]
         ord_dvsn: OrderClass,
-        #[getset(get = "pub", set = "pub")]
         /// 정정취소구분코드
+        #[getset(get = "pub", set = "pub")]
         rvse_cncl_dvsn_cd: CorrectionClass,
-        #[getset(get = "pub", set = "pub")]
         /// 주문수량(주문주식수)
+        #[getset(get = "pub", set = "pub")]
         ord_qty: Quantity,
-        #[getset(get = "pub", set = "pub")]
         /// 주문단가([정정] 정정주문 1주당 가격, [취소] "0")
-        ord_unpr: Price,
         #[getset(get = "pub", set = "pub")]
+        ord_unpr: Price,
         /// 잔량전부주문여부([정정/취소] Y: 잔량전부, N: 잔량일부)
+        #[getset(get = "pub", set = "pub")]
         qty_all_ord_yn: bool,
     }
     impl Correction {

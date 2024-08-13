@@ -28,17 +28,17 @@ impl Header {
 
 #[derive(Debug, Clone, Getters, CopyGetters, Setters, Serialize)]
 pub struct DailyPriceParameter {
-    #[getset(get = "pub", set = "pub")]
     /// FID 조건 시장 분류 코드
+    #[getset(get = "pub", set = "pub")]
     fid_cond_mrkt_div_code: MarketCode,
-    #[getset(get = "pub", set = "pub")]
     /// FID 입력 종목코드
-    fid_input_iscd: String,
     #[getset(get = "pub", set = "pub")]
+    fid_input_iscd: String,
     /// FID 기간 분류 코드
+    #[getset(get = "pub", set = "pub")]
     fid_period_div_code: PeriodCode,
-    #[getset(get_copy = "pub", set = "pub")]
     /// FID 수정주가 원주가 가격(수정주가 반영: 0, 수정주가 미반영: 1)
+    #[getset(get_copy = "pub", set = "pub")]
     fid_org_adj_prc: u8,
 }
 impl DailyPriceParameter {
@@ -77,40 +77,40 @@ impl DailyPriceParameter {
 
 #[derive(Debug, Clone, Getters, CopyGetters, Setters, Serialize)]
 pub struct VolumeRankParameter {
-    #[getset(get = "pub", set = "pub")]
     /// 조건 시장 분류 코드(J)
+    #[getset(get = "pub", set = "pub")]
     fid_cond_mrkt_div_code: MarketCode,
-    #[getset(get = "pub", set = "pub")]
     /// 조건 화면 분류 코드(20171)
+    #[getset(get = "pub", set = "pub")]
     fid_cond_scr_div_code: String,
-    #[getset(get = "pub", set = "pub")]
     /// 입력 종목코드(전체: 0000, 기타: 업종코드)
+    #[getset(get = "pub", set = "pub")]
     fid_input_iscd: String,
-    #[getset(get = "pub", set = "pub")]
     /// 분류구분코드(0: 전체, 1: 보통주, 2: 우선주)
+    #[getset(get = "pub", set = "pub")]
     fid_div_cls_code: ShareClassCode,
-    #[getset(get = "pub", set = "pub")]
     /// 소속 구분 코드
-    fid_blng_cls_code: BelongClassCode,
     #[getset(get = "pub", set = "pub")]
+    fid_blng_cls_code: BelongClassCode,
     /// 대상구분코드(1 or 0 9자리)
     /// 차례대로 증거금 30 40 50 60 100 신용보증금 30 40 50 60
-    fid_trgt_cls_code: TargetClassCode,
     #[getset(get = "pub", set = "pub")]
+    fid_trgt_cls_code: TargetClassCode,
     /// 대상제외구분코드(1 or 0 6자리)
+    #[getset(get = "pub", set = "pub")]
     /// 차례대로 투자위험/경고/주의 관리종목 정리매매 불성실공시 우선주 거래정지
     fid_trgt_exls_cls_code: TargetExeceptClassCode,
-    #[getset(get_copy = "pub", set = "pub")]
     /// 입력 가격1(최소)
+    #[getset(get_copy = "pub", set = "pub")]
     fid_input_price_1: Option<Price>,
-    #[getset(get_copy = "pub", set = "pub")]
     /// 입력 가격2(최대)
-    fid_input_price_2: Option<Price>,
     #[getset(get_copy = "pub", set = "pub")]
+    fid_input_price_2: Option<Price>,
     /// 거래량 수
+    #[getset(get_copy = "pub", set = "pub")]
     fid_vol_cnt: Option<u32>,
-    #[getset(get = "pub", set = "pub")]
     /// 입력 날짜1("")
+    #[getset(get = "pub", set = "pub")]
     fid_input_date_1: String,
 }
 
@@ -189,14 +189,14 @@ impl VolumeRankParameter {
 
 #[derive(Debug, Clone, Getters, CopyGetters, Setters, Serialize)]
 pub struct GroupListParameter {
-    #[getset(get = "pub", set = "pub")]
     /// 관심종목구분코드(1)
+    #[getset(get = "pub", set = "pub")]
     type_: String,
-    #[getset(get = "pub", set = "pub")]
     /// FID 기타분류코드(00)
-    fid_etc_cls_code: String,
     #[getset(get = "pub", set = "pub")]
+    fid_etc_cls_code: String,
     /// 사용자ID
+    #[getset(get = "pub", set = "pub")]
     user_id: String,
 }
 
@@ -221,29 +221,29 @@ impl GroupListParameter {
 
 #[derive(Debug, Clone, Getters, CopyGetters, Setters, Serialize)]
 pub struct GroupItemParameter {
-    #[getset(get = "pub", set = "pub")]
     /// 관심종목구분코드(1)
+    #[getset(get = "pub", set = "pub")]
     type_: String,
-    #[getset(get = "pub", set = "pub")]
     /// 사용자ID
+    #[getset(get = "pub", set = "pub")]
     user_id: String,
-    #[getset(get = "pub", set = "pub")]
     /// 데이터 순위
+    #[getset(get = "pub", set = "pub")]
     data_rank: String,
-    #[getset(get = "pub", set = "pub")]
     /// 관심 그룹 코드
+    #[getset(get = "pub", set = "pub")]
     inter_grp_code: String,
-    #[getset(get = "pub", set = "pub")]
     /// 관심 그룹 명
+    #[getset(get = "pub", set = "pub")]
     inter_grp_name: String,
-    #[getset(get = "pub", set = "pub")]
     /// HTS 한글 종목명
+    #[getset(get = "pub", set = "pub")]
     hts_kor_isnm: String,
-    #[getset(get = "pub", set = "pub")]
     /// 체결 구분 코드
-    cntg_cls_code: String,
     #[getset(get = "pub", set = "pub")]
+    cntg_cls_code: String,
     /// 기타 분류 코드
+    #[getset(get = "pub", set = "pub")]
     fid_etc_cls_code: String,
 }
 
@@ -283,13 +283,13 @@ impl GroupItemParameter {
 
 #[derive(Debug, Clone, Getters, CopyGetters, Serialize)]
 pub struct BasicStockInfoParameter {
-    #[getset(get = "pub")]
     /// 상품유형코드
-    prdt_type_cd: ProductTypeCode,
     #[getset(get = "pub")]
+    prdt_type_cd: ProductTypeCode,
     /// 상품번호
     /// 주식: 종목번호(6자리)
     /// ETN: Q로 시작
+    #[getset(get = "pub")]
     pdno: String,
 }
 

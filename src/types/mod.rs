@@ -23,10 +23,11 @@ pub fn parse_bool(s: &str) -> bool {
 /// 실전투자: Real
 /// 모의투자: Virtual
 #[derive(Clone, Debug, Default, serde_with::DeserializeFromStr, serde_with::SerializeDisplay)]
+#[repr(i32)]
 pub enum Environment {
-    Real,
+    Real = 1,
     #[default]
-    Virtual,
+    Virtual = 2,
 }
 
 impl std::str::FromStr for Environment {
@@ -59,44 +60,45 @@ pub struct Account {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[repr(i32)]
 pub enum OrderClass {
     #[default]
     /// 지정가
-    Limit,
+    Limit = 0,
     /// 시장가
-    Market,
+    Market = 1,
     /// 조건부지정가
-    ConditionalLimit,
+    ConditionalLimit = 2,
     /// 최유리지정가
-    Best,
+    Best = 3,
     /// 최우선지정가
-    First,
+    First = 4,
     /// 장전시간외
-    PreMarket,
+    PreMarket = 5,
     /// 장후시간외
-    PostMarket,
+    PostMarket = 6,
     /// 시간외단일가
-    OutMarketSinglePrice,
+    OutMarketSinglePrice = 7,
     /// 자기주식
-    MyStock,
+    MyStock = 8,
     /// 자기주식S-Option
-    MyStockSOption,
+    MyStockSOption = 9,
     /// 자시주식금전신탁
-    MyStockMoneyTrust,
+    MyStockMoneyTrust = 10,
     /// IOC지정가(즉시체결, 잔량취소)
-    IOCLimit,
+    IOCLimit = 11,
     /// FOK지정가(즉시체결, 잔량취소)
-    FOKLimit,
+    FOKLimit = 12,
     /// IOC시장가(즉시체결, 잔량취소)
-    IOCMarket,
+    IOCMarket = 13,
     /// FOK시장가(즉시체결, 잔량취소)
-    FOKMarket,
+    FOKMarket = 14,
     /// IOC최유리(즉시체결, 잔량취소)
-    IOCBest,
+    IOCBest = 15,
     /// FOK최유리(즉시체결, 잔량취소)
-    FOKBest,
+    FOKBest = 16,
     /// 장중대량(즉시체결, 잔량취소)
-    MidMarketMassive,
+    MidMarketMassive = 51,
 }
 impl Into<String> for OrderClass {
     fn into(self) -> String {
@@ -123,7 +125,7 @@ impl Into<String> for OrderClass {
     }
 }
 impl From<&str> for OrderClass {
-    fn from(s: &str) -> Self {
+    fn fr =om(s: &str) -> Self {
         match s {
             "00" => OrderClass::Limit,
             "01" => OrderClass::Market,
@@ -149,10 +151,11 @@ impl From<&str> for OrderClass {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[repr(i32)]
 pub enum CorrectionClass {
-    None,
-    Correction,
-    Cancel,
+    None = 0,
+    Correction = 1,
+    Cancel = 2,
 }
 impl Into<String> for CorrectionClass {
     fn into(self) -> String {
@@ -176,9 +179,12 @@ impl From<&str> for CorrectionClass {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[repr(i32)]
 pub enum Direction {
-    Bid, // buy
-    Ask, // sell
+    /// buy
+    Bid = 1, 
+    /// sell
+    Ask = 2, 
 }
 
 impl From<&str> for Direction {
@@ -352,10 +358,14 @@ impl Into<String> for CustomerType {
 
 /// 체결구분
 #[derive(Debug, Clone)]
+#[repr(i32)]
 pub enum ExecClass {
-    Bid,       // 매수(1)
-    PreMarket, // 장전(3)
-    Ask,       // 매도(5)
+    /// 매수(1)
+    Bid = 1,
+    /// 장전(3)
+    PreMarket = 3, 
+    /// 매도(5)
+    Ask = 5,
 }
 
 impl From<&str> for ExecClass {
@@ -371,17 +381,23 @@ impl From<&str> for ExecClass {
 
 /// 대비구분
 #[derive(Clone, Debug, Deserialize)]
+#[repr(i32)]
 pub enum VsPriceSign {
+    /// 상한(1)
     #[serde(rename = "1")]
-    UpperLimit, // 상한(1)
+    UpperLimit = 1, 
+    /// 상승(2)
     #[serde(rename = "2")]
-    Increase, // 상승(2)
+    Increase = 2, 
+    /// 보합(3)
     #[serde(rename = "3")]
-    Steady, // 보합(3)
+    Steady = 3, 
+    /// 하락(4)
     #[serde(rename = "4")]
-    Decrease, // 하락(4)
+    Decrease = 4, 
+    /// 하한(5)
     #[serde(rename = "5")]
-    LowerLimit, // 하한(5)
+    LowerLimit = 5, 
 }
 
 impl From<&str> for VsPriceSign {
@@ -399,12 +415,18 @@ impl From<&str> for VsPriceSign {
 
 /// 시간 구분 코드
 #[derive(Clone, Debug)]
+#[repr(i32)]
 pub enum TimeClassCode {
-    InMarket,                    // 장중(0)
-    PostMarketPrediction,        // 장후예상(A)
-    PreMarketPrediction,         // 장전예상(B)
-    PostNinePmPredictionOrVi,    // 9시이후의 예상가, VI발동(C)
-    OutMarketSinglePricePredict, // 시간외 단일가 예상(D)
+    /// 장중(0)
+    InMarket = 1,        
+    /// 장후예상(A)
+    PostMarketPrediction = 2,
+    /// 장전예상(B)
+    PreMarketPrediction = 3, 
+    /// 9시이후의 예상가, VI발동(C)
+    PostNinePmPredictionOrVi = 4,
+    /// 시간외 단일가 예상(D)
+    OutMarketSinglePricePredict = 5,
 }
 
 impl From<&str> for TimeClassCode {
@@ -483,34 +505,49 @@ impl From<&str> for MarketOperationClassCode {
     }
 }
 
-/// 장운영 구분 코드(1st bit) - 주문 시점
+/// 장운영 구분 코드(1st char) - 주문 시점
 #[derive(Clone, Debug)]
+#[repr(i32)]
 pub enum When {
-    PreMarket,            // 장개시전(1)
-    Market,               // 장중(2)
-    PostMarket,           // 장종료후(3)
-    OutMarketSinglePrice, // 시간외단일가(4)
-    NormalBuyIn,          // 일반 Buy-in(7)
-    TodayBuyIn,           // 당일Buy-in(8)
+    /// 장개시전(1)
+    PreMarket = 1,
+    /// 장중(2)
+    Market = 2,
+    /// 장종료후(3)
+    PostMarket = 3,
+    /// 시간외단일가(4)
+    OutMarketSinglePrice = 4,
+    /// 일반 Buy-in(7)
+    NormalBuyIn = 7,
+    /// 당일Buy-in(8)
+    TodayBuyIn = 8,
 }
 
-/// 장운영 구분 코드(2nd bit) - 주문 대상
+/// 장운영 구분 코드(2nd char) - 주문 대상
 #[derive(Clone, Debug)]
+#[repr(i32)]
 pub enum What {
-    Normal,    // 보통(0)
-    EndPrice,  // 종가(1)
-    Massive,   // 대량(2)
-    Basket,    // 바스켓(3)
-    Clearance, // 정리매매(7)
-    BuyIn,     // Buy-in(8)
+    /// 보통(0)
+    Normal = 0,
+    /// 종가(1)
+    EndPrice = 1,
+    /// 대량(2)
+    Massive = 2,
+    /// 바스켓(3)
+    Basket = 3,
+    /// 정리매매(7)
+    Clearance = 7,
+    /// Buy-in(8)
+    BuyIn = 8,
 }
 
 #[derive(Clone, Debug, Deserialize, SerializeDisplay)]
+#[repr(i32)]
 pub enum MarketCode {
     #[serde(rename = "J")]
-    Stock,
+    Stock = 1,
     #[serde(rename = "ETF")]
-    Etf,
+    Etf = 2,
 }
 impl std::fmt::Display for MarketCode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -522,13 +559,14 @@ impl std::fmt::Display for MarketCode {
 }
 
 #[derive(Clone, Debug, Deserialize, SerializeDisplay)]
+#[repr(i32)]
 pub enum PeriodCode {
     #[serde(rename = "D")]
-    ThirtyDays,
+    ThirtyDays = 1,
     #[serde(rename = "W")]
-    ThirtyWeeks,
+    ThirtyWeeks = 2,
     #[serde(rename = "M")]
-    ThirtyMonths,
+    ThirtyMonths = 3,
 }
 impl std::fmt::Display for PeriodCode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -541,23 +579,31 @@ impl std::fmt::Display for PeriodCode {
 }
 
 #[derive(Clone, Debug, Deserialize, SerializeDisplay)]
+#[repr(i32)]
 pub enum ExCode {
     #[serde(rename = "00")]
-    None,
+    None = 0,
+    /// 권리락
     #[serde(rename = "01")]
-    ExRights, // 권리락
+    ExRights = 1,
+    /// 배당락
     #[serde(rename = "02")]
-    ExDividend, // 배당락
+    ExDividend = 2,
+    /// 분배락
     #[serde(rename = "03")]
-    ExEtfDividend, // 분배락
+    ExEtfDividend = 3,
+    /// 권배락
     #[serde(rename = "04")]
-    ExRightsAndDividend, // 권배락
+    ExRightsAndDividend = 4,
+    /// 중간(분기)배당락
     #[serde(rename = "05")]
-    MidOrQtrExDividend, // 중간(분기)배당락
+    MidOrQtrExDividend = 5,
+    /// 권리중간배당락
     #[serde(rename = "06")]
-    MidExRightsAndDividend, // 권리중간배당락
+    MidExRightsAndDividend = 6,
+    /// 권리분기배당락
     #[serde(rename = "07")]
-    QtrExRightsAndDividend, // 권리분기배당락
+    QtrExRightsAndDividend = 7,
 }
 impl std::fmt::Display for ExCode {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -632,12 +678,18 @@ impl std::fmt::Display for TargetClassCode {
 
 #[derive(Debug, Clone, Copy, SerializeDisplay)]
 pub struct TargetExeceptClassCode {
-    pub overheat: bool,             // 투자위험/경고/주의
-    pub administrated: bool,        // 관리종목
-    pub settlement_trading: bool,   // 정리매매
-    pub insufficient_posting: bool, // 불성실공시
-    pub preferred_share: bool,      // 우선주
-    pub suspended: bool,            // 거래정지
+    /// 투자위험/경고/주의
+    pub overheat: bool,
+    /// 관리종목
+    pub administrated: bool,
+    /// 정리매매
+    pub settlement_trading: bool,
+    /// 불성실공시
+    pub insufficient_posting: bool,
+    /// 우선주
+    pub preferred_share: bool,
+    /// 거래정지
+    pub suspended: bool,
 }
 
 impl std::fmt::Display for TargetExeceptClassCode {
@@ -655,13 +707,14 @@ impl std::fmt::Display for TargetExeceptClassCode {
 }
 
 #[derive(Clone, Debug, Deserialize, SerializeDisplay)]
+#[repr(i32)]
 pub enum ShareClassCode {
     #[serde(rename = "0")]
-    Whole,
+    Whole = 0,
     #[serde(rename = "1")]
-    Common,
+    Common = 1,
     #[serde(rename = "2")]
-    Preferred,
+    Preferred = 2,
 }
 
 impl std::fmt::Display for ShareClassCode {
@@ -676,46 +729,47 @@ impl std::fmt::Display for ShareClassCode {
 
 /// 시장ID코드
 #[derive(Clone, Debug, Deserialize, SerializeDisplay)]
+#[repr(i32)]
 pub enum MarketId {
     #[serde(rename = "AGR")]
     /// AGR.농축산물파생
-    Agricultural,
+    Agricultural = 1,
     #[serde(rename = "BON")]
     /// BON.채권파생
-    Bond,
+    Bond = 2,
     #[serde(rename = "CMD")]
     /// CMD.일반상품시장
-    Commodity,
+    Commodity = 3,
     #[serde(rename = "CUR")]
     /// CUR.통화파생
-    Currency,
+    Currency = 4,
     #[serde(rename = "ENG")]
     /// ENG.에너지파생
-    Energy,
+    Energy = 5,
     #[serde(rename = "EQU")]
     /// EQU.주식파생
-    Equity,
+    Equity = 6,
     #[serde(rename = "ETF")]
     /// ETF.ETF파생
-    Etf,
+    Etf = 7,
     #[serde(rename = "IRT")]
     /// IRT.금리파생
-    InterestRate,
+    InterestRate = 8,
     #[serde(rename = "KNX")]
     /// KNX.코넥스
-    Konex,
+    Konex = 9,
     #[serde(rename = "KSQ")]
     /// KSQ.코스닥
-    Kosdaq,
+    Kosdaq = 10,
     #[serde(rename = "MTL")]
     /// MTL.금속파생
-    Metal,
+    Metal = 11,
     #[serde(rename = "SPI")]
     /// SPI.주가지수파생
-    StockPriceIndex,
+    StockPriceIndex = 12,
     #[serde(rename = "STK")]
     /// STK.유가증권
-    Stock,
+    Stock = 13,
 }
 impl std::fmt::Display for MarketId {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -763,73 +817,74 @@ impl std::str::FromStr for MarketId {
 
 /// 증권그룹ID코드
 #[derive(Clone, Debug, Deserialize, SerializeDisplay)]
+#[repr(i32)]
 pub enum SecurityGroupId {
     #[serde(rename = "BC")]
     /// BC.수익증권
-    Income,
+    Income = 1,
     #[serde(rename = "DR")]
     /// DR.주식예탁증서
-    StockDepositaryReceipt,
+    StockDepositaryReceipt = 2,
     #[serde(rename = "EF")]
     /// EF.ETF
-    Etf,
+    Etf = 3,
     #[serde(rename = "EN")]
     /// EN.ETN
-    Etn,
+    Etn = 4,
     #[serde(rename = "EW")]
     /// EW.ELW
-    Elw,
+    Elw = 5,
     #[serde(rename = "FE")]
     /// FE.해외ETF
-    ForeignEtf,
+    ForeignEtf = 6,
     #[serde(rename = "FO")]
     /// FO.선물옵션
-    FutureOption,
+    FutureOption = 7,
     #[serde(rename = "FS")]
     /// FS.외국주권
-    ForeignStock,
+    ForeignStock = 8,
     #[serde(rename = "FU")]
     /// FU.선물
-    Future,
+    Future = 9,
     #[serde(rename = "FX")]
     /// FX.플렉스 선물
-    FlexFuture,
+    FlexFuture = 10,
     #[serde(rename = "GD")]
     /// GD.금현물
-    Gold,
+    Gold = 11,
     #[serde(rename = "IC")]
     /// IC.투자계약증권
-    InvestmentContract,
+    InvestmentContract = 12,
     #[serde(rename = "IF")]
     /// IF.사회간접자본투융자회사
-    IndirectCapitalInvestmentCompany,
+    IndirectCapitalInvestmentCompany = 13,
     #[serde(rename = "KN")]
     /// KN.코넥스주권
-    KonexStock,
+    KonexStock = 14,
     #[serde(rename = "MF")]
     /// MF.투자회사
-    InvestmentCompany,
+    InvestmentCompany = 15,
     #[serde(rename = "OP")]
     /// OP.옵션
-    Option,
+    Option = 16,
     #[serde(rename = "RT")]
     /// RT.부동산투자회사
-    RealEstateInvestmentCompany,
+    RealEstateInvestmentCompany = 17,
     #[serde(rename = "SC")]
     /// SC.선박투자회사
-    ShipInvestmentCompany,
+    ShipInvestmentCompany = 18,
     #[serde(rename = "SR")]
     /// SR.신주인수권증서
-    Warrant,
+    Warrant = 19,
     #[serde(rename = "ST")]
     /// ST.주권
-    Stock,
+    Stock = 20,
     #[serde(rename = "SW")]
     /// SW.신주인수권증권
-    WarrantSecurity,
+    WarrantSecurity = 21,
     #[serde(rename = "TC")]
     /// TC.신탁수익증권
-    TrustIncome,
+    TrustIncome = 22,
 }
 
 impl std::fmt::Display for SecurityGroupId {
@@ -896,73 +951,74 @@ impl std::str::FromStr for SecurityGroupId {
 
 /// 거래소구분코드
 #[derive(Debug, Clone, Deserialize, SerializeDisplay)]
+#[repr(i32)]
 pub enum ExchangeCode {
     #[serde(rename = "01")]
     /// 01.한국증권
-    KoreaSecurities,
+    KoreaSecurities = 1,
     #[serde(rename = "02")]
     /// 02.증권거래소
-    SecuritiesExchange,
+    SecuritiesExchange = 2,
     #[serde(rename = "03")]
     /// 03.코스닥
-    Kosdaq,
+    Kosdaq = 3,
     #[serde(rename = "04")]
     /// 04.K-OTC
-    KOTC,
+    KOTC = 4,
     #[serde(rename = "05")]
     /// 05.선물거래소
-    FutureExchange,
+    FutureExchange = 5,
     #[serde(rename = "06")]
     /// 06.CME
-    CME,
+    CME = 6,
     #[serde(rename = "07")]
     /// 07.EUREX
-    EUREX,
+    EUREX = 7,
     #[serde(rename = "21")]
     /// 21.금현물
-    Gold,
+    Gold = 21,
     #[serde(rename = "50")]
     /// 50.미국주간
-    USDaytime,
+    USDaytime = 50,
     #[serde(rename = "51")]
     /// 51.홍콩
-    HongKong,
+    HongKong = 51,
     #[serde(rename = "52")]
     /// 52.상해B
-    ShanghaiB,
+    ShanghaiB = 52,
     #[serde(rename = "53")]
     /// 53.심천
-    Shenzhen,
+    Shenzhen = 53,
     #[serde(rename = "54")]
     /// 54.홍콩거래소
-    HongKongExchange,
+    HongKongExchange = 54,
     #[serde(rename = "55")]
     /// 55.미국
-    US,
+    US = 55,
     #[serde(rename = "56")]
     /// 56.일본
-    Japan,
+    Japan = 56,
     #[serde(rename = "57")]
     /// 57.상해A
-    ShanghaiA,
+    ShanghaiA = 57,
     #[serde(rename = "58")]
     /// 58.심천A
-    ShenzhenA,
+    ShenzhenA = 58,
     #[serde(rename = "59")]
     /// 59.베트남
-    Vietnam,
+    Vietnam = 59,
     #[serde(rename = "61")]
     /// 61.장전시간외시장
-    PreMarket,
+    PreMarket = 61,
     #[serde(rename = "64")]
     /// 64.경쟁대량매매
-    CompetitiveMassive,
+    CompetitiveMassive = 64,
     #[serde(rename = "65")]
     /// 65.경매매시장
-    AuctionMarket,
+    AuctionMarket = 65,
     #[serde(rename = "81")]
     /// 81.시간외단일가시장
-    OutMarketSinglePrice,
+    OutMarketSinglePrice = 81,
 }
 
 impl std::fmt::Display for ExchangeCode {
@@ -1029,79 +1085,80 @@ impl std::str::FromStr for ExchangeCode {
 
 /// 주식종류코드
 #[derive(Debug, Clone, Deserialize, SerializeDisplay)]
+#[repr(i32)]
 pub enum StockKindCode {
     #[serde(rename = "000")]
     /// 000.해당사항없음
-    None,
+    None = 0,
     #[serde(rename = "101")]
     /// 101.보통주
-    Common,
+    Common = 101,
     #[serde(rename = "201")]
     /// 201.우선주
-    Preferred,
+    Preferred = 201,
     #[serde(rename = "202")]
     /// 202.2우선주
-    Preferred2,
+    Preferred2 = 202,
     #[serde(rename = "203")]
     /// 203.3우선주
-    Preferred3,
+    Preferred3 = 203,
     #[serde(rename = "204")]
     /// 204.4우선주
-    Preferred4,
+    Preferred4 = 204,
     #[serde(rename = "205")]
     /// 205.5우선주
-    Preferred5,
+    Preferred5 = 205,
     #[serde(rename = "206")]
     /// 206.6우선주
-    Preferred6,
+    Preferred6 = 206,
     #[serde(rename = "207")]
     /// 207.7우선주
-    Preferred7,
+    Preferred7 = 207,
     #[serde(rename = "208")]
     /// 208.8우선주
-    Preferred8,
+    Preferred8 = 208,
     #[serde(rename = "209")]
     /// 209.9우선주
-    Preferred9,
+    Preferred9 = 209,
     #[serde(rename = "210")]
     /// 210.10우선주
-    Preferred10,
+    Preferred10 = 210,
     #[serde(rename = "211")]
     /// 211.11우선주
-    Preferred11,
+    Preferred11 = 211,
     #[serde(rename = "212")]
     /// 212.12우선주
-    Preferred12,
+    Preferred12 = 212,
     #[serde(rename = "213")]
     /// 213.13우선주
-    Preferred13,
+    Preferred13 = 213,
     #[serde(rename = "214")]
     /// 214.14우선주
-    Preferred14,
+    Preferred14 = 214,
     #[serde(rename = "215")]
     /// 215.15우선주
-    Preferred15,
+    Preferred15 = 215,
     #[serde(rename = "216")]
     /// 216.16우선주
-    Preferred16,
+    Preferred16 = 216,
     #[serde(rename = "217")]
     /// 217.17우선주
-    Preferred17,
+    Preferred17 = 217,
     #[serde(rename = "218")]
     /// 218.18우선주
-    Preferred18,
+    Preferred18 = 218,
     #[serde(rename = "219")]
     /// 219.19우선주
-    Preferred19,
+    Preferred19 = 219,
     #[serde(rename = "220")]
     /// 220.20우선주
-    Preferred20,
+    Preferred20 = 220,
     #[serde(rename = "301")]
     /// 301.후배주
-    After,
+    After = 301,
     #[serde(rename = "401")]
     /// 401.혼합주
-    Mixed,
+    Mixed = 401,
 }
 
 impl std::fmt::Display for StockKindCode {
@@ -1172,20 +1229,21 @@ impl std::str::FromStr for StockKindCode {
 
 /// 상품유형코드
 #[derive(Debug, Clone, Deserialize, SerializeDisplay, Default)]
+#[repr(i32)]
 pub enum ProductTypeCode {
     #[default]
     #[serde(rename = "300")]
     /// 300: 주식, ETF, ETN, ELW
-    Stock,
+    Stock = 300,
     #[serde(rename = "301")]
     /// 301: 선물옵션
-    FutureOption,
+    FutureOption = 301,
     #[serde(rename = "302")]
     /// 302: 채권
-    Bond,
+    Bond = 302,
     #[serde(rename = "306")]
     /// 306: ELS
-    ELS,
+    ELS = 306,
 }
 
 impl std::fmt::Display for ProductTypeCode {

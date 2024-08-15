@@ -125,7 +125,7 @@ impl Into<String> for OrderClass {
     }
 }
 impl From<&str> for OrderClass {
-    fn fr =om(s: &str) -> Self {
+    fn from(s: &str) -> Self {
         match s {
             "00" => OrderClass::Limit,
             "01" => OrderClass::Market,
@@ -182,9 +182,9 @@ impl From<&str> for CorrectionClass {
 #[repr(i32)]
 pub enum Direction {
     /// buy
-    Bid = 1, 
+    Bid = 1,
     /// sell
-    Ask = 2, 
+    Ask = 2,
 }
 
 impl From<&str> for Direction {
@@ -363,7 +363,7 @@ pub enum ExecClass {
     /// 매수(1)
     Bid = 1,
     /// 장전(3)
-    PreMarket = 3, 
+    PreMarket = 3,
     /// 매도(5)
     Ask = 5,
 }
@@ -385,19 +385,19 @@ impl From<&str> for ExecClass {
 pub enum VsPriceSign {
     /// 상한(1)
     #[serde(rename = "1")]
-    UpperLimit = 1, 
+    UpperLimit = 1,
     /// 상승(2)
     #[serde(rename = "2")]
-    Increase = 2, 
+    Increase = 2,
     /// 보합(3)
     #[serde(rename = "3")]
-    Steady = 3, 
+    Steady = 3,
     /// 하락(4)
     #[serde(rename = "4")]
-    Decrease = 4, 
+    Decrease = 4,
     /// 하한(5)
     #[serde(rename = "5")]
-    LowerLimit = 5, 
+    LowerLimit = 5,
 }
 
 impl From<&str> for VsPriceSign {
@@ -418,11 +418,11 @@ impl From<&str> for VsPriceSign {
 #[repr(i32)]
 pub enum TimeClassCode {
     /// 장중(0)
-    InMarket = 1,        
+    InMarket = 1,
     /// 장후예상(A)
     PostMarketPrediction = 2,
     /// 장전예상(B)
-    PreMarketPrediction = 3, 
+    PreMarketPrediction = 3,
     /// 9시이후의 예상가, VI발동(C)
     PostNinePmPredictionOrVi = 4,
     /// 시간외 단일가 예상(D)

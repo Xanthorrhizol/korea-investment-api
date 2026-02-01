@@ -74,6 +74,7 @@ async fn main() {
 
     if let Some(output) = groups.output() {
         for group in output {
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
             let group_items = api
                 .quote
                 .group_item(GroupItemParameter::new(
@@ -86,6 +87,7 @@ async fn main() {
         }
     } else if let Some(output) = groups.output2() {
         for group in output {
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
             let group_items = api
                 .quote
                 .group_item(GroupItemParameter::new(

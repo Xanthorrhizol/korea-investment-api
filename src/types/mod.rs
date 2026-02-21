@@ -227,6 +227,104 @@ impl Price {
     pub fn from(price: u32) -> Self {
         Self { inner: price }
     }
+    /// 가격이 Tick 단위에 맞는지 체크합니다.
+    pub fn verify(&self) -> bool {
+        if self.inner >= 500_000 {
+            self.inner % 1000 == 0
+        } else if self.inner >= 200_000 {
+            self.inner % 500 == 0
+        } else if self.inner >= 50_000 {
+            self.inner % 100 == 0
+        } else if self.inner >= 20_000 {
+            self.inner % 50 == 0
+        } else if self.inner >= 5_000 {
+            self.inner % 10 == 0
+        } else if self.inner >= 2_000 {
+            self.inner % 5 == 0
+        } else {
+            true
+        }
+    }
+    /// 가격을 한 Tick 올린 결과를 반환합니다.
+    pub fn inc(&self) -> Self {
+        Self {
+            inner: if self.inner >= 500_000 {
+                self.inner + 1000
+            } else if self.inner >= 200_000 {
+                self.inner + 500
+            } else if self.inner >= 50_000 {
+                self.inner + 100
+            } else if self.inner >= 20_000 {
+                self.inner + 50
+            } else if self.inner >= 5_000 {
+                self.inner + 10
+            } else if self.inner >= 2_000 {
+                self.inner + 5
+            } else {
+                self.inner
+            },
+        }
+    }
+    /// 가격을 한 Tick 내린 결과를 반환합니다.
+    pub fn dec(&self) -> Self {
+        Self {
+            inner: if self.inner >= 500_000 {
+                self.inner - 1000
+            } else if self.inner >= 200_000 {
+                self.inner - 500
+            } else if self.inner >= 50_000 {
+                self.inner - 100
+            } else if self.inner >= 20_000 {
+                self.inner - 50
+            } else if self.inner >= 5_000 {
+                self.inner - 10
+            } else if self.inner >= 2_000 {
+                self.inner - 5
+            } else {
+                self.inner
+            },
+        }
+    }
+    /// Tick 단위에 맞게 가격을 올린 결과를 반환합니다.
+    pub fn ceil(&self) -> Self {
+        Self {
+            inner: if self.inner >= 500_000 {
+                self.inner + 1000 - self.inner % 1000
+            } else if self.inner >= 200_000 {
+                self.inner + 500 - self.inner % 500
+            } else if self.inner >= 50_000 {
+                self.inner + 100 - self.inner % 100
+            } else if self.inner >= 20_000 {
+                self.inner + 50 - self.inner % 50
+            } else if self.inner >= 5_000 {
+                self.inner + 10 - self.inner % 10
+            } else if self.inner >= 2_000 {
+                self.inner + 5 - self.inner % 5
+            } else {
+                self.inner
+            },
+        }
+    }
+    /// Tick 단위에 맞게 가격을 내림한 결과를 반환합니다.
+    pub fn floor(&self) -> Self {
+        Self {
+            inner: if self.inner >= 500_000 {
+                self.inner - self.inner % 1000
+            } else if self.inner >= 200_000 {
+                self.inner - self.inner % 500
+            } else if self.inner >= 50_000 {
+                self.inner - self.inner % 100
+            } else if self.inner >= 20_000 {
+                self.inner - self.inner % 50
+            } else if self.inner >= 5_000 {
+                self.inner - self.inner % 10
+            } else if self.inner >= 2_000 {
+                self.inner - self.inner % 5
+            } else {
+                self.inner
+            },
+        }
+    }
 }
 impl Into<String> for Price {
     fn into(self) -> String {

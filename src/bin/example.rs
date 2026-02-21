@@ -1,13 +1,18 @@
 use korea_investment_api::types::config::Config;
 use korea_investment_api::types::request::stock::quote::{GroupItemParameter, GroupListParameter};
 use korea_investment_api::types::stream::stock::{ordb::Body as OrdbBody, Ordb};
-use korea_investment_api::types::{Account, MarketCode, PeriodCode, TrId};
+use korea_investment_api::types::{
+    Account, CorrectionClass, Direction, MarketCode, OrderClass, PeriodCode, Price, Quantity, TrId,
+};
 use korea_investment_api::KoreaInvestmentApi;
 use std::io::Read;
 use std::path::PathBuf;
 use structopt::StructOpt;
 use thiserror::Error;
 use xan_log::init_logger;
+
+#[macro_use]
+extern crate log;
 
 #[derive(StructOpt)]
 #[structopt(name = "opt", about = "example")]
@@ -51,7 +56,7 @@ async fn get_api(config: &Config) -> Result<KoreaInvestmentApi, Error> {
 
 #[tokio::main]
 async fn main() {
-    init_logger();
+    let _ = init_logger();
     let Opt { config_path } = Opt::from_args();
     let config = get_config(&config_path).unwrap();
     let mut api = get_api(&config).await.unwrap();
@@ -63,14 +68,17 @@ async fn main() {
         .daily_price(MarketCode::Stock, "005930", PeriodCode::ThirtyDays, false)
         .await
         .unwrap();
-    println!("{:?}", samsung_electronics_daily_prices);
+    info!(
+        "삼성전자 일자별 가격 Response: {:?}",
+        samsung_electronics_daily_prices
+    );
 
     let groups = api
         .quote
         .group_list(GroupListParameter::new(config.hts_id()))
         .await
         .unwrap();
-    println!("{:?}", groups);
+    info!("관심종목 그룹조회 Response: {:?}", groups);
 
     if let Some(output) = groups.output() {
         for group in output {
@@ -83,7 +91,7 @@ async fn main() {
                 ))
                 .await
                 .unwrap();
-            println!("{:?}", group_items);
+            debug!("관심종목 그룹별 종목조회 Response: {:?}", group_items);
         }
     } else if let Some(output) = groups.output2() {
         for group in output {
@@ -96,20 +104,83 @@ async fn main() {
                 ))
                 .await
                 .unwrap();
-            println!("{:?}", group_items);
+            debug!("관심종목 그룹별 종목조회 Response: {:?}", group_items);
+        }
+    }
+    let last_close_price: u64 = samsung_electronics_daily_prices
+        .output()
+        .clone()
+        .unwrap()
+        .first()
+        .unwrap()
+        .stck_clpr()
+        .parse()
+        .unwrap();
+
+    // 주문 테스트
+    // [CAUTION] 실제로 하한가 주문 및 정정 주문이 발생합니다.
+    let order_result = api
+        .order
+        .order_cash(
+            OrderClass::Limit,
+            Direction::Bid,
+            "005930",
+            Quantity::from(1),
+            Price::from((last_close_price as f64 * 0.8) as u32).ceil(),
+        )
+        .await;
+    info!("신규 주문 Response: {:?}", order_result);
+    tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+    if let Ok(result) = order_result {
+        if let Some(output) = result.output() {
+            let correct_result = api
+                .order
+                .correct(
+                    OrderClass::Limit,
+                    output.krx_fwdg_ord_orgno(),
+                    output.odno(),
+                    CorrectionClass::Correction,
+                    true,
+                    Quantity::from(1),
+                    Price::from((last_close_price as f64 * 0.8) as u32)
+                        .ceil()
+                        .inc(),
+                )
+                .await;
+            info!("정정 주문 Response: {:?}", correct_result);
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+            let cancel_result = api
+                .order
+                .correct(
+                    OrderClass::Limit,
+                    output.krx_fwdg_ord_orgno(),
+                    output.odno(),
+                    CorrectionClass::Cancel,
+                    true,
+                    Quantity::from(1),
+                    Price::from(60000),
+                )
+                .await;
+            info!("취소 주문 Response: {:?}", cancel_result);
+            tokio::time::sleep(std::time::Duration::from_secs(10)).await;
         }
     }
 
     // 삼성전자 호가 실시간 시세 구독
-    let (rx, subscribe_response) = api
+    let (rx, _subscribe_response) = api
         .k_data
         .subscribe_market::<Ordb, OrdbBody>("KR7005930003", TrId::RealtimeOrdb)
         .unwrap();
 
     // 구독한 시세 읽기
+    let mut i = 0;
     if let Some(mut rx) = rx {
         while let Some(ordb) = rx.recv().await {
-            println!("Got orderbook: {:?}", ordb);
+            debug!("[실시간] 호가 수신: {:?}", ordb);
+            if i == 10 {
+                break;
+            }
+            i += 1;
         }
     }
 }

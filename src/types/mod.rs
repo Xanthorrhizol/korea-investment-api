@@ -53,7 +53,7 @@ impl std::fmt::Display for Environment {
 /// 계좌
 /// cano: CANO(계좌번호 체계(8-2)의 앞 8자리)
 /// acnt_prdt_cd: ACNT_PRDT_CD(계좌번호 체계(8-2)의 뒤 2자리)
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Account {
     pub cano: String,
     pub acnt_prdt_cd: String,

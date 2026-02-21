@@ -4,7 +4,7 @@ use crate::types::{
 };
 use crate::{auth, Error};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Korea {
     client: reqwest::Client,
     endpoint_url: String,

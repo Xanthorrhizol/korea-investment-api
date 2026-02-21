@@ -6,6 +6,8 @@ use crate::{auth, Error};
 use std::collections::HashMap;
 use websocket::{Message, OwnedMessage};
 
+#[allow(dead_code)]
+#[derive(Debug)]
 pub struct KoreaStockData {
     exec_client: websocket::ClientBuilder<'static>,
     ordb_client: websocket::ClientBuilder<'static>,

@@ -1,7 +1,8 @@
 use crate::types::{request, response, Account, Environment, MarketCode, PeriodCode, TrId};
 use crate::{auth, Error};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
+#[allow(dead_code)]
 pub struct Quote {
     client: reqwest::Client,
     endpoint_url: String,

@@ -20,7 +20,7 @@ pub struct KoreaStockData {
 
 impl KoreaStockData {
     /// 국내 주식 실시간 시세에 관한 API
-    /// [실시간시세(국내주식)](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock2-real#L_714d1437-8f62-43db-a73c-cf509d3f6aa7)
+    /// [실시간시세(국내주식)](https://apiportal.koreainvestment.com/apiservice-apiservice?/tryitout/H0STCNT0)
     pub fn new(
         environment: Environment,
         auth: auth::Auth,

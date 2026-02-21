@@ -12,7 +12,7 @@ pub struct Quote {
 
 impl Quote {
     /// 국내주식시세에 관한 API
-    /// [국내주식시세](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock-quotations#L_07802512-4f49-4486-91b4-1050b6f5dc9d)
+    /// [국내주식-기본시세](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/quotations/inquire-price)
     pub fn new(
         client: &reqwest::Client,
         environment: Environment,
@@ -34,6 +34,7 @@ impl Quote {
     }
 
     /// 주식현재가 일자별[v1_국내주식-010]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/quotations/inquire-daily-price)
     pub async fn daily_price(
         &self,
         market_code: MarketCode,
@@ -63,6 +64,7 @@ impl Quote {
     }
 
     /// 거래량순위[v1_국내주식-047]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/quotations/volume-rank)
     pub async fn volume_rank(
         &self,
         params: request::stock::quote::VolumeRankParameter,
@@ -82,6 +84,7 @@ impl Quote {
     }
 
     /// 관심종목 그룹별 종목조회[국내주식-203]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/quotations/intstock-stocklist-by-group)
     pub async fn group_item(
         &self,
         params: request::stock::quote::GroupItemParameter,
@@ -101,6 +104,7 @@ impl Quote {
     }
 
     /// 관심종목 그룹조회[국내주식-204]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/quotations/intstock-grouplist)
     pub async fn group_list(
         &self,
         params: request::stock::quote::GroupListParameter,
@@ -119,6 +123,7 @@ impl Quote {
             .await?)
     }
     /// 주식기본조회[v1_국내주식-067]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/quotations/search-stock-info)
     pub async fn basic_stock_info(
         &self,
         prdt_type_cd: &str,

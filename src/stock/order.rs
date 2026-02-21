@@ -15,7 +15,7 @@ pub struct Korea {
 
 impl Korea {
     /// 국내 주식 주문에 관한 API
-    /// [국내주식주문](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_aade4c72-5fb7-418a-9ff2-254b4d5f0ceb)
+    /// [국내주식주문](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/order-cash)
     pub fn new(
         client: &reqwest::Client,
         environment: Environment,
@@ -37,7 +37,7 @@ impl Korea {
     }
 
     /// 주식주문(현금)[v1_국내주식-001]
-    /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_aade4c72-5fb7-418a-9ff2-254b4d5f0ceb)
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/order-cash)
     pub async fn order_cash(
         &self,
         order_division: OrderClass,
@@ -95,10 +95,10 @@ impl Korea {
     }
 
     // TODO: 주식주문(신용)[v1_국내주식-002]
-    // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_f5769e4a-24d5-44f9-a2d8-232d45abf988)
+    // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/order-credit)
 
     /// 주식주문(정정취소)[v1_국내주식-003] TODO: test
-    /// [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_4bfdfb2b-34a7-43f6-935a-e637724f960a)
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/order-rvsecncl)
     pub async fn correct(
         &self,
         order_division: OrderClass,
@@ -154,14 +154,14 @@ impl Korea {
     }
 
     // TODO: 주식정정취소가능주문조회[v1_국내주식-004]
-    // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_d4537e9c-73f7-414c-9fb0-4eae3bc397d0)
+    // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-psbl-rvsecncl)
 
     // TODO: 주식일별주문체결조회[v1_국내주식-005]
-    // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_bc51f9f7-146f-4971-a5ae-ebd574acec12)
+    // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-daily-ccld)
 
     // TODO: 주식잔고조회[v1_국내주식-006]
-    // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_66c61080-674f-4c91-a0cc-db5e64e9a5e6)
+    // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-balance)
 
     // TODO: 매수가능조회[v1_국내주식-007]
-    // [Docs](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock#L_806e407c-3082-44c0-9d71-e8534db5ad54)
+    // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-psbl-order)
 }

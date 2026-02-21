@@ -244,18 +244,18 @@ impl From<&str> for Price {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Hash, Eq)]
 pub enum TrId {
     // Order
-    #[serde(rename = "TTTC0802U")]
+    #[serde(rename = "TTTC0012U")]
     RealStockCashBidOrder,
-    #[serde(rename = "TTTC0801U")]
+    #[serde(rename = "TTTC0011U")]
     RealStockCashAskOrder,
-    #[serde(rename = "VTTC0802U")]
+    #[serde(rename = "VTTC0012U")]
     VirtualStockCashBidOrder,
-    #[serde(rename = "VTTC0801U")]
+    #[serde(rename = "VTTC0011U")]
     VirtualStockCashAskOrder,
     // Correction
-    #[serde(rename = "TTTC0803U")]
+    #[serde(rename = "TTTC0013U")]
     RealStockCorrection,
-    #[serde(rename = "VTTC0803U")]
+    #[serde(rename = "VTTC0013U")]
     VirtualStockCorrection,
     // Quote
     #[serde(rename = "FHKST01010400")]
@@ -285,13 +285,13 @@ impl Into<String> for TrId {
     fn into(self) -> String {
         match self {
             // Order
-            TrId::RealStockCashBidOrder => "TTTC0802U",
-            TrId::RealStockCashAskOrder => "TTTC0801U",
-            TrId::VirtualStockCashBidOrder => "VTTC0802U",
-            TrId::VirtualStockCashAskOrder => "VTTC0801U",
+            TrId::RealStockCashBidOrder => "TTTC0012U",
+            TrId::RealStockCashAskOrder => "TTTC0011U",
+            TrId::VirtualStockCashBidOrder => "VTTC0012U",
+            TrId::VirtualStockCashAskOrder => "VTTC0011U",
             // Correction
-            TrId::RealStockCorrection => "TTTC0803U",
-            TrId::VirtualStockCorrection => "VTTC0803U",
+            TrId::RealStockCorrection => "TTTC0013U",
+            TrId::VirtualStockCorrection => "VTTC0013U",
             // Quote
             TrId::DailyPrice => "FHKST01010400",
             TrId::VolumeRank => "FHPST01710000",
@@ -314,13 +314,13 @@ impl From<&str> for TrId {
     fn from(s: &str) -> Self {
         match s {
             // Order
-            "TTTC0802U" => TrId::RealStockCashBidOrder,
-            "TTTC0801U" => TrId::RealStockCashAskOrder,
-            "VTTC0802U" => TrId::VirtualStockCashBidOrder,
-            "VTTC0801U" => TrId::VirtualStockCashAskOrder,
+            "TTTC0012U" => TrId::RealStockCashBidOrder,
+            "TTTC0011U" => TrId::RealStockCashAskOrder,
+            "VTTC0012U" => TrId::VirtualStockCashBidOrder,
+            "VTTC0011U" => TrId::VirtualStockCashAskOrder,
             // Correction
-            "TTTC0803U" => TrId::RealStockCorrection,
-            "VTTC0803U" => TrId::VirtualStockCorrection,
+            "TTTC0013U" => TrId::RealStockCorrection,
+            "VTTC0013U" => TrId::VirtualStockCorrection,
             // Quote
             "FHKST01010400" => TrId::DailyPrice,
             "FHPST01710000" => TrId::VolumeRank,

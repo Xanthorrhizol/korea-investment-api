@@ -103,26 +103,48 @@ impl MyExec {
 
 #[derive(Debug, Clone)]
 pub struct Body {
-    pub cust_id: String,                   // CUST_ID(고객 ID)
-    pub acnt_no: String,                   // ACNT_NO(계좌번호)
-    pub order_no: u64,                     // ODER_NO(주문번호)
-    pub origin_order_no: u64,              // OODER_NO(원주문번호)
-    pub ask_bid_class: Direction,          // SELN_BYOV_CLS(매도매수구분)
-    pub correction_class: CorrectionClass, // RCTF_CLS(정정구분)
-    pub order_kind: OrderClass,            // ODER_KIND(주문종류)
-    pub order_condition: String,           // ODER_COND(주문조건)
-    pub shortcode: String,                 // STCK_SHRN_ISCD(주식 단축 종목코드)
-    pub exec_qty: u64,                     // CNTG_QTY(체결 수량)
-    pub exec_price: u32,                   // CNTG_UNPR(체결단가)
-    pub exec_time: Time,                   // STCK_CNTG_HOUR(주식 체결 시간)
-    pub is_refused: bool,                  // RFUS_YN(거부여부)
-    pub is_executed: bool,                 // CNTG_YN(체결여부)
-    pub is_accepted: bool,                 // ACPT_YN(접수여부)
-    pub branch_no: String,                 // BRNC_NO(지점번호)
-    pub order_qty: u64,                    // ODER_QTY(주문수량)
-    pub account_name: String,              // ACNT_NAME(계좌명)
-    pub stock_name: String,                // CNTG_ISNM(체결종목명)
-    pub credit_class: String,              // CRDT_CLS(신용구분) TODO: CreditClass,
-    pub credit_loan_date: Option<Time>,    // CRDT_LOAN_DATE(신용대출일자)
-    pub stock_name_40: String,             // CNTG_ISNM40(체결종목명40)
+    /// CUST_ID(고객 ID)
+    pub cust_id: String,
+    /// ACNT_NO(계좌번호)
+    pub acnt_no: String,
+    /// ODER_NO(주문번호)
+    pub order_no: u64,
+    /// OODER_NO(원주문번호)
+    pub origin_order_no: u64,
+    /// SELN_BYOV_CLS(매도매수구분)
+    pub ask_bid_class: Direction,
+    /// RCTF_CLS(정정구분)
+    pub correction_class: CorrectionClass,
+    /// ODER_KIND(주문종류)
+    pub order_kind: OrderClass,
+    /// ODER_COND(주문조건)
+    pub order_condition: String,
+    /// STCK_SHRN_ISCD(주식 단축 종목코드)
+    pub shortcode: String,
+    /// CNTG_QTY(체결 수량)
+    pub exec_qty: u64,
+    /// CNTG_UNPR(체결단가)
+    pub exec_price: u32,
+    /// STCK_CNTG_HOUR(주식 체결 시간)
+    pub exec_time: Time,
+    /// RFUS_YN(거부여부)
+    pub is_refused: bool,
+    /// CNTG_YN(체결여부)
+    pub is_executed: bool,
+    /// ACPT_YN(접수여부)
+    pub is_accepted: bool,
+    /// BRNC_NO(지점번호)
+    pub branch_no: String,
+    /// ODER_QTY(주문수량)
+    pub order_qty: u64,
+    /// ACNT_NAME(계좌명)
+    pub account_name: String,
+    /// CNTG_ISNM(체결종목명)
+    pub stock_name: String,
+    /// CRDT_CLS(신용구분) TODO: CreditClass,
+    pub credit_class: String,
+    /// CRDT_LOAN_DATE(신용대출일자)
+    pub credit_loan_date: Option<Time>,
+    /// CNTG_ISNM40(체결종목명40)
+    pub stock_name_40: String,
 }

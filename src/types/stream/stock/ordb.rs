@@ -107,27 +107,50 @@ impl StreamParser<Body> for Ordb {
 
 #[derive(Debug, Clone)]
 pub struct Body {
-    pub shortcode: String,                 // MKSC_SHRN_ISCD(유가증권 단축 종목코드)
-    pub time: Time,                        // BSOP_HOUR(영업 시간)
-    pub time_class_code: TimeClassCode,    // HOUR_CLS_CODE(시간 구분 코드)
-    pub ask_price: [u32; 10],              // ASKP1~10(매도호가)
-    pub bid_price: [u32; 10],              // BIDP1~10(매수호가)
-    pub ask_remained: [u64; 10],           // ASKP_RSQN1~10(매도호가 잔량)
-    pub bid_remained: [u64; 10],           // BIDP_RSQN1~10(매수호가 잔량)
-    pub total_ask_order_remained: u64,     // TOTAL_ASKP_RSQN(총 매도호가 잔량)
-    pub total_bid_order_remained: u64,     // TOTAL_BIDP_RSQN(총 매수호가 잔량)
-    pub total_otc_ask_order_remained: u64, // OVTM_TOTAL_ASKP_RSQN(시간외 총 매도호가 잔량)
-    pub total_otc_bid_order_remained: u64, // OVTM_TOTAL_ASKP_RSQN(시간외 총 매수호가 잔량)
-    pub predicted_exec_price: u32,         // ANTC_CNPR(예상 체결가)
-    pub predicted_exec_quantity: u64,      // ANTC_CNQN(예상 체결량)
-    pub predicted_volume: u64,             // ANTC_VOL(예상 거래량)
-    pub predicted_vs_exec: i32,            // ANTC_CNTG_VRSS(예상 체결 대비)
-    pub predicted_vs_exec_sign: VsPriceSign, // ANTC_CNTG_VRSS_SIGN(예상 체결 대비 부호)
-    pub predicted_exec_price_rate_vs_yesterday: f32, // ANTC_CNTG_PRDY_CTRT(예상 체결 전일 대비율)
-    pub accumulative_exec_volume: u64,     // ACML_VOL(누적 거래량) - Exture 3.0에서 제거됨 -> 0
-    pub total_ask_order_remained_diff: i64, // TOTAL_ASKP_RSQN_ICDC(총 매도호가 잔량 증감)
-    pub total_bid_order_remained_diff: i64, // TOTAL_BIDP_RSQN_ICDC(총 매수호가 잔량 증감)
-    pub total_otc_ask_order_remained_diff: i64, // OVTM_TOTAL_ASKP_RSQN_ICDC(시간외 총 매도호가 잔량 증감)
-    pub total_otc_bid_order_remained_diff: i64, // OVTM_TOTAL_BIDP_RSQN_ICDC(시간외 총 매수호가 잔량 증감)
-    pub stock_deal_class_code: DealClassCode,   // STCK_DEAL_CLS_CODE(주식 매매 구분 코드)
+    /// MKSC_SHRN_ISCD(유가증권 단축 종목코드)
+    pub shortcode: String,
+    /// BSOP_HOUR(영업 시간)
+    pub time: Time,
+    /// HOUR_CLS_CODE(시간 구분 코드)
+    pub time_class_code: TimeClassCode,
+    /// ASKP1~10(매도호가)
+    pub ask_price: [u32; 10],
+    /// BIDP1~10(매수호가)
+    pub bid_price: [u32; 10],
+    /// ASKP_RSQN1~10(매도호가 잔량)
+    pub ask_remained: [u64; 10],
+    /// BIDP_RSQN1~10(매수호가 잔량)
+    pub bid_remained: [u64; 10],
+    /// TOTAL_ASKP_RSQN(총 매도호가 잔량)
+    pub total_ask_order_remained: u64,
+    /// TOTAL_BIDP_RSQN(총 매수호가 잔량)
+    pub total_bid_order_remained: u64,
+    /// OVTM_TOTAL_ASKP_RSQN(시간외 총 매도호가 잔량)
+    pub total_otc_ask_order_remained: u64,
+    /// OVTM_TOTAL_ASKP_RSQN(시간외 총 매수호가 잔량)
+    pub total_otc_bid_order_remained: u64,
+    /// ANTC_CNPR(예상 체결가)
+    pub predicted_exec_price: u32,
+    /// ANTC_CNQN(예상 체결량)
+    pub predicted_exec_quantity: u64,
+    /// ANTC_VOL(예상 거래량)
+    pub predicted_volume: u64,
+    /// ANTC_CNTG_VRSS(예상 체결 대비)
+    pub predicted_vs_exec: i32,
+    /// ANTC_CNTG_VRSS_SIGN(예상 체결 대비 부호)
+    pub predicted_vs_exec_sign: VsPriceSign,
+    /// ANTC_CNTG_PRDY_CTRT(예상 체결 전일 대비율)
+    pub predicted_exec_price_rate_vs_yesterday: f32,
+    /// ACML_VOL(누적 거래량) - Exture 3.0에서 제거됨 -> 0
+    pub accumulative_exec_volume: u64,
+    /// TOTAL_ASKP_RSQN_ICDC(총 매도호가 잔량 증감)
+    pub total_ask_order_remained_diff: i64,
+    /// TOTAL_BIDP_RSQN_ICDC(총 매수호가 잔량 증감)
+    pub total_bid_order_remained_diff: i64,
+    /// OVTM_TOTAL_ASKP_RSQN_ICDC(시간외 총 매도호가 잔량 증감)
+    pub total_otc_ask_order_remained_diff: i64,
+    /// OVTM_TOTAL_BIDP_RSQN_ICDC(시간외 총 매수호가 잔량 증감)
+    pub total_otc_bid_order_remained_diff: i64,
+    /// STCK_DEAL_CLS_CODE(주식 매매 구분 코드)
+    pub stock_deal_class_code: DealClassCode,
 }

@@ -117,50 +117,96 @@ impl StreamParser<Body> for Exec {
 
 #[derive(Debug, Clone)]
 pub struct Body {
-    pub shortcode: String,  // MKSC_SHRN_ISCD(유가증권 단축 종목코드)
-    pub exec_time: Time,    // STCK_CNTG_HOUR(주식 체결 시간)
-    pub current_price: u32, // STCK_PRPR(주식 현재가)
-    pub price_sign_vs_yesterday: VsPriceSign, // PRDY_VRSS_SIGN(전일 대비 부호)
-    pub price_vs_yesterday: i32, // PRDY_VRSS(전일 대비)
-    pub price_rate_vs_yesterday: f32, // PRDY_CTRT(전일 대비율)
-    pub weighted_average_price: f64, // WGHN_AVRG_STCK_PRC(가중 평균 주식 가격)
-    pub market_price: u32,  // STCK_OPRC(주식 시가)
-    pub market_upper_price: u32, // STCK_HGPR(주식 최고가)
-    pub market_lower_price: u32, // STCK_LWPR(주식 최저가)
-    pub ask_price: u32,     // ASKP1(매도호가1)
-    pub bid_price: u32,     // BIDP1(매수호가1)
-    pub exec_volume: u64,   // CNTG_VOL(체결 거래량)
-    pub accumulative_exec_volume: u64, // ACML_VOL(누적 거래량)
-    pub accumulative_exec_amount: u64, // ACML_TR_PBMN(누적 거래 대금)
-    pub ask_exec_count: u32, // SELN_CNTG_CSNU(매도 체결 건수)
-    pub bid_exec_count: u32, // SHNU_CNTG_CSNU(매수 체결 건수)
-    pub natural_bid_exec_count: i64, // NTBY_CNTG_CSNU(순매수 체결 건수)
-    pub volume_power: f64,  // CTTR(체결강도)
-    pub total_ask_exec_volume: u64, // SELN_CNTG_SMTN(총 매도 수량)
-    pub total_bid_exec_volume: u64, // SHNU_CNTG_SMTN(총 매수 수량)
-    pub exec_class: ExecClass, // CCLD_DVSN(체결구분)
-    pub bid_rate: f64,      // SHNU_RATE(매수비율)
-    pub exec_volume_rate_vs_yesterday: f64, // PRDY_VOL_VRSS_ACML_VOL_RATE(전일 거래량 대비 등락율)
-    pub market_price_time: Time, // OPRC_HOUR(시가 시간)
-    pub vs_market_price_sign: VsPriceSign, // OPRC_VRSS_PRPR_SIGN(시가대비구분)
-    pub vs_market_price: i32, // OPRC_VRSS_PRPR(시가대비)
-    pub upper_price_time: Time, // HGPR_HOUR(최고가 시간)
-    pub vs_upper_price_sign: VsPriceSign, // HGPR_VRSS_PRPR_SIGN(고가대비구분)
-    pub vs_upper_price: i32, // HGPR_VRSS_PRPR(고가대비)
-    pub lower_price_time: Time, // LWPR_HOUR(최저가 시간)
-    pub vs_lower_price_sign: VsPriceSign, // LWPR_VRSS_PRPR_SIGN(저가대비구분)
-    pub vs_lower_price: i32, // LWPR_VRSS_PRPR(저가대비)
-    pub business_operation_date: Time, // BSOP_DATE(영업일자)
-    pub new_market_operation_class_code: MarketOperationClassCode, // NEW_MKOP_CLS_CODE(신 장운영 구분 코드)
-    pub trade_suspended: bool,                                     // TRHT_YN(거래정지 여부)
-    pub ask_order_remained: u64,                                   // ASKP_RSQN1(매도호가 잔량1)
-    pub bid_order_remained: u64,                                   // BIDP_RSQN1(매수호가 잔량1)
-    pub total_ask_order_remained: u64, // TOTAL_ASKP_RSQN(총 매도호가 잔량)
-    pub total_bid_order_remained: u64, // TOTAL_BIDP_RSQN(총 매수호가 잔량)
-    pub turnover_ratio: f64,           // VOL_TNRT(거래량 회전율)
-    pub yesterday_symmetric_time_accumulate_volume: u64, // PRDY_SMNS_HOUR_ACML_VOL(전일 동시간 누적 거래량)
-    pub yesterday_symmetric_time_accumulate_volume_rate: f64, // PRDY_SMNS_HOUR_ACML_VOL_RATE(전일 동시간 누적 거래량 비율)
-    pub time_class_code: TimeClassCode,                       // HOUR_CLS_CODE(시간 구분 코드)
-    pub market_termination_class_code: MarketTerminationClassCode, // MRKT_TRTM_CLS_CODE(임의종료구분코드)
-    pub vi_standard_price: u32,                                    // VI_STND_PRC(정적VI발동기준가)
+    /// MKSC_SHRN_ISCD(유가증권 단축 종목코드)
+    pub shortcode: String,
+    /// STCK_CNTG_HOUR(주식 체결 시간)
+    pub exec_time: Time,
+    /// STCK_PRPR(주식 현재가)
+    pub current_price: u32,
+    /// PRDY_VRSS_SIGN(전일 대비 부호)
+    pub price_sign_vs_yesterday: VsPriceSign,
+    /// PRDY_VRSS(전일 대비)
+    pub price_vs_yesterday: i32,
+    /// PRDY_CTRT(전일 대비율)
+    pub price_rate_vs_yesterday: f32,
+    /// WGHN_AVRG_STCK_PRC(가중 평균 주식 가격)
+    pub weighted_average_price: f64,
+    /// STCK_OPRC(주식 시가)
+    pub market_price: u32,
+    /// STCK_HGPR(주식 최고가)
+    pub market_upper_price: u32,
+    /// STCK_LWPR(주식 최저가)
+    pub market_lower_price: u32,
+    /// ASK1(매도호가1)
+    pub ask_price: u32,
+    /// BID1(매수호가1)
+    pub bid_price: u32,
+    /// CNTG_VOL(체결 거래량)
+    pub exec_volume: u64,
+    /// ACML_VOL(누적 거래량)
+    pub accumulative_exec_volume: u64,
+    /// ACML_TR_PBMN(누적 거래 대금)
+    pub accumulative_exec_amount: u64,
+    /// SELN_CNTG_CSNU(매도 체결 건수)
+    pub ask_exec_count: u32,
+    /// SHNU_CNTG_CSNU(매수 체결 건수)
+    pub bid_exec_count: u32,
+    /// NTBY_CNTG_CSNU(순매수 체결 건수)
+    pub natural_bid_exec_count: i64,
+    /// CTTR(체결강도)
+    pub volume_power: f64,
+    /// SELN_CNTG_SMTN(총 매도 수량)
+    pub total_ask_exec_volume: u64,
+    /// SHNU_CNTG_SMTN(총 매수 수량)
+    pub total_bid_exec_volume: u64,
+    /// CCLD_DVSN(체결구분)
+    pub exec_class: ExecClass,
+    /// SHNU_RATE(매수비율)
+    pub bid_rate: f64,
+    /// PRDY_VOL_VRSS_ACML_VOL_RATE(전일 거래량 대비 등락율)
+    pub exec_volume_rate_vs_yesterday: f64,
+    /// OPRC_HOUR(시가 시간)
+    pub market_price_time: Time,
+    /// OPRC_VRSS_PRPR_SIGN(시가대비구분)
+    pub vs_market_price_sign: VsPriceSign,
+    /// OPRC_VRSS_PRPR(시가대비)
+    pub vs_market_price: i32,
+    /// HGPR_HOUR(최고가 시간)
+    pub upper_price_time: Time,
+    /// HGPR_VRSS_PRPR_SIGN(고가대비구분)
+    pub vs_upper_price_sign: VsPriceSign,
+    /// HGPR_VRSS_PRPR(고가대비)
+    pub vs_upper_price: i32,
+    /// LWPR_HOUR(최저가 시간)
+    pub lower_price_time: Time,
+    /// LWPR_VRSS_PRPR_SIGN(저가대비구분)
+    pub vs_lower_price_sign: VsPriceSign,
+    /// LWPR_VRSS_PRPR(저가대비)
+    pub vs_lower_price: i32,
+    /// BSOP_DATE(영업일자)
+    pub business_operation_date: Time,
+    /// NEW_MKOP_CLS_CODE(신 장운영 구분 코드)
+    pub new_market_operation_class_code: MarketOperationClassCode,
+    /// TRHT_YN(거래정지 여부)
+    pub trade_suspended: bool,
+    /// ASKP_RSQN1(매도호가 잔량1)
+    pub ask_order_remained: u64,
+    /// BIDP_RSQN1(매수호가 잔량1)
+    pub bid_order_remained: u64,
+    /// TOTAL_ASKP_RSQN(총 매도호가 잔량)
+    pub total_ask_order_remained: u64,
+    /// TOTAL_BIDP_RSQN(총 매수호가 잔량)
+    pub total_bid_order_remained: u64,
+    /// VOL_TNRT(거래량 회전율)
+    pub turnover_ratio: f64,
+    /// PRDY_SMNS_HOUR_ACML_VOL(전일 동시간 누적 거래량)
+    pub yesterday_symmetric_time_accumulate_volume: u64,
+    /// PRDY_SMNS_HOUR_ACML_VOL_RATE(전일 동시간 누적 거래량 비율)
+    pub yesterday_symmetric_time_accumulate_volume_rate: f64,
+    /// HOUR_CLS_CODE(시간 구분 코드)
+    pub time_class_code: TimeClassCode,
+    /// MRKT_TRTM_CLS_CODE(임의종료구분코드)
+    pub market_termination_class_code: MarketTerminationClassCode,
+    /// VI_STND_PRC(정적VI발동기준가)
+    pub vi_standard_price: u32,
 }

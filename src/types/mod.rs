@@ -59,7 +59,7 @@ pub struct Account {
     pub acnt_prdt_cd: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, SerializeDisplay, Deserialize, Default)]
 #[repr(i32)]
 pub enum OrderClass {
     #[default]
@@ -100,28 +100,33 @@ pub enum OrderClass {
     /// 장중대량(즉시체결, 잔량취소)
     MidMarketMassive = 51,
 }
+impl std::fmt::Display for OrderClass {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.write_str(match self {
+            Self::Limit => "00",
+            Self::Market => "01",
+            Self::ConditionalLimit => "02",
+            Self::Best => "03",
+            Self::First => "04",
+            Self::PreMarket => "05",
+            Self::PostMarket => "06",
+            Self::OutMarketSinglePrice => "07",
+            Self::MyStock => "08",
+            Self::MyStockSOption => "09",
+            Self::MyStockMoneyTrust => "10",
+            Self::IOCLimit => "11",
+            Self::FOKLimit => "12",
+            Self::IOCMarket => "13",
+            Self::FOKMarket => "14",
+            Self::IOCBest => "15",
+            Self::FOKBest => "16",
+            Self::MidMarketMassive => "51",
+        })
+    }
+}
 impl Into<String> for OrderClass {
     fn into(self) -> String {
-        match self {
-            Self::Limit => "00".to_string(),
-            Self::Market => "01".to_string(),
-            Self::ConditionalLimit => "02".to_string(),
-            Self::Best => "03".to_string(),
-            Self::First => "04".to_string(),
-            Self::PreMarket => "05".to_string(),
-            Self::PostMarket => "06".to_string(),
-            Self::OutMarketSinglePrice => "07".to_string(),
-            Self::MyStock => "08".to_string(),
-            Self::MyStockSOption => "09".to_string(),
-            Self::MyStockMoneyTrust => "10".to_string(),
-            Self::IOCLimit => "11".to_string(),
-            Self::FOKLimit => "12".to_string(),
-            Self::IOCMarket => "13".to_string(),
-            Self::FOKMarket => "14".to_string(),
-            Self::IOCBest => "15".to_string(),
-            Self::FOKBest => "16".to_string(),
-            Self::MidMarketMassive => "51".to_string(),
-        }
+        self.to_string()
     }
 }
 impl From<&str> for OrderClass {
@@ -150,21 +155,25 @@ impl From<&str> for OrderClass {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, SerializeDisplay, Deserialize)]
 #[repr(i32)]
 pub enum CorrectionClass {
     None = 0,
     Correction = 1,
     Cancel = 2,
 }
-impl Into<String> for CorrectionClass {
-    fn into(self) -> String {
-        match self {
+impl std::fmt::Display for CorrectionClass {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.write_str(match self {
             Self::None => "0",
             Self::Correction => "01",
             Self::Cancel => "02",
-        }
-        .to_string()
+        })
+    }
+}
+impl Into<String> for CorrectionClass {
+    fn into(self) -> String {
+        self.to_string()
     }
 }
 impl From<&str> for CorrectionClass {
@@ -178,7 +187,7 @@ impl From<&str> for CorrectionClass {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, SerializeDisplay, Deserialize)]
 #[repr(i32)]
 pub enum Direction {
     /// buy
@@ -186,7 +195,14 @@ pub enum Direction {
     /// sell
     Ask = 2,
 }
-
+impl std::fmt::Display for Direction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.write_str(match self {
+            Self::Ask => "01",
+            Self::Bid => "02",
+        })
+    }
+}
 impl From<&str> for Direction {
     fn from(direction: &str) -> Self {
         match direction {
@@ -197,9 +213,14 @@ impl From<&str> for Direction {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, SerializeDisplay, Deserialize)]
 pub struct Quantity {
     inner: u32,
+}
+impl std::fmt::Display for Quantity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.write_str(&format!("{}", self.inner))
+    }
 }
 impl Quantity {
     pub fn from(quantity: u32) -> Self {
@@ -219,7 +240,7 @@ impl From<&str> for Quantity {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, SerializeDisplay, Deserialize)]
 pub struct Price {
     inner: u32,
 }
@@ -324,6 +345,11 @@ impl Price {
                 self.inner
             },
         }
+    }
+}
+impl std::fmt::Display for Price {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.write_str(&format!("{}", self.inner))
     }
 }
 impl Into<String> for Price {

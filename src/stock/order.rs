@@ -136,7 +136,7 @@ impl Korea {
             .header(
                 "Authorization",
                 match self.auth.get_token() {
-                    Some(token) => token,
+                    Some(token) => format!("Bearer {}", token),
                     None => {
                         return Err(Error::AuthInitFailed("token"));
                     }

@@ -1,4 +1,6 @@
-use crate::types::{request, response, Account, Environment, MarketCode, PeriodCode, TrId};
+use crate::types::{
+    request, response, Account, Environment, MarketCode, PeriodCode, ProductTypeCode, TrId,
+};
 use crate::{auth, Error};
 
 #[derive(Clone, Debug)]
@@ -127,7 +129,7 @@ impl Quote {
     /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/quotations/search-stock-info)
     pub async fn basic_stock_info(
         &self,
-        prdt_type_cd: &str,
+        prdt_type_cd: ProductTypeCode,
         pdno: &str,
     ) -> Result<response::stock::quote::BasicStockInfoResponse, Error> {
         let tr_id = TrId::BasicStockInfo;

@@ -294,8 +294,7 @@ pub struct BasicStockInfoParameter {
 }
 
 impl BasicStockInfoParameter {
-    pub fn new(prdt_type_cd: &str, pdno: &str) -> Self {
-        let prdt_type_cd = ProductTypeCode::from_str(prdt_type_cd).unwrap_or_default();
+    pub fn new(prdt_type_cd: ProductTypeCode, pdno: &str) -> Self {
         let pdno = pdno.to_string();
         Self { prdt_type_cd, pdno }
     }

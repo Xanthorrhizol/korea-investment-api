@@ -113,7 +113,7 @@ pub mod Body {
         ord_unpr: Price,
         /// 잔량전부주문여부([정정/취소] Y: 잔량전부, N: 잔량일부)
         #[getset(get = "pub", set = "pub")]
-        qty_all_ord_yn: bool,
+        qty_all_ord_yn: char,
     }
     impl Correction {
         pub fn new(
@@ -136,7 +136,7 @@ pub mod Body {
                 rvse_cncl_dvsn_cd,
                 ord_qty,
                 ord_unpr,
-                qty_all_ord_yn,
+                qty_all_ord_yn: if qty_all_ord_yn { 'Y' } else { 'N' },
             }
         }
         pub fn get_json_string(self) -> String {

@@ -145,6 +145,27 @@ async fn main() {
         .basic_stock_info(ProductTypeCode::Stock, "005930")
         .await
         .unwrap();
+    if samsung_electronics_basic_info.rt_cd() != "0" {
+        if samsung_electronics_basic_info.msg_cd() == "EGW00123" {
+            warn!("만료된 토큰 이용: {:?}", samsung_electronics_basic_info);
+
+            // 토큰 재발급
+            let token = api.real_auth.create_token().await.unwrap();
+
+            // config 파일에 재발급 토큰 적용
+            config.set_real_token(Some(token));
+            api.export_config(&config).unwrap();
+
+            // api 재호출
+            samsung_electronics_basic_info = api
+                .quote
+                .basic_stock_info(ProductTypeCode::Stock, "005930")
+                .await
+                .unwrap();
+        } else {
+            panic!("Error Response: {:?}", samsung_electronics_basic_info);
+        }
+    }
     info!(
         "주식 기본조회 Response: {:?}",
         samsung_electronics_basic_info

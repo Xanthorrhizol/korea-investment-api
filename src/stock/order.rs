@@ -1,6 +1,6 @@
 use crate::types::{
     request, response, Account, CorrectionClass, Direction, Environment, OrderClass, Price,
-    Quantity, TrId,
+    Quantity, TargetExchange, TrId,
 };
 use crate::{auth, Error};
 
@@ -45,6 +45,7 @@ impl Korea {
         pdno: &str,
         qty: Quantity,
         price: Price,
+        excg_id_dvsn_cd: Option<TargetExchange>,
     ) -> Result<response::stock::order::Body::Order, Error> {
         let request = request::stock::order::Body::Order::new(
             self.account.cano.clone(),
@@ -53,6 +54,7 @@ impl Korea {
             order_division,
             qty,
             price,
+            excg_id_dvsn_cd,
         )
         .get_json_string();
         let tr_id: String = match self.environment {
@@ -111,6 +113,7 @@ impl Korea {
         qty_all_ord_yn: bool,
         qty: Quantity,
         price: Price,
+        excg_id_dvsn_cd: Option<TargetExchange>,
     ) -> Result<response::stock::order::Body::Order, Error> {
         let request = request::stock::order::Body::Correction::new(
             self.account.cano.clone(),
@@ -122,6 +125,7 @@ impl Korea {
             qty,
             price,
             qty_all_ord_yn,
+            excg_id_dvsn_cd,
         )
         .get_json_string();
         let tr_id: String = match self.environment {

@@ -71,13 +71,14 @@ pub struct Account {
 /// 대상 거래소
 /// 1. 주문을 접수할 거래소.
 /// 2. 시세를 수신할 거래소.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum TargetExchange {
+    #[default]
     /// 한국거래소
     KRX,
     /// 넥스트레이드
     NXT,
-    /// Smart Order Routing / Both
+    /// Smart Order Routing
     SOR,
 }
 

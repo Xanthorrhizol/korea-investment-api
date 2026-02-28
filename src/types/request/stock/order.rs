@@ -32,7 +32,7 @@ impl Header {
 
 #[allow(non_snake_case)]
 pub mod Body {
-    use crate::types::{CorrectionClass, OrderClass, Price, Quantity};
+    use crate::types::{CorrectionClass, OrderClass, Price, Quantity, TargetExchange};
     use getset::{Getters, Setters};
     use serde::{Deserialize, Serialize};
 
@@ -57,6 +57,9 @@ pub mod Body {
         #[getset(get = "pub", set = "pub")]
         /// 주문단가(1주당 가격; 시장가는 0으로)
         ord_unpr: Price,
+        /// 거래소ID구분코드(KRX/NXT/SOR)
+        #[getset(get = "pub", set = "pub")]
+        excg_id_dvsn_cd: TargetExchange,
     }
 
     impl Order {
@@ -67,6 +70,7 @@ pub mod Body {
             ord_dvsn: OrderClass,
             ord_qty: Quantity,
             ord_unpr: Price,
+            excg_id_dvsn_cd: Option<TargetExchange>,
         ) -> Self {
             Self {
                 cano,
@@ -75,6 +79,7 @@ pub mod Body {
                 ord_dvsn,
                 ord_qty,
                 ord_unpr,
+                excg_id_dvsn_cd: excg_id_dvsn_cd.unwrap_or_default(),
             }
         }
         pub fn get_json_string(self) -> String {
@@ -114,6 +119,9 @@ pub mod Body {
         /// 잔량전부주문여부([정정/취소] Y: 잔량전부, N: 잔량일부)
         #[getset(get = "pub", set = "pub")]
         qty_all_ord_yn: char,
+        /// 거래소ID구분코드(KRX/NXT/SOR)
+        #[getset(get = "pub", set = "pub")]
+        excg_id_dvsn_cd: TargetExchange,
     }
     impl Correction {
         pub fn new(
@@ -126,6 +134,7 @@ pub mod Body {
             ord_qty: Quantity,
             ord_unpr: Price,
             qty_all_ord_yn: bool,
+            excg_id_dvsn_cd: Option<TargetExchange>,
         ) -> Self {
             Self {
                 cano,
@@ -137,6 +146,7 @@ pub mod Body {
                 ord_qty,
                 ord_unpr,
                 qty_all_ord_yn: if qty_all_ord_yn { 'Y' } else { 'N' },
+                excg_id_dvsn_cd: excg_id_dvsn_cd.unwrap_or_default(),
             }
         }
         pub fn get_json_string(self) -> String {

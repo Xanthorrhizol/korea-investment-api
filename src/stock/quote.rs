@@ -162,6 +162,16 @@ impl Quote {
         } else {
             self.auth.get_token()
         };
+        let appkey = if is_forceful_real {
+            self.real_auth.get_appkey()
+        } else {
+            self.auth.get_appkey()
+        };
+        let appsecret = if is_forceful_real {
+            self.real_auth.get_appsecret()
+        } else {
+            self.auth.get_appsecret()
+        };
         let bearer_token = match token {
             Some(token) => format!("Bearer {}", token),
             None => {
@@ -173,8 +183,8 @@ impl Quote {
             .get(url)
             .header("Content-Type", "application/json")
             .header("Authorization", bearer_token)
-            .header("appkey", self.auth.get_appkey())
-            .header("appsecret", self.auth.get_appsecret())
+            .header("appkey", appkey)
+            .header("appsecret", appsecret)
             .header("tr_id", Into::<String>::into(tr_id))
             .header("custtype", "P"))
     }

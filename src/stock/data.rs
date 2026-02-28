@@ -21,7 +21,7 @@ pub struct KoreaStockData {
     auth: auth::Auth,
     account: Account,
     hts_id: String,
-    handles: HashMap<TrId, tokio::task::JoinHandle<()>>,
+    handles: HashMap<(String, TrId), tokio::task::JoinHandle<()>>,
 }
 
 impl KoreaStockData {
@@ -110,7 +110,7 @@ impl KoreaStockData {
         let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
         recv_subscribe_response(&mut read, &mut result).await?;
 
-        let handle_ref = self.handles.get(&tr_id);
+        let handle_ref = self.handles.get(&(tr_key.to_string(), tr_id));
         if handle_ref.is_none() || handle_ref.unwrap().is_finished() {
             let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
             let handle = tokio::spawn(async move {
@@ -137,7 +137,7 @@ impl KoreaStockData {
                     }
                 }
             });
-            self.handles.insert(tr_id, handle);
+            self.handles.insert((tr_key.to_string(), tr_id), handle);
             return Ok((Some(rx), result));
         }
         Ok((None, result))
@@ -181,7 +181,7 @@ impl KoreaStockData {
         let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
         recv_subscribe_response(&mut read, &mut result).await?;
 
-        if let Some(handle) = self.handles.remove(&tr_id) {
+        if let Some(handle) = self.handles.remove(&(String::default(), tr_id)) {
             handle.abort();
         }
 
@@ -214,7 +214,7 @@ impl KoreaStockData {
                 }
             }
         });
-        self.handles.insert(tr_id, handle);
+        self.handles.insert((String::default(), tr_id), handle);
         Ok((rx, result))
     }
 
@@ -254,7 +254,7 @@ impl KoreaStockData {
         let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
         recv_subscribe_response(&mut read, &mut result).await?;
 
-        if let Some(handle) = self.handles.remove(&tr_id) {
+        if let Some(handle) = self.handles.remove(&(tr_key.to_string(), tr_id)) {
             handle.abort();
         }
         Ok(result)

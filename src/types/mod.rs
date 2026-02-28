@@ -374,7 +374,7 @@ impl From<&str> for Price {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Hash, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Hash, Eq)]
 pub enum TrId {
     // Order
     #[serde(rename = "TTTC0012U")]

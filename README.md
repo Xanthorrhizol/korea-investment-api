@@ -1,6 +1,7 @@
 # 한국투자증권 API for Rust
 
-> 💡유지보수를 장기간 중단하였으나, 필요한 부분이나 이슈가 있다면 issue 올려주시면 그 부분 볼 수 있도록 하겠습니다.
+> 💡필요한 부분이나 이슈가 있다면 issue 올려주시면 그 부분 볼 수 있도록 하겠습니다.
+> 💡빠른 시일 내에 NXT, SOR 관련 피쳐를 추가하겠습니다.
 
 ## 현재 지원되는 기능
 
@@ -31,6 +32,8 @@ static APPSECRET: &'static str = "some-app-secret";
 static CANO: &'static str = "12345678";
 static ACNT_PRDT_CD: &'static str = "01";
 static HTS_ID: &'static str = "my-hts-id";
+static REAL_APPKEY: &'static str = "some-real-app-key"; // 실전투자 환경만 이용 가능한 API 이용을 위한 APPKEY
+static REAL_APPSECRET: &'static str = "some-real-app-secret"; // 실전투자 환경만 이용 가능한 API 이용을 위한 APPSECRET
 
 async fn get_api() -> Result<KoreaInvestmentApi, Error> {
     let account = Account {
@@ -43,6 +46,12 @@ async fn get_api() -> Result<KoreaInvestmentApi, Error> {
         APPSECRET,
         account,
         HTS_ID,
+        None, // token
+        None, // approval_key
+        Some(REAL_APPKEY), // Optional
+        Some(REAL_APPSECRET), // Optional
+        None, // real_token
+        None, // real_approval_key
     ).await
 }
 ```
@@ -65,10 +74,10 @@ async fn main() {
     ).await;
     
     // 삼성전자 호가 실시간 시세 구독
-    let subscribe_response = api.k_data.subscribe_market("KR7005930003", TrId::RealtimeOrdb).unwrap();
+    let (rx, subscribe_response) = api.k_data.subscribe_market("005930", TrId::RealtimeOrdb).unwrap();
 
     // 구독한 시세 읽기
-    while let Ok(ordb) = api.k_data.ordb_recv() {
+    while let Ok(ordb) = rx.recv().await {
         println!("Got orderbook: {:?}", ordb);
     }
 }

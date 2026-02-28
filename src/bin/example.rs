@@ -73,7 +73,7 @@ async fn main() {
     // 삼성전자 일자별 가격(단일 API 호출)
     let mut samsung_electronics_daily_prices = api
         .quote
-        .daily_price(MarketCode::Stock, "000040", PeriodCode::ThirtyDays, false)
+        .daily_price(MarketCode::Stock, "005930", PeriodCode::ThirtyDays, false)
         .await
         .unwrap();
     if samsung_electronics_daily_prices.rt_cd() != "0" {
@@ -90,7 +90,7 @@ async fn main() {
             // api 재호출
             samsung_electronics_daily_prices = api
                 .quote
-                .daily_price(MarketCode::Stock, "000040", PeriodCode::ThirtyDays, false)
+                .daily_price(MarketCode::Stock, "005930", PeriodCode::ThirtyDays, false)
                 .await
                 .unwrap();
         } else {
@@ -138,7 +138,7 @@ async fn main() {
     // 삼성전자 기본조회 - 정규장만 가능
     let samsung_electronics_basic_info = api
         .quote
-        .basic_stock_info(ProductTypeCode::Stock, "000040")
+        .basic_stock_info(ProductTypeCode::Stock, "005930")
         .await
         .unwrap();
     info!(
@@ -150,7 +150,7 @@ async fn main() {
     let volume_rank = api
         .quote
         .volume_rank(VolumeRankParameter::new(
-            String::from("000040"),
+            String::from("005930"),
             ShareClassCode::Whole,
             BelongClassCode::IncreasedVolumeRate,
             TargetClassCode {
@@ -204,7 +204,7 @@ async fn main() {
         .order_cash(
             OrderClass::Limit,
             Direction::Bid,
-            "000040",
+            "005930",
             Quantity::from(1),
             lower_price,
         )

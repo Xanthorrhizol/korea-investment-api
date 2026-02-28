@@ -7,6 +7,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 #[derive(Clone, Debug)]
 pub struct Auth {
     client: reqwest::Client,
+    environment: Environment,
     endpoint_url: String,
     appkey: String,
     appsecret: String,
@@ -31,6 +32,7 @@ impl Auth {
         .to_string();
         Self {
             client: client.clone(),
+            environment,
             endpoint_url,
             appkey: appkey.to_string(),
             appsecret: appsecret.to_string(),
@@ -63,6 +65,7 @@ impl Auth {
     /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/oauth2/Approval)
     /// 웹소켓 접속키를 발급받아서 반환함과 동시에 구조체의 approval_key 업데이트
     pub async fn create_approval_key(&mut self) -> Result<String, Error> {
+        crate::wait(self.environment).await;
         let approval_key = self
             .client
             .post(format!("{}/oauth2/Approval", self.endpoint_url))
@@ -79,6 +82,7 @@ impl Auth {
             .json::<response::auth::Body::ApprovalKeyCreation>()
             .await?
             .get_approval_key();
+        crate::update_last_call();
         self.approval_key = Some(approval_key.clone());
         Ok(approval_key)
     }
@@ -98,6 +102,7 @@ impl Auth {
         );
         headers.insert("appkey", HeaderValue::from_str(&self.appkey).unwrap());
         headers.insert("appsecret", HeaderValue::from_str(&self.appsecret).unwrap());
+        crate::wait(self.environment).await;
         let hash = self
             .client
             .post(format!("{}/uapi/hashkey", self.endpoint_url))
@@ -108,6 +113,7 @@ impl Auth {
             .json::<response::auth::Body::HashKey>()
             .await?
             .get_hash();
+        crate::update_last_call();
         Ok(hash)
     }
 
@@ -115,6 +121,7 @@ impl Auth {
     /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/oauth2/tokenP)
     /// token값을 얻어와서 반환함과 동시에 구조체의 token을 업데이트
     pub async fn create_token(&mut self) -> Result<String, Error> {
+        crate::wait(self.environment).await;
         let token = self
             .client
             .post(format!("{}/oauth2/tokenP", self.endpoint_url))
@@ -131,6 +138,7 @@ impl Auth {
             .json::<response::auth::Body::TokenCreation>()
             .await?
             .get_access_token();
+        crate::update_last_call();
         self.token = Some(token.clone());
         Ok(token)
     }
@@ -147,7 +155,8 @@ impl Auth {
     ///     message: String,
     /// }
     pub async fn revoke_token(&self) -> Result<response::auth::Body::TokenRevoke, Error> {
-        Ok(self
+        crate::wait(self.environment).await;
+        let result = self
             .client
             .post(format!("{}/oauth2/revokeP", &self.endpoint_url))
             .header("Content-Type", "application/json")
@@ -167,6 +176,8 @@ impl Auth {
             .send()
             .await?
             .json::<response::auth::Body::TokenRevoke>()
-            .await?)
+            .await?;
+        crate::update_last_call();
+        Ok(result)
     }
 }

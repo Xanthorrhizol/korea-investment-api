@@ -61,12 +61,15 @@ impl Quote {
         );
         let params = param.into_iter();
         let url = reqwest::Url::parse_with_params(&url, &params)?;
-        Ok(self
+        crate::wait(self.environment).await;
+        let result = self
             .create_request(tr_id, url, false)?
             .send()
             .await?
             .json::<response::stock::quote::DailyPriceResponse>()
-            .await?)
+            .await?;
+        crate::update_last_call();
+        Ok(result)
     }
 
     /// 거래량순위[v1_국내주식-047]
@@ -81,12 +84,15 @@ impl Quote {
             "https://openapi.koreainvestment.com:9443", // no VirtualMarket support
         );
         let url = reqwest::Url::parse_with_params(&url, &params.into_iter())?;
-        Ok(self
+        crate::wait(self.environment).await;
+        let result = self
             .create_request(tr_id, url, true)?
             .send()
             .await?
             .json::<response::stock::quote::VolumeRankResponse>()
-            .await?)
+            .await?;
+        crate::update_last_call();
+        Ok(result)
     }
 
     /// 관심종목 그룹별 종목조회[국내주식-203]
@@ -101,12 +107,15 @@ impl Quote {
             "https://openapi.koreainvestment.com:9443", // no VirtualMarket support
         );
         let url = reqwest::Url::parse_with_params(&url, &params.into_iter())?;
-        Ok(self
+        crate::wait(self.environment).await;
+        let result = self
             .create_request(tr_id, url, true)?
             .send()
             .await?
             .json::<response::stock::quote::GroupItemResponse>()
-            .await?)
+            .await?;
+        crate::update_last_call();
+        Ok(result)
     }
 
     /// 관심종목 그룹조회[국내주식-204]
@@ -121,12 +130,15 @@ impl Quote {
             "https://openapi.koreainvestment.com:9443", // no VirtualMarket support
         );
         let url = reqwest::Url::parse_with_params(&url, &params.into_iter())?;
-        Ok(self
+        crate::wait(self.environment).await;
+        let result = self
             .create_request(tr_id, url, true)?
             .send()
             .await?
             .json::<response::stock::quote::GroupListResponse>()
-            .await?)
+            .await?;
+        crate::update_last_call();
+        Ok(result)
     }
     /// 주식기본조회[v1_국내주식-067]
     /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/quotations/search-stock-info)
@@ -143,12 +155,15 @@ impl Quote {
         );
         let params = param.into_iter();
         let url = reqwest::Url::parse_with_params(&url, &params)?;
-        Ok(self
+        crate::wait(self.environment).await;
+        let result = self
             .create_request(tr_id, url, true)?
             .send()
             .await?
             .json::<response::stock::quote::BasicStockInfoResponse>()
-            .await?)
+            .await?;
+        crate::update_last_call();
+        Ok(result)
     }
 
     fn create_request(

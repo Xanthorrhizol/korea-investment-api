@@ -7,6 +7,28 @@ pub(crate) mod util;
 extern crate log;
 
 pub const BUF_SIZE: usize = 4096;
+pub const VIRTUAL_FREQ: i64 = 2;
+pub const REAL_FREQ: i64 = 20;
+lazy_static::lazy_static! {
+    pub static ref LAST_CALL: std::sync::Mutex<types::Time> = std::sync::Mutex::new(types::Time::now());
+}
+
+pub(crate) async fn wait(env: types::Environment) {
+    let freq = if env == types::Environment::Virtual {
+        VIRTUAL_FREQ
+    } else {
+        REAL_FREQ
+    };
+    tokio::time::sleep(std::time::Duration::from_millis(
+        (LAST_CALL.lock().unwrap().inner().timestamp_millis() + 1000 / freq
+            - chrono::Utc::now().timestamp_millis())
+        .max(0) as u64,
+    ))
+    .await;
+}
+pub(crate) fn update_last_call() {
+    *LAST_CALL.lock().unwrap() = types::Time::now();
+}
 
 #[derive(Debug)]
 pub struct KoreaInvestmentApi {

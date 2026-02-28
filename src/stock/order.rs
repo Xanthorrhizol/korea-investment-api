@@ -66,7 +66,8 @@ impl Korea {
             },
         };
         let hash = self.auth.get_hash(request.clone()).await?;
-        Ok(self
+        crate::wait(self.environment).await;
+        let result = self
             .client
             .post(format!(
                 "{}/uapi/domestic-stock/v1/trading/order-cash",
@@ -91,7 +92,9 @@ impl Korea {
             .send()
             .await?
             .json::<response::stock::order::Body::Order>()
-            .await?)
+            .await?;
+        crate::update_last_call();
+        Ok(result)
     }
 
     // TODO: 주식주문(신용)[v1_국내주식-002]
@@ -126,7 +129,8 @@ impl Korea {
             Environment::Virtual => TrId::VirtualStockCorrection.into(),
         };
         let hash = self.auth.get_hash(request.clone()).await?;
-        Ok(self
+        crate::wait(self.environment).await;
+        let result = self
             .client
             .post(format!(
                 "{}/uapi/domestic-stock/v1/trading/order-rvsecncl",
@@ -150,7 +154,9 @@ impl Korea {
             .send()
             .await?
             .json::<response::stock::order::Body::Order>()
-            .await?)
+            .await?;
+        crate::update_last_call();
+        Ok(result)
     }
 
     // TODO: 주식정정취소가능주문조회[v1_국내주식-004]

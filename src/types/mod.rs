@@ -24,6 +24,7 @@ pub fn parse_bool(s: &str) -> bool {
 /// 모의투자: Virtual
 #[derive(
     Clone,
+    Copy,
     Debug,
     Default,
     PartialEq,

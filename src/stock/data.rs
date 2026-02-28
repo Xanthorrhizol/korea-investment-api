@@ -5,11 +5,7 @@ use crate::types::{Account, CustomerType, Environment, TrId};
 use crate::{auth, Error};
 use futures_util::{SinkExt, StreamExt};
 use std::collections::HashMap;
-use tokio_tungstenite::{
-    connect_async,
-    tungstenite::Message,
-    MaybeTlsStream, WebSocketStream,
-};
+use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
 
 type WsStream = WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>;
 type WsSplitStream = futures_util::stream::SplitStream<WsStream>;
@@ -107,10 +103,12 @@ impl KoreaStockData {
         let (ws_stream, _) = connect_async(&url).await?;
         let (mut write, mut read) = ws_stream.split();
 
+        crate::wait(self.environment).await;
         write.send(Message::Text(msg_str)).await?;
+        crate::update_last_call();
 
         let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
-        send_subscribe_msg(&mut read, &mut result).await?;
+        recv_subscribe_response(&mut read, &mut result).await?;
 
         let handle_ref = self.handles.get(&tr_id);
         if handle_ref.is_none() || handle_ref.unwrap().is_finished() {
@@ -176,10 +174,12 @@ impl KoreaStockData {
         let (ws_stream, _) = connect_async(&self.my_exec_url).await?;
         let (mut write, mut read) = ws_stream.split();
 
+        crate::wait(self.environment).await;
         write.send(Message::Text(msg_str)).await?;
+        crate::update_last_call();
 
         let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
-        send_subscribe_msg(&mut read, &mut result).await?;
+        recv_subscribe_response(&mut read, &mut result).await?;
 
         if let Some(handle) = self.handles.remove(&tr_id) {
             handle.abort();
@@ -247,10 +247,12 @@ impl KoreaStockData {
         let (ws_stream, _) = connect_async(&url).await?;
         let (mut write, mut read) = ws_stream.split();
 
+        crate::wait(self.environment).await;
         write.send(Message::Text(msg_str)).await?;
+        crate::update_last_call();
 
         let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
-        send_subscribe_msg(&mut read, &mut result).await?;
+        recv_subscribe_response(&mut read, &mut result).await?;
 
         if let Some(handle) = self.handles.remove(&tr_id) {
             handle.abort();
@@ -259,7 +261,7 @@ impl KoreaStockData {
     }
 }
 
-async fn send_subscribe_msg(
+async fn recv_subscribe_response(
     read: &mut WsSplitStream,
     result: &mut SubscribeResponse,
 ) -> Result<(), json::Error> {

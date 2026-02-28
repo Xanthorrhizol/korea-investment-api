@@ -2,6 +2,7 @@ use korea_investment_api::types::config::Config;
 use korea_investment_api::types::request::stock::quote::{
     GroupItemParameter, GroupListParameter, VolumeRankParameter,
 };
+use korea_investment_api::types::stream::stock::{exec::Body as ExecBody, Exec};
 use korea_investment_api::types::stream::stock::{ordb::Body as OrdbBody, Ordb};
 use korea_investment_api::types::{
     Account, BelongClassCode, CorrectionClass, Direction, MarketCode, OrderClass, PeriodCode,
@@ -250,10 +251,10 @@ async fn main() {
         }
     }
 
-    // 삼성전자 호가 실시간 시세 구독
+    // 삼성전자 호가 실시간 시세 구독(호가; KRX)
     let (rx, subscribe_response) = api
         .k_data
-        .subscribe_market::<Ordb, OrdbBody>("005930", TrId::RealtimeOrdb)
+        .subscribe_market::<Ordb, OrdbBody>("005930", TrId::RealtimeOrdbKrx)
         .await
         .unwrap();
     info!("호가 실시간 시세 구독 Response: {:?}", subscribe_response);
@@ -262,7 +263,7 @@ async fn main() {
     let mut i = 0;
     if let Some(mut rx) = rx {
         while let Some(ordb) = rx.recv().await {
-            debug!("[실시간] 호가 수신: {:?}", ordb);
+            debug!("[실시간] KRX 호가 수신: {:?}", ordb);
             i += 1;
             if i == 10 {
                 break;
@@ -272,7 +273,147 @@ async fn main() {
     // 시세 구독 해체
     let unsubscribe_response = api
         .k_data
-        .unsubscribe_market("005930", TrId::RealtimeOrdb)
+        .unsubscribe_market("005930", TrId::RealtimeOrdbKrx)
+        .await;
+    info!("시세 구독 해제 Result: {:?}", unsubscribe_response);
+
+    // ===
+
+    // 삼성전자 호가 실시간 시세 구독(체결; KRX)
+    let (rx, subscribe_response) = api
+        .k_data
+        .subscribe_market::<Exec, ExecBody>("005930", TrId::RealtimeExecKrx)
+        .await
+        .unwrap();
+    info!("체결 실시간 시세 구독 Response: {:?}", subscribe_response);
+
+    // 구독한 시세 읽기
+    let mut i = 0;
+    if let Some(mut rx) = rx {
+        while let Some(exec) = rx.recv().await {
+            debug!("[실시간] KRX 체결 수신: {:?}", exec);
+            i += 1;
+            if i == 10 {
+                break;
+            }
+        }
+    }
+    // 시세 구독 해체
+    let unsubscribe_response = api
+        .k_data
+        .unsubscribe_market("005930", TrId::RealtimeExecNxt)
+        .await;
+    info!("시세 구독 해제 Result: {:?}", unsubscribe_response);
+
+    // ===
+
+    // 삼성전자 호가 실시간 시세 구독(호가; NXT)
+    let (rx, subscribe_response) = api
+        .k_data
+        .subscribe_market::<Ordb, OrdbBody>("005930", TrId::RealtimeOrdbNxt)
+        .await
+        .unwrap();
+    info!("호가 실시간 시세 구독 Response: {:?}", subscribe_response);
+
+    // 구독한 시세 읽기
+    let mut i = 0;
+    if let Some(mut rx) = rx {
+        while let Some(ordb) = rx.recv().await {
+            debug!("[실시간] NXT 호가 수신: {:?}", ordb);
+            i += 1;
+            if i == 10 {
+                break;
+            }
+        }
+    }
+    // 시세 구독 해체
+    let unsubscribe_response = api
+        .k_data
+        .unsubscribe_market("005930", TrId::RealtimeOrdbNxt)
+        .await;
+    info!("시세 구독 해제 Result: {:?}", unsubscribe_response);
+
+    // ===
+
+    // 삼성전자 호가 실시간 시세 구독(체결; NXT)
+    let (rx, subscribe_response) = api
+        .k_data
+        .subscribe_market::<Exec, ExecBody>("005930", TrId::RealtimeExecNxt)
+        .await
+        .unwrap();
+    info!("체결 실시간 시세 구독 Response: {:?}", subscribe_response);
+
+    // 구독한 시세 읽기
+    let mut i = 0;
+    if let Some(mut rx) = rx {
+        while let Some(exec) = rx.recv().await {
+            debug!("[실시간] NXT 체결 수신: {:?}", exec);
+            i += 1;
+            if i == 10 {
+                break;
+            }
+        }
+    }
+    // 시세 구독 해체
+    let unsubscribe_response = api
+        .k_data
+        .unsubscribe_market("005930", TrId::RealtimeExecNxt)
+        .await;
+    info!("시세 구독 해제 Result: {:?}", unsubscribe_response);
+
+    // ===
+
+    // 삼성전자 호가 실시간 시세 구독(호가; Both)
+    let (rx, subscribe_response) = api
+        .k_data
+        .subscribe_market::<Ordb, OrdbBody>("005930", TrId::RealtimeOrdbUnion)
+        .await
+        .unwrap();
+    info!("호가 실시간 시세 구독 Response: {:?}", subscribe_response);
+
+    // 구독한 시세 읽기
+    let mut i = 0;
+    if let Some(mut rx) = rx {
+        while let Some(ordb) = rx.recv().await {
+            debug!("[실시간] 통합 호가 수신: {:?}", ordb);
+            i += 1;
+            if i == 10 {
+                break;
+            }
+        }
+    }
+    // 시세 구독 해체
+    let unsubscribe_response = api
+        .k_data
+        .unsubscribe_market("005930", TrId::RealtimeOrdbUnion)
+        .await;
+    info!("시세 구독 해제 Result: {:?}", unsubscribe_response);
+
+    // ===
+
+    // 삼성전자 호가 실시간 시세 구독(체결; Both)
+    let (rx, subscribe_response) = api
+        .k_data
+        .subscribe_market::<Exec, ExecBody>("005930", TrId::RealtimeExecUnion)
+        .await
+        .unwrap();
+    info!("체결 실시간 시세 구독 Response: {:?}", subscribe_response);
+
+    // 구독한 시세 읽기
+    let mut i = 0;
+    if let Some(mut rx) = rx {
+        while let Some(exec) = rx.recv().await {
+            debug!("[실시간] 통합 체결 수신: {:?}", exec);
+            i += 1;
+            if i == 10 {
+                break;
+            }
+        }
+    }
+    // 시세 구독 해체
+    let unsubscribe_response = api
+        .k_data
+        .unsubscribe_market("005930", TrId::RealtimeExecUnion)
         .await;
     info!("시세 구독 해제 Result: {:?}", unsubscribe_response);
 }

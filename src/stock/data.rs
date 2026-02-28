@@ -14,8 +14,12 @@ type _WsSplitSink = futures_util::stream::SplitSink<WsStream, Message>;
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct KoreaStockData {
-    exec_url: String,
-    ordb_url: String,
+    krx_exec_url: String,
+    krx_ordb_url: String,
+    nxt_exec_url: String,
+    nxt_ordb_url: String,
+    union_exec_url: String,
+    union_ordb_url: String,
     my_exec_url: String,
     environment: Environment,
     auth: auth::Auth,
@@ -37,15 +41,15 @@ impl KoreaStockData {
             Environment::Real => "ws://ops.koreainvestment.com:21000",
             Environment::Virtual => "ws://ops.koreainvestment.com:31000",
         };
-        let exec_url = format!(
+        let krx_exec_url = format!(
             "{}/tryitout/{}",
             endpoint_url,
-            Into::<String>::into(TrId::RealtimeExec),
+            Into::<String>::into(TrId::RealtimeExecKrx),
         );
-        let ordb_url = format!(
+        let krx_ordb_url = format!(
             "{}/tryitout/{}",
             endpoint_url,
-            Into::<String>::into(TrId::RealtimeOrdb),
+            Into::<String>::into(TrId::RealtimeOrdbKrx),
         );
         let my_exec_url = format!(
             "{}/tryitout/{}",
@@ -55,10 +59,35 @@ impl KoreaStockData {
                 Environment::Virtual => TrId::VirtualRealtimeMyExec,
             }),
         );
+        let endpoint_url = "ws://ops.koreainvestment.com:21000";
+        let nxt_exec_url = format!(
+            "{}/tryitout/{}",
+            endpoint_url,
+            Into::<String>::into(TrId::RealtimeExecNxt),
+        );
+        let nxt_ordb_url = format!(
+            "{}/tryitout/{}",
+            endpoint_url,
+            Into::<String>::into(TrId::RealtimeOrdbNxt),
+        );
+        let union_exec_url = format!(
+            "{}/tryitout/{}",
+            endpoint_url,
+            Into::<String>::into(TrId::RealtimeExecUnion),
+        );
+        let union_ordb_url = format!(
+            "{}/tryitout/{}",
+            endpoint_url,
+            Into::<String>::into(TrId::RealtimeOrdbUnion),
+        );
 
         Ok(Self {
-            exec_url,
-            ordb_url,
+            krx_exec_url,
+            krx_ordb_url,
+            nxt_exec_url,
+            nxt_ordb_url,
+            union_exec_url,
+            union_ordb_url,
             my_exec_url,
             environment,
             auth,
@@ -95,9 +124,18 @@ impl KoreaStockData {
         .get_json_string();
 
         let url = match tr_id {
-            TrId::RealtimeExec => self.exec_url.clone(),
-            TrId::RealtimeOrdb => self.ordb_url.clone(),
-            _ => return Err(Error::WrongTrId(tr_id, "RealtimeExec or RealtimeOrdb")),
+            TrId::RealtimeExecKrx => self.krx_exec_url.clone(),
+            TrId::RealtimeOrdbKrx => self.krx_ordb_url.clone(),
+            TrId::RealtimeExecNxt => self.nxt_exec_url.clone(),
+            TrId::RealtimeOrdbNxt => self.nxt_ordb_url.clone(),
+            TrId::RealtimeExecUnion => self.union_exec_url.clone(),
+            TrId::RealtimeOrdbUnion => self.union_ordb_url.clone(),
+            _ => {
+                return Err(Error::WrongTrId(
+                    tr_id,
+                    "RealtimeExecXXX or RealtimeOrdbXXX",
+                ))
+            }
         };
 
         let (ws_stream, _) = connect_async(&url).await?;
@@ -239,9 +277,18 @@ impl KoreaStockData {
         .get_json_string();
 
         let url = match tr_id {
-            TrId::RealtimeExec => self.exec_url.clone(),
-            TrId::RealtimeOrdb => self.ordb_url.clone(),
-            _ => return Err(Error::WrongTrId(tr_id, "RealtimeExec or RealtimeOrdb")),
+            TrId::RealtimeExecKrx => self.krx_exec_url.clone(),
+            TrId::RealtimeOrdbKrx => self.krx_ordb_url.clone(),
+            TrId::RealtimeExecNxt => self.nxt_exec_url.clone(),
+            TrId::RealtimeOrdbNxt => self.nxt_ordb_url.clone(),
+            TrId::RealtimeExecUnion => self.union_exec_url.clone(),
+            TrId::RealtimeOrdbUnion => self.union_ordb_url.clone(),
+            _ => {
+                return Err(Error::WrongTrId(
+                    tr_id,
+                    "RealtimeExecXXX or RealtimeOrdbXXX",
+                ))
+            }
         };
 
         let (ws_stream, _) = connect_async(&url).await?;

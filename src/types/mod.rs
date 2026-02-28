@@ -68,6 +68,19 @@ pub struct Account {
     pub acnt_prdt_cd: String,
 }
 
+/// 대상 거래소
+/// 1. 주문을 접수할 거래소.
+/// 2. 시세를 수신할 거래소.
+#[derive(Clone, Debug)]
+pub enum TargetExchange {
+    /// 한국거래소
+    KRX,
+    /// 넥스트레이드
+    NXT,
+    /// Smart Order Routing / Both
+    SOR,
+}
+
 #[derive(Debug, Clone, PartialEq, SerializeDisplay, Deserialize, Default)]
 #[repr(i32)]
 pub enum OrderClass {
@@ -403,9 +416,17 @@ pub enum TrId {
     BasicStockInfo,
     // Market data
     #[serde(rename = "H0STCNT0")]
-    RealtimeExec,
+    RealtimeExecKrx,
     #[serde(rename = "H0STASP0")]
-    RealtimeOrdb,
+    RealtimeOrdbKrx,
+    #[serde(rename = "H0NXCNT0")]
+    RealtimeExecNxt,
+    #[serde(rename = "H0NXASP0")]
+    RealtimeOrdbNxt,
+    #[serde(rename = "H0UNCNT0")]
+    RealtimeExecUnion,
+    #[serde(rename = "H0UNASP0")]
+    RealtimeOrdbUnion,
     #[serde(rename = "H0STCNI0")]
     RealRealtimeMyExec,
     #[serde(rename = "H0STCNI9")]
@@ -432,8 +453,12 @@ impl Into<String> for TrId {
             TrId::InstockGroupItem => "HHKCM113004C6",
             TrId::BasicStockInfo => "CTPF1002R",
             // Market data
-            TrId::RealtimeExec => "H0STCNT0",
-            TrId::RealtimeOrdb => "H0STASP0",
+            TrId::RealtimeExecKrx => "H0STCNT0",
+            TrId::RealtimeOrdbKrx => "H0STASP0",
+            TrId::RealtimeExecNxt => "H0NXCNT0",
+            TrId::RealtimeOrdbNxt => "H0NXASP0",
+            TrId::RealtimeExecUnion => "H0UNCNT0",
+            TrId::RealtimeOrdbUnion => "H0UNASP0",
             TrId::RealRealtimeMyExec => "H0STCNI0",
             TrId::VirtualRealtimeMyExec => "H0STCNI9",
             // PingPong
@@ -461,8 +486,12 @@ impl From<&str> for TrId {
             "HHKCM113004C6" => TrId::InstockGroupItem,
             "CTPF1002R" => TrId::BasicStockInfo,
             // Market data
-            "H0STCNT0" => TrId::RealtimeExec,
-            "H0STASP0" => TrId::RealtimeOrdb,
+            "H0STCNT0" => TrId::RealtimeExecKrx,
+            "H0STASP0" => TrId::RealtimeOrdbKrx,
+            "H0NXCNT0" => TrId::RealtimeExecNxt,
+            "H0NXASP0" => TrId::RealtimeOrdbNxt,
+            "H0UNCNT0" => TrId::RealtimeExecUnion,
+            "H0UNASP0" => TrId::RealtimeOrdbUnion,
             "H0STCNI0" => TrId::RealRealtimeMyExec,
             "H0STCNI9" => TrId::VirtualRealtimeMyExec,
             // PingPong

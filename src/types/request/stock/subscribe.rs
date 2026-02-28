@@ -60,6 +60,7 @@ impl SubscribeRequest {
         custtype: CustomerType,
         tr_key: String,
         tr_id: TrId,
+        tr_type: TrType,
     ) -> Self {
         Self {
             header: Header {
@@ -67,7 +68,7 @@ impl SubscribeRequest {
                 appsecret,
                 personalseckey,
                 custtype,
-                tr_type: TrType::Register,
+                tr_type,
                 content_type: "text/plain".to_string(),
             },
             body: Body {

@@ -20,4 +20,12 @@ pub struct Config {
     token: Option<String>,
     #[getset(get = "pub")]
     environment: Environment,
+    #[getset(get = "pub")]
+    real_appkey: Option<String>,
+    #[getset(get = "pub")]
+    real_appsecret: Option<String>,
+    #[getset(get = "pub", set = "pub")]
+    real_approval_key: Option<String>,
+    #[getset(get = "pub", set = "pub")]
+    real_token: Option<String>,
 }

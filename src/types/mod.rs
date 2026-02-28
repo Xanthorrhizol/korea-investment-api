@@ -22,7 +22,15 @@ pub fn parse_bool(s: &str) -> bool {
 /// 투자환경
 /// 실전투자: Real
 /// 모의투자: Virtual
-#[derive(Clone, Debug, Default, serde_with::DeserializeFromStr, serde_with::SerializeDisplay)]
+#[derive(
+    Clone,
+    Debug,
+    Default,
+    PartialEq,
+    Eq,
+    serde_with::DeserializeFromStr,
+    serde_with::SerializeDisplay,
+)]
 #[repr(i32)]
 pub enum Environment {
     Real = 1,

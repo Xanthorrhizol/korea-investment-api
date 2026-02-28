@@ -11,6 +11,7 @@ pub struct Quote {
     environment: Environment,
     auth: auth::Auth,
     account: Account,
+    real_auth: auth::Auth,
 }
 
 impl Quote {
@@ -21,6 +22,7 @@ impl Quote {
         environment: Environment,
         auth: auth::Auth,
         account: Account,
+        real_auth: auth::Auth,
     ) -> Result<Self, Error> {
         let endpoint_url = match environment {
             Environment::Real => "https://openapi.koreainvestment.com:9443",
@@ -33,6 +35,7 @@ impl Quote {
             environment,
             auth,
             account,
+            real_auth,
         })
     }
 
@@ -59,7 +62,7 @@ impl Quote {
         let params = param.into_iter();
         let url = reqwest::Url::parse_with_params(&url, &params)?;
         Ok(self
-            .create_request(tr_id, url)?
+            .create_request(tr_id, url, false)?
             .send()
             .await?
             .json::<response::stock::quote::DailyPriceResponse>()
@@ -79,7 +82,7 @@ impl Quote {
         );
         let url = reqwest::Url::parse_with_params(&url, &params.into_iter())?;
         Ok(self
-            .create_request(tr_id, url)?
+            .create_request(tr_id, url, true)?
             .send()
             .await?
             .json::<response::stock::quote::VolumeRankResponse>()
@@ -99,7 +102,7 @@ impl Quote {
         );
         let url = reqwest::Url::parse_with_params(&url, &params.into_iter())?;
         Ok(self
-            .create_request(tr_id, url)?
+            .create_request(tr_id, url, true)?
             .send()
             .await?
             .json::<response::stock::quote::GroupItemResponse>()
@@ -119,7 +122,7 @@ impl Quote {
         );
         let url = reqwest::Url::parse_with_params(&url, &params.into_iter())?;
         Ok(self
-            .create_request(tr_id, url)?
+            .create_request(tr_id, url, true)?
             .send()
             .await?
             .json::<response::stock::quote::GroupListResponse>()
@@ -141,27 +144,35 @@ impl Quote {
         let params = param.into_iter();
         let url = reqwest::Url::parse_with_params(&url, &params)?;
         Ok(self
-            .create_request(tr_id, url)?
+            .create_request(tr_id, url, true)?
             .send()
             .await?
             .json::<response::stock::quote::BasicStockInfoResponse>()
             .await?)
     }
 
-    fn create_request(&self, tr_id: TrId, url: url::Url) -> Result<reqwest::RequestBuilder, Error> {
+    fn create_request(
+        &self,
+        tr_id: TrId,
+        url: url::Url,
+        is_forceful_real: bool,
+    ) -> Result<reqwest::RequestBuilder, Error> {
+        let token = if is_forceful_real {
+            self.real_auth.get_token()
+        } else {
+            self.auth.get_token()
+        };
+        let bearer_token = match token {
+            Some(token) => format!("Bearer {}", token),
+            None => {
+                return Err(Error::AuthInitFailed("token"));
+            }
+        };
         Ok(self
             .client
             .get(url)
             .header("Content-Type", "application/json")
-            .header(
-                "Authorization",
-                match self.auth.get_token() {
-                    Some(token) => format!("Bearer {}", token),
-                    None => {
-                        return Err(Error::AuthInitFailed("token"));
-                    }
-                },
-            )
+            .header("Authorization", bearer_token)
             .header("appkey", self.auth.get_appkey())
             .header("appsecret", self.auth.get_appsecret())
             .header("tr_id", Into::<String>::into(tr_id))

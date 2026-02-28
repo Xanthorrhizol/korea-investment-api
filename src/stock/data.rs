@@ -1,4 +1,4 @@
-use crate::types::request::stock::subscribe::SubscribeRequest;
+use crate::types::request::stock::subscribe::{SubscribeRequest, TrType};
 use crate::types::response::stock::subscribe::SubscribeResponse;
 use crate::types::stream::stock::{MyExec, StreamParser};
 use crate::types::{Account, CustomerType, Environment, TrId};
@@ -69,7 +69,7 @@ impl KoreaStockData {
     /// 종목 시세 구독
     pub fn subscribe_market<T: StreamParser<R> + Send, R: Clone + Send>(
         &mut self,
-        isin: &str,
+        tr_key: &str,
         tr_id: TrId,
     ) -> Result<
         (
@@ -86,8 +86,9 @@ impl KoreaStockData {
             app_secret,
             personalseckey,
             CustomerType::Personal,
-            isin.to_string(),
+            tr_key.to_string(),
             tr_id.clone(),
+            TrType::Register,
         )
         .get_json_string();
         let msg = Message::text(msg);
@@ -99,64 +100,14 @@ impl KoreaStockData {
                 return Err(Error::WrongTrId(tr_id, "RealtimeExec or RealtimeOrdb"));
             }
         };
-        loop {
-            if let Ok(msg) = {
-                let _ = conn.send_message(&msg);
-                conn.recv_message()
-            } {
-                match msg {
-                    OwnedMessage::Text(s) => {
-                        let json_value = json::parse(&s)?;
-                        match json_value {
-                            json::JsonValue::Object(obj) => {
-                                if let Some(header) = obj.get("header") {
-                                    if let json::JsonValue::Object(o) = header {
-                                        if let Some(result_tr) = o.get("tr_id") {
-                                            if &result_tr.to_string() == "PINGPONG" {
-                                                continue;
-                                            }
-                                        }
-                                    }
-                                }
-                                if let Some(v) = obj.get("body") {
-                                    match v {
-                                        json::JsonValue::Object(o) => {
-                                            if let Some(s) = o.get("msg1") {
-                                                let s = s.to_string();
-                                                if &s == "SUBSCRIBE SUCCESS" {
-                                                    result.set_success(true);
-                                                }
-                                                result.set_msg(s);
-                                            }
-                                            if let Some(json::JsonValue::Object(o)) =
-                                                o.get("output")
-                                            {
-                                                if let Some(s) = o.get("iv") {
-                                                    result.set_iv(Some(s.to_string()));
-                                                }
-                                                if let Some(s) = o.get("key") {
-                                                    result.set_key(Some(s.to_string()));
-                                                }
-                                            }
-                                        }
-                                        _ => {}
-                                    }
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-                    _ => {}
-                }
-            }
-            break;
-        }
+        send_subscribe_msg(&mut conn, msg, &mut result)?;
         let handle_ref = self.handles.get(&tr_id);
         if handle_ref.is_none() || handle_ref.unwrap().is_finished() {
             let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
             let handle = tokio::spawn(async move {
                 loop {
                     if let Ok(msg) = conn.recv_message() {
+                        debug!("Get message from stream={:?}", msg);
                         let tmp_msg = msg.clone();
                         match msg {
                             OwnedMessage::Text(s) => {
@@ -209,6 +160,7 @@ impl KoreaStockData {
             CustomerType::Personal,
             self.hts_id.clone(),
             tr_id.clone(),
+            TrType::Register,
         )
         .get_json_string();
         let msg = Message::text(msg);
@@ -311,4 +263,98 @@ impl KoreaStockData {
         self.handles.insert(tr_id, handle);
         Ok((rx, result))
     }
+
+    /// 종목 시세 구독 해체
+    pub fn unsubscribe_market(
+        &mut self,
+        tr_key: &str,
+        tr_id: TrId,
+    ) -> Result<SubscribeResponse, Error> {
+        let app_key = self.auth.get_appkey();
+        let app_secret = self.auth.get_appsecret();
+        let personalseckey = self.auth.get_approval_key().unwrap();
+        let msg = SubscribeRequest::new(
+            app_key,
+            app_secret,
+            personalseckey,
+            CustomerType::Personal,
+            tr_key.to_string(),
+            tr_id.clone(),
+            TrType::Unregister,
+        )
+        .get_json_string();
+        let msg = Message::text(msg);
+        let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
+        let mut conn = match tr_id {
+            TrId::RealtimeExec => self.exec_client.connect_insecure().unwrap(),
+            TrId::RealtimeOrdb => self.ordb_client.connect_insecure().unwrap(),
+            _ => {
+                return Err(Error::WrongTrId(tr_id, "RealtimeExec or RealtimeOrdb"));
+            }
+        };
+        send_subscribe_msg(&mut conn, msg, &mut result)?;
+        let handle = self.handles.remove(&tr_id);
+        if let Some(handle) = handle {
+            handle.abort();
+        }
+        Ok(result)
+    }
+}
+
+fn send_subscribe_msg(
+    conn: &mut websocket::sync::Client<std::net::TcpStream>,
+    msg: Message,
+    result: &mut SubscribeResponse,
+) -> Result<(), json::Error> {
+    loop {
+        if let Ok(msg) = {
+            let _ = conn.send_message(&msg);
+            conn.recv_message()
+        } {
+            match msg {
+                OwnedMessage::Text(s) => {
+                    let json_value = json::parse(&s)?;
+                    match json_value {
+                        json::JsonValue::Object(obj) => {
+                            if let Some(header) = obj.get("header") {
+                                if let json::JsonValue::Object(o) = header {
+                                    if let Some(result_tr) = o.get("tr_id") {
+                                        if &result_tr.to_string() == "PINGPONG" {
+                                            continue;
+                                        }
+                                    }
+                                }
+                            }
+                            if let Some(v) = obj.get("body") {
+                                match v {
+                                    json::JsonValue::Object(o) => {
+                                        if let Some(s) = o.get("msg1") {
+                                            let s = s.to_string();
+                                            if &s == "SUBSCRIBE SUCCESS" {
+                                                result.set_success(true);
+                                            }
+                                            result.set_msg(s);
+                                        }
+                                        if let Some(json::JsonValue::Object(o)) = o.get("output") {
+                                            if let Some(s) = o.get("iv") {
+                                                result.set_iv(Some(s.to_string()));
+                                            }
+                                            if let Some(s) = o.get("key") {
+                                                result.set_key(Some(s.to_string()));
+                                            }
+                                        }
+                                    }
+                                    _ => {}
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                _ => {}
+            }
+        }
+        break;
+    }
+    Ok(())
 }

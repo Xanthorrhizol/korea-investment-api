@@ -11,6 +11,7 @@ pub const BUF_SIZE: usize = 4096;
 #[derive(Debug)]
 pub struct KoreaInvestmentApi {
     pub auth: auth::Auth,
+    pub real_auth: auth::Auth,
     pub order: stock::order::Korea,
     pub quote: stock::quote::Quote,
     pub k_data: stock::data::KoreaStockData,
@@ -25,9 +26,23 @@ impl KoreaInvestmentApi {
         hts_id: &str,
         token: Option<String>,
         approval_key: Option<String>,
+        real_appkey: Option<String>,
+        real_appsecret: Option<String>,
+        real_token: Option<String>,
+        real_approval_key: Option<String>,
     ) -> Result<KoreaInvestmentApi, Error> {
         let client = reqwest::Client::new();
         let mut auth = auth::Auth::new(&client, acc.clone(), appkey, appsecret);
+        let mut real_auth = if acc == types::Environment::Virtual {
+            auth::Auth::new(
+                &client,
+                types::Environment::Real,
+                &real_appkey.unwrap(),
+                &real_appsecret.unwrap(),
+            )
+        } else {
+            auth.clone()
+        };
         info!(
             "Authorizing: acc={}, appkey={}, appsecret={}",
             &acc, &appkey, &appsecret,
@@ -38,19 +53,40 @@ impl KoreaInvestmentApi {
             auth.create_token().await?;
         }
         debug!("token: {:?}", auth.get_token());
+        if let Some(token) = real_token {
+            real_auth.set_token(token);
+        } else {
+            real_auth.create_token().await?;
+        }
+        debug!("실전투자계좌(view용) token: {:?}", auth.get_token());
+
         if let Some(approval_key) = approval_key {
             auth.set_approval_key(approval_key);
         } else {
             auth.create_approval_key().await?;
         }
         debug!("approval_key: {:?}", auth.get_approval_key());
+        if let Some(approval_key) = real_approval_key {
+            real_auth.set_approval_key(approval_key);
+        } else {
+            real_auth.create_approval_key().await?;
+        }
+        debug!("실전투자계좌(view용) approval_key: {:?}", auth.get_token());
+
         let order = stock::order::Korea::new(&client, acc.clone(), auth.clone(), account.clone())?;
-        let quote = stock::quote::Quote::new(&client, acc.clone(), auth.clone(), account.clone())?;
+        let quote = stock::quote::Quote::new(
+            &client,
+            acc.clone(),
+            auth.clone(),
+            account.clone(),
+            real_auth.clone(),
+        )?;
         let k_data =
             stock::data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), hts_id)?;
         info!("API Ready");
         Ok(Self {
             auth,
+            real_auth,
             order,
             quote,
             k_data,
@@ -61,6 +97,8 @@ impl KoreaInvestmentApi {
         let mut config = config.clone();
         config.set_approval_key(self.auth.get_approval_key());
         config.set_token(self.auth.get_token());
+        config.set_real_approval_key(self.real_auth.get_approval_key());
+        config.set_real_token(self.real_auth.get_token());
         let toml = toml::to_string(&config)?;
         std::fs::write("config.toml", toml)?;
 
@@ -72,11 +110,7 @@ impl KoreaInvestmentApi {
 pub enum Error {
     // from lib
     #[error(transparent)]
-    WebSocket(#[from] websocket::WebSocketError),
-    #[error(transparent)]
-    WebSocketParseError(#[from] websocket::url::ParseError),
-    #[error(transparent)]
-    WebSocketNativeTlsError(#[from] websocket::native_tls::Error),
+    WebSocket(#[from] tokio_tungstenite::tungstenite::Error),
     #[error(transparent)]
     ReqwestError(#[from] reqwest::Error),
     #[error(transparent)]

@@ -312,3 +312,15 @@ async fn recv_subscribe_response(
     }
     Ok(())
 }
+
+impl Drop for KoreaStockData {
+    fn drop(&mut self) {
+        let keys: Vec<_> = self.handles.keys().cloned().collect();
+        let handle = tokio::runtime::Handle::current();
+        for (tr_key, tr_id) in keys {
+            let _ = tokio::task::block_in_place(|| {
+                handle.block_on(self.unsubscribe_market(&tr_key, tr_id))
+            });
+        }
+    }
+}

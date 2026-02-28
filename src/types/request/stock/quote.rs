@@ -4,7 +4,6 @@ use crate::types::{
 };
 use getset::{CopyGetters, Getters, Setters};
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Header {

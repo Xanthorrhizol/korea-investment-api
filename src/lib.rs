@@ -55,16 +55,6 @@ impl KoreaInvestmentApi {
     ) -> Result<KoreaInvestmentApi, Error> {
         let client = reqwest::Client::new();
         let mut auth = auth::Auth::new(&client, acc.clone(), appkey, appsecret);
-        let mut real_auth = if acc == types::Environment::Virtual {
-            auth::Auth::new(
-                &client,
-                types::Environment::Real,
-                &real_appkey.unwrap(),
-                &real_appsecret.unwrap(),
-            )
-        } else {
-            auth.clone()
-        };
         info!(
             "Authorizing: acc={}, appkey={}, appsecret={}",
             &acc, &appkey, &appsecret,
@@ -75,22 +65,32 @@ impl KoreaInvestmentApi {
             auth.create_token().await?;
         }
         debug!("token: {:?}", auth.get_token());
-        if let Some(token) = real_token {
-            real_auth.set_token(token);
-        } else {
-            real_auth.create_token().await?;
-        }
-        debug!("실전투자계좌(view용) token: {:?}", auth.get_token());
-
         if let Some(approval_key) = approval_key {
             auth.set_approval_key(approval_key);
         } else {
             auth.create_approval_key().await?;
         }
         debug!("approval_key: {:?}", auth.get_approval_key());
+
+        let mut real_auth = if acc == types::Environment::Virtual {
+            auth::Auth::new(
+                &client,
+                types::Environment::Real,
+                &real_appkey.unwrap(),
+                &real_appsecret.unwrap(),
+            )
+        } else {
+            auth.clone()
+        };
+        if let Some(token) = real_token {
+            real_auth.set_token(token);
+        } else if real_auth.get_token().is_none() {
+            real_auth.create_token().await?;
+        }
+        debug!("실전투자계좌(view용) token: {:?}", auth.get_token());
         if let Some(approval_key) = real_approval_key {
             real_auth.set_approval_key(approval_key);
-        } else {
+        } else if real_auth.get_approval_key().is_none() {
             real_auth.create_approval_key().await?;
         }
         debug!("실전투자계좌(view용) approval_key: {:?}", auth.get_token());

@@ -13,7 +13,7 @@ use tokio_tungstenite::{
 
 type WsStream = WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>;
 type WsSplitStream = futures_util::stream::SplitStream<WsStream>;
-type WsSplitSink = futures_util::stream::SplitSink<WsStream, Message>;
+type _WsSplitSink = futures_util::stream::SplitSink<WsStream, Message>;
 
 #[allow(dead_code)]
 #[derive(Debug)]

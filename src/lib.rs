@@ -166,4 +166,6 @@ pub enum Error {
     AesInvalidLength,
     #[error("AES decrypt error: {0}")]
     AesDecryptError(String),
+    #[error("Not supported: {0}")]
+    NotSupported(&'static str),
 }

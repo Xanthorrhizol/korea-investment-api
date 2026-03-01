@@ -5,9 +5,9 @@ use korea_investment_api::types::request::stock::quote::{
 use korea_investment_api::types::stream::stock::{exec::Body as ExecBody, Exec};
 use korea_investment_api::types::stream::stock::{ordb::Body as OrdbBody, Ordb};
 use korea_investment_api::types::{
-    Account, BelongClassCode, CorrectionClass, Direction, Environment, MarketCode, OrderClass,
-    PeriodCode, Price, ProductTypeCode, Quantity, ShareClassCode, TargetClassCode, TargetExchange,
-    TargetExeceptClassCode, TrId,
+    Account, BelongClassCode, CorrectionClass, CreditType, Direction, Environment, MarketCode,
+    OrderClass, PeriodCode, Price, ProductTypeCode, Quantity, ShareClassCode, TargetClassCode,
+    TargetExchange, TargetExeceptClassCode, TrId,
 };
 use korea_investment_api::KoreaInvestmentApi;
 use std::io::Read;
@@ -140,7 +140,7 @@ async fn main() {
     // }}}
 
     // {{{ 삼성전자 기본조회 - 정규장만 가능
-    let samsung_electronics_basic_info = api
+    let mut samsung_electronics_basic_info = api
         .quote
         .basic_stock_info(ProductTypeCode::Stock, "005930")
         .await
@@ -400,6 +400,65 @@ async fn main() {
                             .await;
                         info!("취소 주문 Response: {:?}", cancel_result);
                     }
+                }
+            }
+        }
+    }
+    // }}}
+
+    // {{{ 주문 테스트(신용) - KRX
+    // [CAUTION] 실제로 하한가 주문 및 정정 주문이 발생합니다.
+
+    // 신규 주문
+    let order_result = api
+        .order
+        .order_credit(
+            OrderClass::Limit,
+            Direction::Bid,
+            "089230", // The E&M
+            Quantity::from(1),
+            lower_price,
+            Some(TargetExchange::KRX),
+            CreditType::ProprietaryMarginLoanOpen,
+        )
+        .await;
+    info!("신규 신용 주문 Response: {:?}", order_result);
+
+    if let Ok(result) = order_result {
+        if let Some(output) = result.output() {
+            // 정정 주문
+            let correct_result = api
+                .order
+                .correct(
+                    OrderClass::Limit,
+                    output.krx_fwdg_ord_orgno(),
+                    output.odno(),
+                    CorrectionClass::Correction,
+                    true,
+                    Quantity::from(1),
+                    correction_price,
+                    Some(TargetExchange::KRX),
+                )
+                .await;
+            info!("정정 주문 Response: {:?}", correct_result);
+
+            if let Ok(result) = correct_result {
+                if let Some(output) = result.output() {
+                    // 취소 주문
+                    let cancel_result = api
+                        .order
+                        .correct(
+                            OrderClass::Limit,
+                            output.krx_fwdg_ord_orgno(),
+                            output.odno(),
+                            CorrectionClass::Cancel,
+                            true,
+                            Quantity::from(1),
+                            correction_price,
+                            Some(TargetExchange::KRX),
+                        )
+                        .await;
+                    info!("취소 주문 Response: {:?}", cancel_result);
                 }
             }
         }

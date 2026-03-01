@@ -395,6 +395,10 @@ pub enum TrId {
     RealStockCashBidOrder,
     #[serde(rename = "TTTC0011U")]
     RealStockCashAskOrder,
+    #[serde(rename = "TTTC0052U")]
+    RealStockCreditBidOrder,
+    #[serde(rename = "TTTC0051U")]
+    RealStockCreditAskOrder,
     #[serde(rename = "VTTC0012U")]
     VirtualStockCashBidOrder,
     #[serde(rename = "VTTC0011U")]
@@ -442,6 +446,8 @@ impl Into<String> for TrId {
             // Order
             TrId::RealStockCashBidOrder => "TTTC0012U",
             TrId::RealStockCashAskOrder => "TTTC0011U",
+            TrId::RealStockCreditBidOrder => "TTTC0052U",
+            TrId::RealStockCreditAskOrder => "TTTC0051U",
             TrId::VirtualStockCashBidOrder => "VTTC0012U",
             TrId::VirtualStockCashAskOrder => "VTTC0011U",
             // Correction
@@ -475,6 +481,8 @@ impl From<&str> for TrId {
             // Order
             "TTTC0012U" => TrId::RealStockCashBidOrder,
             "TTTC0011U" => TrId::RealStockCashAskOrder,
+            "TTTC0052U" => TrId::RealStockCreditBidOrder,
+            "TTTC0051U" => TrId::RealStockCreditAskOrder,
             "VTTC0012U" => TrId::VirtualStockCashBidOrder,
             "VTTC0011U" => TrId::VirtualStockCashAskOrder,
             // Correction
@@ -517,6 +525,35 @@ impl Into<String> for CustomerType {
         }
         .to_string()
     }
+}
+
+/// 신용유형
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+pub enum CreditType {
+    /// 자기융자신규[매수]
+    #[serde(rename = "21")]
+    ProprietaryMarginLoanOpen,
+    /// 유통대주신규[매도]
+    #[serde(rename = "22")]
+    DistributionShortSaleOpen,
+    /// 유통융자신규[매수]
+    #[serde(rename = "23")]
+    DistributionMarginLoanOpen,
+    /// 자기대주신규[매도]
+    #[serde(rename = "24")]
+    ProprietaryShortSaleOpen,
+    /// 자기융자상환[매도]
+    #[serde(rename = "25")]
+    ProprietaryMarginLoanClose,
+    /// 유통대주상환[매수]
+    #[serde(rename = "26")]
+    DistributionShortSaleClose,
+    /// 유통융자상환[매도]
+    #[serde(rename = "27")]
+    DistributionMarginLoanClose,
+    /// 자기대주상환[매수]
+    #[serde(rename = "28")]
+    ProprietaryShortSaleClose,
 }
 
 /// 체결구분

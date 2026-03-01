@@ -1,6 +1,6 @@
 use crate::types::{
-    request, response, Account, CorrectionClass, Direction, Environment, OrderClass, Price,
-    Quantity, TargetExchange, TrId,
+    request, response, Account, CorrectionClass, CreditType, Direction, Environment, OrderClass,
+    Price, Quantity, TargetExchange, TrId,
 };
 use crate::{auth, Error};
 
@@ -99,8 +99,87 @@ impl Korea {
         Ok(result)
     }
 
-    // TODO: 주식주문(신용)[v1_국내주식-002]
-    // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/order-credit)
+    /// 주식주문(신용)[v1_국내주식-002]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/order-credit)
+    pub async fn order_credit(
+        &self,
+        order_division: OrderClass,
+        order_direction: Direction,
+        pdno: &str,
+        qty: Quantity,
+        price: Price,
+        excg_id_dvsn_cd: Option<TargetExchange>,
+        credit_type: CreditType,
+    ) -> Result<response::stock::order::Body::Order, Error> {
+        let request = request::stock::order::Body::CreditOrder::new(
+            self.account.cano.clone(),
+            self.account.acnt_prdt_cd.clone(),
+            pdno.to_string(),
+            credit_type,
+            chrono::Utc::now()
+                .with_timezone(&chrono_tz::Asia::Seoul)
+                .format("%Y%m%d")
+                .to_string(),
+            order_division,
+            qty,
+            price,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            excg_id_dvsn_cd.unwrap_or_default(),
+            None,
+        )
+        .get_json_string();
+        let tr_id: String = match self.environment {
+            Environment::Real => match order_direction {
+                Direction::Bid => TrId::RealStockCreditBidOrder.into(),
+                Direction::Ask => TrId::RealStockCreditAskOrder.into(),
+            },
+            Environment::Virtual => {
+                return Err(Error::NotSupported("Virtual Stock Credit Order"));
+            }
+        };
+        let hash = self.auth.get_hash(request.clone()).await?;
+        crate::wait(self.environment).await;
+        let result = self
+            .client
+            .post(format!(
+                "{}/uapi/domestic-stock/v1/trading/order-credit",
+                self.endpoint_url
+            ))
+            .header("Content-Type", "application/json")
+            .header(
+                "Authorization",
+                match self.auth.get_token() {
+                    Some(token) => format!("Bearer {}", token),
+                    None => {
+                        return Err(Error::AuthInitFailed("token"));
+                    }
+                },
+            )
+            .header("appkey", self.auth.get_appkey())
+            .header("appsecret", self.auth.get_appsecret())
+            .header("tr_id", tr_id)
+            .header("hashkey", hash)
+            .header("custtype", "P")
+            .body(request)
+            .send()
+            .await?
+            .json::<response::stock::order::Body::Order>()
+            .await?;
+        crate::update_last_call();
+        Ok(result)
+    }
 
     /// 주식주문(정정취소)[v1_국내주식-003] TODO: test
     /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/order-rvsecncl)

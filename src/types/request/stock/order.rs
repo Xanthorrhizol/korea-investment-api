@@ -32,7 +32,7 @@ impl Header {
 
 #[allow(non_snake_case)]
 pub mod Body {
-    use crate::types::{CorrectionClass, OrderClass, Price, Quantity, TargetExchange};
+    use crate::types::{CorrectionClass, CreditType, OrderClass, Price, Quantity, TargetExchange};
     use getset::{Getters, Setters};
     use serde::{Deserialize, Serialize};
 
@@ -147,6 +147,135 @@ pub mod Body {
                 ord_unpr,
                 qty_all_ord_yn: if qty_all_ord_yn { 'Y' } else { 'N' },
                 excg_id_dvsn_cd: excg_id_dvsn_cd.unwrap_or_default(),
+            }
+        }
+        pub fn get_json_string(self) -> String {
+            serde_json::json!(self).to_string()
+        }
+    }
+
+    #[derive(Debug, Clone, PartialEq, Getters, Setters, Serialize, Deserialize)]
+    pub struct CreditOrder {
+        /// 종합계좌번호
+        #[getset(get = "pub", set = "pub")]
+        cano: String,
+        /// 계좌상품코드
+        #[getset(get = "pub", set = "pub")]
+        acnt_prdt_cd: String,
+        /// 상품번호
+        #[getset(get = "pub", set = "pub")]
+        pdno: String,
+        /// 신용유형
+        #[getset(get = "pub", set = "pub")]
+        crdt_type: CreditType,
+        /// 대출일자
+        #[getset(get = "pub", set = "pub")]
+        loan_at: String,
+        /// 주문구분
+        #[getset(get = "pub", set = "pub")]
+        ord_dvsn: OrderClass,
+        /// 주문수량
+        #[getset(get = "pub", set = "pub")]
+        ord_qty: Quantity,
+        /// 주문단가
+        #[getset(get = "pub", set = "pub")]
+        ord_unpr: Price,
+        /// 예약주문여부
+        #[getset(get = "pub", set = "pub")]
+        rsvn_ord_yn: Option<char>,
+        /// 비상주문여부
+        #[getset(get = "pub", set = "pub")]
+        emgc_ord_yn: Option<char>,
+        /// 프로그램매매구분
+        #[getset(get = "pub", set = "pub")]
+        pgtr_dvsn: Option<String>,
+        ///운용사지정주문번호
+        #[getset(get = "pub", set = "pub")]
+        mgco_aptm_odno: Option<String>,
+        /// 대량거래협상상세번호
+        #[getset(get = "pub", set = "pub")]
+        lqty_tr_ngtn_dtl_no: Option<char>,
+        /// 대량거래협정번호
+        #[getset(get = "pub", set = "pub")]
+        lqty_tr_agmt_no: Option<String>,
+        /// 대량거래협상자Id
+        #[getset(get = "pub", set = "pub")]
+        lqty_tr_ngtn_id: Option<String>,
+        /// LP주문여부
+        #[getset(get = "pub", set = "pub")]
+        lp_ord_yn: Option<char>,
+        /// 매체주문번호
+        #[getset(get = "pub", set = "pub")]
+        mdia_odno: Option<String>,
+        /// 주문서버구분코드
+        #[getset(get = "pub", set = "pub")]
+        ord_svr_dvsn_cd: Option<String>,
+        /// 프로그램호가신고구분코드
+        #[getset(get = "pub", set = "pub")]
+        pgm_nmpr_stmt_dvsn_cd: Option<String>,
+        /// 반대매매선정사유코드
+        #[getset(get = "pub", set = "pub")]
+        cvrg_slct_rson_cd: Option<String>,
+        /// 반대매매순번
+        #[getset(get = "pub", set = "pub")]
+        cvrg_seq: Option<String>,
+        /// 거래소ID구분코드
+        #[getset(get = "pub", set = "pub")]
+        excg_id_dvsn_cd: TargetExchange,
+        /// 조건가격
+        #[getset(get = "pub", set = "pub")]
+        cndt_pric: Option<Price>,
+    }
+    impl CreditOrder {
+        pub fn new(
+            cano: String,                          // 종합계좌번호
+            acnt_prdt_cd: String,                  // 계좌상품코드
+            pdno: String,                          // 상품번호
+            crdt_type: CreditType,                 // 신용유형
+            loan_at: String,                       // 대출일자
+            ord_dvsn: OrderClass,                  // 주문구분
+            ord_qty: Quantity,                     // 주문수량
+            ord_unpr: Price,                       // 주문단가
+            rsvn_ord_yn: Option<char>,             // 예약주문여부
+            emgc_ord_yn: Option<char>,             // 비상주문여부
+            pgtr_dvsn: Option<String>,             // 프로그램매매구분
+            mgco_aptm_odno: Option<String>,        // 운용사지정주문번호
+            lqty_tr_ngtn_dtl_no: Option<char>,     // 대량거래협상상세번호
+            lqty_tr_agmt_no: Option<String>,       // 대량거래협정번호
+            lqty_tr_ngtn_id: Option<String>,       // 대량거래협상자Id
+            lp_ord_yn: Option<char>,               // LP주문여부
+            mdia_odno: Option<String>,             // 매체주문번호
+            ord_svr_dvsn_cd: Option<String>,       // 주문서버구분코드
+            pgm_nmpr_stmt_dvsn_cd: Option<String>, // 프로그램호가신고구분코드
+            cvrg_slct_rson_cd: Option<String>,     // 반대매매선정사유코드
+            cvrg_seq: Option<String>,              // 반대매매순번
+            excg_id_dvsn_cd: TargetExchange,       // 거래소ID구분코드
+            cndt_pric: Option<Price>,              // 조건가격
+        ) -> Self {
+            Self {
+                cano,
+                acnt_prdt_cd,
+                pdno,
+                crdt_type,
+                loan_at,
+                ord_dvsn,
+                ord_qty,
+                ord_unpr,
+                rsvn_ord_yn,
+                emgc_ord_yn,
+                pgtr_dvsn,
+                mgco_aptm_odno,
+                lqty_tr_ngtn_dtl_no,
+                lqty_tr_agmt_no,
+                lqty_tr_ngtn_id,
+                lp_ord_yn,
+                mdia_odno,
+                ord_svr_dvsn_cd,
+                pgm_nmpr_stmt_dvsn_cd,
+                cvrg_slct_rson_cd,
+                cvrg_seq,
+                excg_id_dvsn_cd,
+                cndt_pric,
             }
         }
         pub fn get_json_string(self) -> String {

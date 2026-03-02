@@ -248,8 +248,62 @@ impl Korea {
     // TODO: 주식일별주문체결조회[v1_국내주식-005]
     // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-daily-ccld)
 
-    // TODO: 주식잔고조회[v1_국내주식-006]
-    // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-balance)
+    /// 주식잔고조회[v1_국내주식-006]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-balance)
+    ///
+    /// 실전계좌: 최대 50건, 모의계좌: 최대 20건 / 초과분은 `ctx_area_fk100`/`ctx_area_nk100`으로 연속조회
+    pub async fn inquire_balance(
+        &self,
+        afhr_flpr_yn: Option<String>,
+        inqr_dvsn: Option<String>,
+        prcs_dvsn: Option<String>,
+        ctx_area_fk100: Option<String>,
+        ctx_area_nk100: Option<String>,
+    ) -> Result<response::stock::order::balance::InquireBalance, Error> {
+        let tr_id = match self.environment {
+            Environment::Real => TrId::RealInquireBalance,
+            Environment::Virtual => TrId::VirtualInquireBalance,
+        };
+        let param = request::stock::order::Query::InquireBalance::new(
+            self.account.cano.clone(),
+            self.account.acnt_prdt_cd.clone(),
+            afhr_flpr_yn,
+            inqr_dvsn,
+            prcs_dvsn,
+            ctx_area_fk100,
+            ctx_area_nk100,
+        );
+        let url = format!(
+            "{}/uapi/domestic-stock/v1/trading/inquire-balance",
+            self.endpoint_url
+        );
+        let params = param.into_iter();
+        let url = reqwest::Url::parse_with_params(&url, &params)?;
+        let tr_id_str: String = tr_id.into();
+        crate::wait(self.environment).await;
+        let result = self
+            .client
+            .get(url)
+            .header("Content-Type", "application/json")
+            .header(
+                "Authorization",
+                match self.auth.get_token() {
+                    Some(token) => format!("Bearer {}", token),
+                    None => {
+                        return Err(Error::AuthInitFailed("token"));
+                    }
+                },
+            )
+            .header("appkey", self.auth.get_appkey())
+            .header("appsecret", self.auth.get_appsecret())
+            .header("tr_id", tr_id_str)
+            .send()
+            .await?
+            .json::<response::stock::order::balance::InquireBalance>()
+            .await?;
+        crate::update_last_call();
+        Ok(result)
+    }
 
     // TODO: 매수가능조회[v1_국내주식-007]
     // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-psbl-order)

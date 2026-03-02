@@ -436,6 +436,11 @@ pub enum TrId {
     RealRealtimeMyExec,
     #[serde(rename = "H0STCNI9")]
     VirtualRealtimeMyExec,
+    // Balance
+    #[serde(rename = "TTTC8434R")]
+    RealInquireBalance,
+    #[serde(rename = "VTTC8434R")]
+    VirtualInquireBalance,
     // PingPong
     #[serde(rename = "PINGPONG")]
     PingPong,
@@ -468,6 +473,9 @@ impl Into<String> for TrId {
             TrId::RealtimeOrdbUnion => "H0UNASP0",
             TrId::RealRealtimeMyExec => "H0STCNI0",
             TrId::VirtualRealtimeMyExec => "H0STCNI9",
+            // Balance
+            TrId::RealInquireBalance => "TTTC8434R",
+            TrId::VirtualInquireBalance => "VTTC8434R",
             // PingPong
             TrId::PingPong => "PINGPONG",
         }
@@ -505,6 +513,9 @@ impl std::str::FromStr for TrId {
             "H0UNASP0" => Ok(TrId::RealtimeOrdbUnion),
             "H0STCNI0" => Ok(TrId::RealRealtimeMyExec),
             "H0STCNI9" => Ok(TrId::VirtualRealtimeMyExec),
+            // Balance
+            "TTTC8434R" => Ok(TrId::RealInquireBalance),
+            "VTTC8434R" => Ok(TrId::VirtualInquireBalance),
             // PingPong
             "PINGPONG" => Ok(TrId::PingPong),
             _ => Err(Error::BrokenProtocol("TrId", s.to_string())),

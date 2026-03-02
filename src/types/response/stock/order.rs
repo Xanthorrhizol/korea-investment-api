@@ -136,3 +136,195 @@ pub mod Output {
         mgco_aptm_odno: String,
     }
 }
+
+/// 주식잔고조회 response types [v1_국내주식-006]
+pub mod balance {
+    use getset::Getters;
+    use serde::{Deserialize, Serialize};
+
+    /// 주식잔고조회 응답 Body
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Getters)]
+    pub struct InquireBalance {
+        /// 0: 성공, 0 이외의 값: 실패
+        #[getset(get = "pub")]
+        rt_cd: String,
+        /// 응답코드
+        #[getset(get = "pub")]
+        msg_cd: String,
+        /// 응답메시지
+        #[getset(get = "pub")]
+        msg1: String,
+        /// 연속조회검색조건100
+        #[getset(get = "pub")]
+        ctx_area_fk100: Option<String>,
+        /// 연속조회키100
+        #[getset(get = "pub")]
+        ctx_area_nk100: Option<String>,
+        /// 보유종목 목록
+        #[getset(get = "pub")]
+        output1: Vec<BalanceItem>,
+        /// 계좌 요약 정보
+        #[getset(get = "pub")]
+        output2: Vec<BalanceSummary>,
+    }
+
+    /// output1 - 보유종목 상세
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Getters)]
+    pub struct BalanceItem {
+        /// 상품번호 (종목번호 뒷 6자리)
+        #[getset(get = "pub")]
+        pdno: String,
+        /// 상품명 (종목명)
+        #[getset(get = "pub")]
+        prdt_name: String,
+        /// 매매구분명 (현금/신용 등)
+        #[getset(get = "pub")]
+        trad_dvsn_name: String,
+        /// 전일매수수량
+        #[getset(get = "pub")]
+        bfdy_buy_qty: String,
+        /// 전일매도수량
+        #[getset(get = "pub")]
+        bfdy_sll_qty: String,
+        /// 금일매수수량
+        #[getset(get = "pub")]
+        thdt_buyqty: String,
+        /// 금일매도수량
+        #[getset(get = "pub")]
+        thdt_sll_qty: String,
+        /// 보유수량
+        #[getset(get = "pub")]
+        hldg_qty: String,
+        /// 주문가능수량
+        #[getset(get = "pub")]
+        ord_psbl_qty: String,
+        /// 매입평균가격
+        #[getset(get = "pub")]
+        pchs_avg_pric: String,
+        /// 매입금액
+        #[getset(get = "pub")]
+        pchs_amt: String,
+        /// 현재가
+        #[getset(get = "pub")]
+        prpr: String,
+        /// 평가금액
+        #[getset(get = "pub")]
+        evlu_amt: String,
+        /// 평가손익금액
+        #[getset(get = "pub")]
+        evlu_pfls_amt: String,
+        /// 평가손익율
+        #[getset(get = "pub")]
+        evlu_pfls_rt: String,
+        /// 평가수익율
+        #[getset(get = "pub")]
+        evlu_erng_rt: String,
+        /// 대출일자
+        #[getset(get = "pub")]
+        loan_dt: String,
+        /// 대출금액
+        #[getset(get = "pub")]
+        loan_amt: String,
+        /// 대주매각대금
+        #[getset(get = "pub")]
+        stln_slng_chgs: String,
+        /// 만기일자
+        #[getset(get = "pub")]
+        expd_dt: String,
+        /// 등락율
+        #[getset(get = "pub")]
+        fltt_rt: String,
+        /// 전일대비증감
+        #[getset(get = "pub")]
+        bfdy_cprs_icdc: String,
+        /// 종목증거금율명
+        #[getset(get = "pub")]
+        item_mgna_rt_name: String,
+        /// 보증금율명
+        #[getset(get = "pub")]
+        grta_rt_name: String,
+        /// 대용가격
+        #[getset(get = "pub")]
+        sbst_pric: String,
+        /// 주식대출단가
+        #[getset(get = "pub")]
+        stck_loan_unpr: String,
+    }
+
+    /// output2 - 계좌 요약
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Getters)]
+    pub struct BalanceSummary {
+        /// 예수금총금액
+        #[getset(get = "pub")]
+        dnca_tot_amt: String,
+        /// 익일정산금액 (D+1 예수금)
+        #[getset(get = "pub")]
+        nxdy_excc_amt: String,
+        /// 가수도정산금액 (D+2 예수금)
+        #[getset(get = "pub")]
+        prvs_rcdl_excc_amt: String,
+        /// CMA평가금액
+        #[getset(get = "pub")]
+        cma_evlu_amt: String,
+        /// 전일매수금액
+        #[getset(get = "pub")]
+        bfdy_buy_amt: String,
+        /// 금일매수금액
+        #[getset(get = "pub")]
+        thdt_buy_amt: String,
+        /// 익일자동상환금액
+        #[getset(get = "pub")]
+        nxdy_auto_rdpt_amt: String,
+        /// 전일매도금액
+        #[getset(get = "pub")]
+        bfdy_sll_amt: String,
+        /// 금일매도금액
+        #[getset(get = "pub")]
+        thdt_sll_amt: String,
+        /// D+2자동상환금액
+        #[getset(get = "pub")]
+        d2_auto_rdpt_amt: String,
+        /// 전일제비용금액
+        #[getset(get = "pub")]
+        bfdy_tlex_amt: String,
+        /// 금일제비용금액
+        #[getset(get = "pub")]
+        thdt_tlex_amt: String,
+        /// 총대출금액
+        #[getset(get = "pub")]
+        tot_loan_amt: String,
+        /// 유가평가금액
+        #[getset(get = "pub")]
+        scts_evlu_amt: String,
+        /// 총평가금액 (유가증권 평가금액 + D+2 예수금)
+        #[getset(get = "pub")]
+        tot_evlu_amt: String,
+        /// 순자산금액
+        #[getset(get = "pub")]
+        nass_amt: String,
+        /// 융자금자동상환여부
+        #[getset(get = "pub")]
+        fncg_gld_auto_rdpt_yn: String,
+        /// 매입금액합계금액
+        #[getset(get = "pub")]
+        pchs_amt_smtl_amt: String,
+        /// 평가금액합계금액
+        #[getset(get = "pub")]
+        evlu_amt_smtl_amt: String,
+        /// 평가손익합계금액
+        #[getset(get = "pub")]
+        evlu_pfls_smtl_amt: String,
+        /// 총대주매각대금
+        #[getset(get = "pub")]
+        tot_stln_slng_chgs: String,
+        /// 전일총자산평가금액
+        #[getset(get = "pub")]
+        bfdy_tot_asst_evlu_amt: String,
+        /// 자산증감액
+        #[getset(get = "pub")]
+        asst_icdc_amt: String,
+        /// 자산증감수익율
+        #[getset(get = "pub")]
+        asst_icdc_erng_rt: String,
+    }
+}

@@ -19,12 +19,10 @@ pub(crate) async fn wait(env: types::Environment) {
     } else {
         REAL_FREQ
     };
-    tokio::time::sleep(std::time::Duration::from_millis(
-        (LAST_CALL.lock().unwrap().inner().timestamp_millis() + 1000 / freq
-            - chrono::Utc::now().timestamp_millis())
-        .max(0) as u64,
-    ))
-    .await;
+    let sleep_time = (LAST_CALL.lock().unwrap().inner().timestamp_millis() + 1000 / freq
+        - chrono::Utc::now().timestamp_millis())
+    .max(0) as u64;
+    tokio::time::sleep(std::time::Duration::from_millis(sleep_time)).await;
 }
 pub(crate) fn update_last_call() {
     *LAST_CALL.lock().unwrap() = types::Time::now();

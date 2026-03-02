@@ -283,3 +283,100 @@ pub mod Body {
         }
     }
 }
+
+#[allow(non_snake_case)]
+pub mod Query {
+    use getset::{Getters, Setters};
+    use serde::{Deserialize, Serialize};
+
+    /// 주식잔고조회 Query Parameter [v1_국내주식-006]
+    #[derive(Debug, Clone, PartialEq, Getters, Setters, Serialize, Deserialize)]
+    pub struct InquireBalance {
+        /// 종합계좌번호 (계좌번호 체계(8-2)의 앞 8자리)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "CANO")]
+        cano: String,
+        /// 계좌상품코드 (계좌번호 체계(8-2)의 뒤 2자리)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "ACNT_PRDT_CD")]
+        acnt_prdt_cd: String,
+        /// 시간외단일가여부 (N: 기본값)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "AFHR_FLPR_YN")]
+        afhr_flpr_yn: String,
+        /// 오프라인여부 (공란: 기본값)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "OFL_YN")]
+        ofl_yn: String,
+        /// 조회구분 (01: 대출일별)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "INQR_DVSN")]
+        inqr_dvsn: String,
+        /// 단가구분 (01: 기본값)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "UNPR_DVSN")]
+        unpr_dvsn: String,
+        /// 펀드결제분포함여부 (N: 포함하지 않음)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "FUND_STTL_ICLD_YN")]
+        fund_sttl_icld_yn: String,
+        /// 융자금액자동상환여부 (N: 기본값)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "FNCG_AMT_AUTO_RDPT_YN")]
+        fncg_amt_auto_rdpt_yn: String,
+        /// 처리구분 (00: 전일매매포함, 01: 전일매매미포함)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "PRCS_DVSN")]
+        prcs_dvsn: String,
+        /// 연속조회검색조건100 (공란: 최초 조회)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "CTX_AREA_FK100")]
+        ctx_area_fk100: String,
+        /// 연속조회키100 (공란: 최초 조회)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "CTX_AREA_NK100")]
+        ctx_area_nk100: String,
+    }
+
+    impl InquireBalance {
+        pub fn new(
+            cano: String,
+            acnt_prdt_cd: String,
+            afhr_flpr_yn: Option<String>,
+            inqr_dvsn: Option<String>,
+            prcs_dvsn: Option<String>,
+            ctx_area_fk100: Option<String>,
+            ctx_area_nk100: Option<String>,
+        ) -> Self {
+            Self {
+                cano,
+                acnt_prdt_cd,
+                afhr_flpr_yn: afhr_flpr_yn.unwrap_or_else(|| "N".to_string()),
+                ofl_yn: String::new(),
+                inqr_dvsn: inqr_dvsn.unwrap_or_else(|| "01".to_string()),
+                unpr_dvsn: "01".to_string(),
+                fund_sttl_icld_yn: "N".to_string(),
+                fncg_amt_auto_rdpt_yn: "N".to_string(),
+                prcs_dvsn: prcs_dvsn.unwrap_or_else(|| "00".to_string()),
+                ctx_area_fk100: ctx_area_fk100.unwrap_or_default(),
+                ctx_area_nk100: ctx_area_nk100.unwrap_or_default(),
+            }
+        }
+
+        pub fn into_iter(&self) -> [(&'static str, String); 11] {
+            [
+                ("CANO", self.cano.clone()),
+                ("ACNT_PRDT_CD", self.acnt_prdt_cd.clone()),
+                ("AFHR_FLPR_YN", self.afhr_flpr_yn.clone()),
+                ("OFL_YN", self.ofl_yn.clone()),
+                ("INQR_DVSN", self.inqr_dvsn.clone()),
+                ("UNPR_DVSN", self.unpr_dvsn.clone()),
+                ("FUND_STTL_ICLD_YN", self.fund_sttl_icld_yn.clone()),
+                ("FNCG_AMT_AUTO_RDPT_YN", self.fncg_amt_auto_rdpt_yn.clone()),
+                ("PRCS_DVSN", self.prcs_dvsn.clone()),
+                ("CTX_AREA_FK100", self.ctx_area_fk100.clone()),
+                ("CTX_AREA_NK100", self.ctx_area_nk100.clone()),
+            ]
+        }
+    }
+}

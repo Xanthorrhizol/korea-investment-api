@@ -467,6 +467,39 @@ async fn main() {
 
     // }}}
 
+    // {{{ 주식잔고조회
+    let balance = api
+        .order
+        .inquire_balance(None, None, None, None, None)
+        .await
+        .unwrap();
+    if balance.rt_cd() != "0" {
+        panic!("잔고조회 Error Response: {:?}", balance);
+    }
+    info!("주식잔고조회 Response: {:?}", balance);
+
+    // 보유종목 출력
+    for item in balance.output1() {
+        info!(
+            "보유종목: {} ({}) 수량: {} 평가손익: {}",
+            item.prdt_name(),
+            item.pdno(),
+            item.hldg_qty(),
+            item.evlu_pfls_amt(),
+        );
+    }
+
+    // 계좌 요약 출력
+    for summary in balance.output2() {
+        info!(
+            "총평가금액: {}, 순자산: {}, 예수금: {}",
+            summary.tot_evlu_amt(),
+            summary.nass_amt(),
+            summary.dnca_tot_amt(),
+        );
+    }
+    // }}}
+
     // {{{ 삼성전자 호가 실시간 시세 구독(호가; KRX)
     let (rx, subscribe_response) = api
         .k_data

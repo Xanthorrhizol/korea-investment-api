@@ -475,37 +475,39 @@ impl Into<String> for TrId {
     }
 }
 
-impl From<&str> for TrId {
-    fn from(s: &str) -> Self {
+impl std::str::FromStr for TrId {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
             // Order
-            "TTTC0012U" => TrId::RealStockCashBidOrder,
-            "TTTC0011U" => TrId::RealStockCashAskOrder,
-            "TTTC0052U" => TrId::RealStockCreditBidOrder,
-            "TTTC0051U" => TrId::RealStockCreditAskOrder,
-            "VTTC0012U" => TrId::VirtualStockCashBidOrder,
-            "VTTC0011U" => TrId::VirtualStockCashAskOrder,
+            "TTTC0012U" => Ok(TrId::RealStockCashBidOrder),
+            "TTTC0011U" => Ok(TrId::RealStockCashAskOrder),
+            "TTTC0052U" => Ok(TrId::RealStockCreditBidOrder),
+            "TTTC0051U" => Ok(TrId::RealStockCreditAskOrder),
+            "VTTC0012U" => Ok(TrId::VirtualStockCashBidOrder),
+            "VTTC0011U" => Ok(TrId::VirtualStockCashAskOrder),
             // Correction
-            "TTTC0013U" => TrId::RealStockCorrection,
-            "VTTC0013U" => TrId::VirtualStockCorrection,
+            "TTTC0013U" => Ok(TrId::RealStockCorrection),
+            "VTTC0013U" => Ok(TrId::VirtualStockCorrection),
             // Quote
-            "FHKST01010400" => TrId::DailyPrice,
-            "FHPST01710000" => TrId::VolumeRank,
-            "HHKCM113004C7" => TrId::InstockGrouplist,
-            "HHKCM113004C6" => TrId::InstockGroupItem,
-            "CTPF1002R" => TrId::BasicStockInfo,
+            "FHKST01010400" => Ok(TrId::DailyPrice),
+            "FHPST01710000" => Ok(TrId::VolumeRank),
+            "HHKCM113004C7" => Ok(TrId::InstockGrouplist),
+            "HHKCM113004C6" => Ok(TrId::InstockGroupItem),
+            "CTPF1002R" => Ok(TrId::BasicStockInfo),
             // Market data
-            "H0STCNT0" => TrId::RealtimeExecKrx,
-            "H0STASP0" => TrId::RealtimeOrdbKrx,
-            "H0NXCNT0" => TrId::RealtimeExecNxt,
-            "H0NXASP0" => TrId::RealtimeOrdbNxt,
-            "H0UNCNT0" => TrId::RealtimeExecUnion,
-            "H0UNASP0" => TrId::RealtimeOrdbUnion,
-            "H0STCNI0" => TrId::RealRealtimeMyExec,
-            "H0STCNI9" => TrId::VirtualRealtimeMyExec,
+            "H0STCNT0" => Ok(TrId::RealtimeExecKrx),
+            "H0STASP0" => Ok(TrId::RealtimeOrdbKrx),
+            "H0NXCNT0" => Ok(TrId::RealtimeExecNxt),
+            "H0NXASP0" => Ok(TrId::RealtimeOrdbNxt),
+            "H0UNCNT0" => Ok(TrId::RealtimeExecUnion),
+            "H0UNASP0" => Ok(TrId::RealtimeOrdbUnion),
+            "H0STCNI0" => Ok(TrId::RealRealtimeMyExec),
+            "H0STCNI9" => Ok(TrId::VirtualRealtimeMyExec),
             // PingPong
-            "PINGPONG" => TrId::PingPong,
-            _ => todo!(),
+            "PINGPONG" => Ok(TrId::PingPong),
+            _ => Err(Error::BrokenProtocol("TrId", s.to_string())),
         }
     }
 }

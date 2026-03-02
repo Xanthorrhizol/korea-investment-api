@@ -18,7 +18,7 @@ impl StreamParser<Body> for Exec {
     fn parse(s: String) -> Result<Self, Error> {
         if let Ok(j) = json::parse(&s) {
             let header = Header {
-                tr_id: get_json_inner(&j, "header.tr_id")?.as_str().unwrap().into(),
+                tr_id: get_json_inner(&j, "header.tr_id")?.as_str().ok_or(crate::Error::InvalidData)?.parse()?,
                 datetime: Time::parse(
                     get_json_inner(&j, "header.datetime")?.as_str().unwrap(),
                     "%Y%m%d%H%M%S",
@@ -35,7 +35,7 @@ impl StreamParser<Body> for Exec {
                 "%Y%m%d%H%M%S",
             )?;
             let header = Header {
-                tr_id: header_str[1].into(),
+                tr_id: header_str[1].parse()?,
                 datetime: exec_time.clone(),
             };
             let body = if encrypted {

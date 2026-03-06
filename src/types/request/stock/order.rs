@@ -379,4 +379,64 @@ pub mod Query {
             ]
         }
     }
+
+    /// 주식정정취소가능주문조회 Query Parameter [v1_국내주식-004]
+    #[derive(Debug, Clone, PartialEq, Getters, Setters, Serialize, Deserialize)]
+    pub struct InquirePsblRvsecncl {
+        /// 종합계좌번호 (계좌번호 체계(8-2)의 앞 8자리)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "CANO")]
+        cano: String,
+        /// 계좌상품코드 (계좌번호 체계(8-2)의 뒤 2자리)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "ACNT_PRDT_CD")]
+        acnt_prdt_cd: String,
+        /// 연속조회검색조건100 (공란: 최초 조회)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "CTX_AREA_FK100")]
+        ctx_area_fk100: String,
+        /// 연속조회키100 (공란: 최초 조회)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "CTX_AREA_NK100")]
+        ctx_area_nk100: String,
+        /// 조회구분1 (0: 조회순서, 1: 주문순, 2: 종목순)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "INQR_DVSN_1")]
+        inqr_dvsn_1: String,
+        /// 조회구분2 (0: 전체, 1: 매도, 2: 매수)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "INQR_DVSN_2")]
+        inqr_dvsn_2: String,
+    }
+
+    impl InquirePsblRvsecncl {
+        pub fn new(
+            cano: String,
+            acnt_prdt_cd: String,
+            ctx_area_fk100: Option<String>,
+            ctx_area_nk100: Option<String>,
+            inqr_dvsn_1: Option<String>,
+            inqr_dvsn_2: Option<String>,
+        ) -> Self {
+            Self {
+                cano,
+                acnt_prdt_cd,
+                ctx_area_fk100: ctx_area_fk100.unwrap_or_default(),
+                ctx_area_nk100: ctx_area_nk100.unwrap_or_default(),
+                inqr_dvsn_1: inqr_dvsn_1.unwrap_or_else(|| "0".to_string()),
+                inqr_dvsn_2: inqr_dvsn_2.unwrap_or_else(|| "0".to_string()),
+            }
+        }
+
+        pub fn into_iter(&self) -> [(&'static str, String); 6] {
+            [
+                ("CANO", self.cano.clone()),
+                ("ACNT_PRDT_CD", self.acnt_prdt_cd.clone()),
+                ("CTX_AREA_FK100", self.ctx_area_fk100.clone()),
+                ("CTX_AREA_NK100", self.ctx_area_nk100.clone()),
+                ("INQR_DVSN_1", self.inqr_dvsn_1.clone()),
+                ("INQR_DVSN_2", self.inqr_dvsn_2.clone()),
+            ]
+        }
+    }
 }

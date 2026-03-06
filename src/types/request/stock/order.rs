@@ -286,6 +286,7 @@ pub mod Body {
 
 #[allow(non_snake_case)]
 pub mod Query {
+    use crate::types::TargetExchange;
     use getset::{Getters, Setters};
     use serde::{Deserialize, Serialize};
 
@@ -436,6 +437,129 @@ pub mod Query {
                 ("CTX_AREA_NK100", self.ctx_area_nk100.clone()),
                 ("INQR_DVSN_1", self.inqr_dvsn_1.clone()),
                 ("INQR_DVSN_2", self.inqr_dvsn_2.clone()),
+            ]
+        }
+    }
+
+    /// 주식일별주문체결조회 Query Parameter [v1_국내주식-005]
+    #[derive(Debug, Clone, PartialEq, Getters, Setters, Serialize, Deserialize)]
+    pub struct InquireDailyCcld {
+        /// 종합계좌번호 (계좌번호 체계(8-2)의 앞 8자리)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "CANO")]
+        cano: String,
+        /// 계좌상품코드 (계좌번호 체계(8-2)의 뒤 2자리)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "ACNT_PRDT_CD")]
+        acnt_prdt_cd: String,
+        /// 조회시작일자 (YYYYMMDD)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "INQR_STRT_DT")]
+        inqr_strt_dt: String,
+        /// 조회종료일자 (YYYYMMDD)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "INQR_END_DT")]
+        inqr_end_dt: String,
+        /// 매도매수구분코드 (00: 전체, 01: 매도, 02: 매수)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "SLL_BUY_DVSN_CD")]
+        sll_buy_dvsn_cd: String,
+        /// 조회구분 (00: 역순, 01: 정순)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "INQR_DVSN")]
+        inqr_dvsn: String,
+        /// 종목번호 (공란: 전체)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "PDNO")]
+        pdno: String,
+        /// 체결구분 (00: 전체, 01: 체결, 02: 미체결)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "CCLD_DVSN")]
+        ccld_dvsn: String,
+        /// 주문채번지점번호 (공란)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "ORD_GNO_BRNO")]
+        ord_gno_brno: String,
+        /// 주문번호 (공란)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "ODNO")]
+        odno: String,
+        /// 조회구분3 (00: 전체, 01: 현금, 02: 융자, 03: 대출, 04: 대주)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "INQR_DVSN_3")]
+        inqr_dvsn_3: String,
+        /// 조회구분1 (공란: 전체, 1: ELW, 2: 프리보드)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "INQR_DVSN_1")]
+        inqr_dvsn_1: String,
+        /// 연속조회검색조건100 (공란: 최초 조회)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "CTX_AREA_FK100")]
+        ctx_area_fk100: String,
+        /// 연속조회키100 (공란: 최초 조회)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "CTX_AREA_NK100")]
+        ctx_area_nk100: String,
+        /// 거래소ID구분코드 (KRX/NXT/SOR)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "EXCG_ID_DVSN_CD")]
+        excg_id_dvsn_cd: TargetExchange,
+    }
+
+    impl InquireDailyCcld {
+        pub fn new(
+            cano: String,
+            acnt_prdt_cd: String,
+            inqr_strt_dt: String,
+            inqr_end_dt: String,
+            sll_buy_dvsn_cd: Option<String>,
+            inqr_dvsn: Option<String>,
+            pdno: Option<String>,
+            ccld_dvsn: Option<String>,
+            ord_gno_brno: Option<String>,
+            odno: Option<String>,
+            inqr_dvsn_3: Option<String>,
+            inqr_dvsn_1: Option<String>,
+            ctx_area_fk100: Option<String>,
+            ctx_area_nk100: Option<String>,
+            excg_id_dvsn_cd: Option<TargetExchange>,
+        ) -> Self {
+            Self {
+                cano,
+                acnt_prdt_cd,
+                inqr_strt_dt,
+                inqr_end_dt,
+                sll_buy_dvsn_cd: sll_buy_dvsn_cd.unwrap_or_else(|| "00".to_string()),
+                inqr_dvsn: inqr_dvsn.unwrap_or_else(|| "00".to_string()),
+                pdno: pdno.unwrap_or_default(),
+                ccld_dvsn: ccld_dvsn.unwrap_or_else(|| "00".to_string()),
+                ord_gno_brno: ord_gno_brno.unwrap_or_default(),
+                odno: odno.unwrap_or_default(),
+                inqr_dvsn_3: inqr_dvsn_3.unwrap_or_else(|| "00".to_string()),
+                inqr_dvsn_1: inqr_dvsn_1.unwrap_or_default(),
+                ctx_area_fk100: ctx_area_fk100.unwrap_or_default(),
+                ctx_area_nk100: ctx_area_nk100.unwrap_or_default(),
+                excg_id_dvsn_cd: excg_id_dvsn_cd.unwrap_or_default(),
+            }
+        }
+
+        pub fn into_iter(&self) -> [(&'static str, String); 15] {
+            [
+                ("CANO", self.cano.clone()),
+                ("ACNT_PRDT_CD", self.acnt_prdt_cd.clone()),
+                ("INQR_STRT_DT", self.inqr_strt_dt.clone()),
+                ("INQR_END_DT", self.inqr_end_dt.clone()),
+                ("SLL_BUY_DVSN_CD", self.sll_buy_dvsn_cd.clone()),
+                ("INQR_DVSN", self.inqr_dvsn.clone()),
+                ("PDNO", self.pdno.clone()),
+                ("CCLD_DVSN", self.ccld_dvsn.clone()),
+                ("ORD_GNO_BRNO", self.ord_gno_brno.clone()),
+                ("ODNO", self.odno.clone()),
+                ("INQR_DVSN_3", self.inqr_dvsn_3.clone()),
+                ("INQR_DVSN_1", self.inqr_dvsn_1.clone()),
+                ("CTX_AREA_FK100", self.ctx_area_fk100.clone()),
+                ("CTX_AREA_NK100", self.ctx_area_nk100.clone()),
+                ("EXCG_ID_DVSN_CD", format!("{:?}", self.excg_id_dvsn_cd)),
             ]
         }
     }

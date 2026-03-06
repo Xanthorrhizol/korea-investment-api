@@ -444,6 +444,11 @@ pub enum TrId {
     // InquirePsblRvsecncl (주식정정취소가능주문조회, 실전투자만 지원)
     #[serde(rename = "TTTC0084R")]
     RealInquirePsblRvsecncl,
+    // InquireDailyCcld (주식일별주문체결조회)
+    #[serde(rename = "TTTC8001R")]
+    RealInquireDailyCcld,
+    #[serde(rename = "VTTC8001R")]
+    VirtualInquireDailyCcld,
     // PingPong
     #[serde(rename = "PINGPONG")]
     PingPong,
@@ -481,6 +486,9 @@ impl Into<String> for TrId {
             TrId::VirtualInquireBalance => "VTTC8434R",
             // InquirePsblRvsecncl (실전투자만 지원)
             TrId::RealInquirePsblRvsecncl => "TTTC0084R",
+            // InquireDailyCcld
+            TrId::RealInquireDailyCcld => "TTTC8001R",
+            TrId::VirtualInquireDailyCcld => "VTTC8001R",
             // PingPong
             TrId::PingPong => "PINGPONG",
         }
@@ -523,6 +531,9 @@ impl std::str::FromStr for TrId {
             "VTTC8434R" => Ok(TrId::VirtualInquireBalance),
             // InquirePsblRvsecncl (실전투자만 지원)
             "TTTC0084R" => Ok(TrId::RealInquirePsblRvsecncl),
+            // InquireDailyCcld
+            "TTTC8001R" => Ok(TrId::RealInquireDailyCcld),
+            "VTTC8001R" => Ok(TrId::VirtualInquireDailyCcld),
             // PingPong
             "PINGPONG" => Ok(TrId::PingPong),
             _ => Err(Error::BrokenProtocol("TrId", s.to_string())),

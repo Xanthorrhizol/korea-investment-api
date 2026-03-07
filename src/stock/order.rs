@@ -249,6 +249,7 @@ impl Korea {
     /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-daily-ccld)
     ///
     /// 기간별 주문 및 체결 내역을 조회합니다.
+    /// 조회 시작일이 3개월 이내이면 Recent TR, 3개월 이전이면 Past TR을 자동으로 사용합니다.
     /// 실전계좌: 최대 50건, 모의계좌: 최대 20건 / 초과분은 `ctx_area_fk100`/`ctx_area_nk100`으로 연속조회
     pub async fn inquire_daily_ccld(
         &self,
@@ -265,9 +266,29 @@ impl Korea {
         ctx_area_fk100: Option<String>,
         ctx_area_nk100: Option<String>,
     ) -> Result<response::stock::order::daily_ccld::InquireDailyCcld, Error> {
+        // 조회 시작일이 3개월 이내이면 Recent, 이전이면 Past TR 사용
+        let three_months_ago = chrono::Utc::now()
+            .with_timezone(&chrono_tz::Asia::Seoul)
+            .checked_sub_signed(chrono::Duration::days(90))
+            .unwrap()
+            .format("%Y%m%d")
+            .to_string();
+        let is_recent = inqr_strt_dt >= three_months_ago.as_str();
         let tr_id = match self.environment {
-            Environment::Real => TrId::RealInquireDailyCcld,
-            Environment::Virtual => TrId::VirtualInquireDailyCcld,
+            Environment::Real => {
+                if is_recent {
+                    TrId::RealInquireDailyCcldRecent
+                } else {
+                    TrId::RealInquireDailyCcldPast
+                }
+            }
+            Environment::Virtual => {
+                if is_recent {
+                    TrId::VirtualInquireDailyCcldRecent
+                } else {
+                    TrId::VirtualInquireDailyCcldPast
+                }
+            }
         };
         let param = request::stock::order::Query::InquireDailyCcld::new(
             self.account.cano.clone(),

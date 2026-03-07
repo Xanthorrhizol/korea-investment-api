@@ -309,7 +309,8 @@ impl Korea {
     /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-psbl-rvsecncl)
     ///
     /// 정정 또는 취소가 가능한 미체결 주문 목록을 조회합니다.
-    /// 실전계좌: 최대 50건, 모의계좌: 최대 20건 / 초과분은 `ctx_area_fk100`/`ctx_area_nk100`으로 연속조회
+    /// 실전투자 전용 API (모의투자 미지원)
+    /// 실전계좌: 최대 50건 / 초과분은 `ctx_area_fk100`/`ctx_area_nk100`으로 연속조회
     pub async fn inquire_psbl_rvsecncl(
         &self,
         ctx_area_fk100: Option<String>,
@@ -317,10 +318,7 @@ impl Korea {
         inqr_dvsn_1: Option<String>,
         inqr_dvsn_2: Option<String>,
     ) -> Result<response::stock::order::Body::InquirePsblRvsecncl, Error> {
-        let tr_id = match self.environment {
-            Environment::Real => TrId::RealInquirePsblRvsecncl,
-            Environment::Virtual => TrId::VirtualInquirePsblRvsecncl,
-        };
+        let tr_id = TrId::RealInquirePsblRvsecncl; // no VirtualMarket support
         let param = request::stock::order::Query::InquirePsblRvsecncl::new(
             self.account.cano.clone(),
             self.account.acnt_prdt_cd.clone(),
@@ -331,7 +329,7 @@ impl Korea {
         );
         let url = format!(
             "{}/uapi/domestic-stock/v1/trading/inquire-psbl-rvsecncl",
-            self.endpoint_url
+            "https://openapi.koreainvestment.com:9443" // no VirtualMarket support
         );
         let params = param.into_iter();
         let url = reqwest::Url::parse_with_params(&url, &params)?;

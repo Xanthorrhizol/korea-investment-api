@@ -441,11 +441,9 @@ pub enum TrId {
     RealInquireBalance,
     #[serde(rename = "VTTC8434R")]
     VirtualInquireBalance,
-    // InquirePsblRvsecncl (주식정정취소가능주문조회)
-    #[serde(rename = "TTTC8036R")]
+    // InquirePsblRvsecncl (주식정정취소가능주문조회, 실전투자만 지원)
+    #[serde(rename = "TTTC0084R")]
     RealInquirePsblRvsecncl,
-    #[serde(rename = "VTTC8036R")]
-    VirtualInquirePsblRvsecncl,
     // PingPong
     #[serde(rename = "PINGPONG")]
     PingPong,
@@ -481,9 +479,8 @@ impl Into<String> for TrId {
             // Balance
             TrId::RealInquireBalance => "TTTC8434R",
             TrId::VirtualInquireBalance => "VTTC8434R",
-            // InquirePsblRvsecncl
-            TrId::RealInquirePsblRvsecncl => "TTTC8036R",
-            TrId::VirtualInquirePsblRvsecncl => "VTTC8036R",
+            // InquirePsblRvsecncl (실전투자만 지원)
+            TrId::RealInquirePsblRvsecncl => "TTTC0084R",
             // PingPong
             TrId::PingPong => "PINGPONG",
         }
@@ -524,9 +521,8 @@ impl std::str::FromStr for TrId {
             // Balance
             "TTTC8434R" => Ok(TrId::RealInquireBalance),
             "VTTC8434R" => Ok(TrId::VirtualInquireBalance),
-            // InquirePsblRvsecncl
-            "TTTC8036R" => Ok(TrId::RealInquirePsblRvsecncl),
-            "VTTC8036R" => Ok(TrId::VirtualInquirePsblRvsecncl),
+            // InquirePsblRvsecncl (실전투자만 지원)
+            "TTTC0084R" => Ok(TrId::RealInquirePsblRvsecncl),
             // PingPong
             "PINGPONG" => Ok(TrId::PingPong),
             _ => Err(Error::BrokenProtocol("TrId", s.to_string())),

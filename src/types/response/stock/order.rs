@@ -44,7 +44,7 @@ pub mod Body {
     pub struct InquirePsblRvsecncl {
         /// 0: 성공, 0 이외의 값: 실패
         #[getset(get = "pub")]
-        tr_cd: String,
+        rt_cd: String,
         /// 응답코드
         #[getset(get = "pub")]
         msg_cd: String,
@@ -57,9 +57,9 @@ pub mod Body {
         /// 연속조회키100
         #[getset(get = "pub")]
         ctx_area_nk100: Option<String>,
-        /// 응답 상세
+        /// 응답 상세 목록
         #[getset(get = "pub")]
-        output: Output::InquirePsblRvsecncl,
+        output: Vec<Output::InquirePsblRvsecncl>,
     }
 }
 

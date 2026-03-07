@@ -305,6 +305,60 @@ impl Korea {
         Ok(result)
     }
 
+    /// 주식정정취소가능주문조회[v1_국내주식-004]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-psbl-rvsecncl)
+    ///
+    /// 정정 또는 취소가 가능한 미체결 주문 목록을 조회합니다.
+    /// 실전투자 전용 API (모의투자 미지원)
+    /// 실전계좌: 최대 50건 / 초과분은 `ctx_area_fk100`/`ctx_area_nk100`으로 연속조회
+    pub async fn inquire_psbl_rvsecncl(
+        &self,
+        ctx_area_fk100: Option<String>,
+        ctx_area_nk100: Option<String>,
+        inqr_dvsn_1: Option<String>,
+        inqr_dvsn_2: Option<String>,
+    ) -> Result<response::stock::order::Body::InquirePsblRvsecncl, Error> {
+        let tr_id = TrId::RealInquirePsblRvsecncl; // no VirtualMarket support
+        let param = request::stock::order::Query::InquirePsblRvsecncl::new(
+            self.account.cano.clone(),
+            self.account.acnt_prdt_cd.clone(),
+            ctx_area_fk100,
+            ctx_area_nk100,
+            inqr_dvsn_1,
+            inqr_dvsn_2,
+        );
+        let url = format!(
+            "{}/uapi/domestic-stock/v1/trading/inquire-psbl-rvsecncl",
+            "https://openapi.koreainvestment.com:9443" // no VirtualMarket support
+        );
+        let params = param.into_iter();
+        let url = reqwest::Url::parse_with_params(&url, &params)?;
+        let tr_id_str: String = tr_id.into();
+        crate::wait(self.environment).await;
+        let result = self
+            .client
+            .get(url)
+            .header("Content-Type", "application/json")
+            .header(
+                "Authorization",
+                match self.auth.get_token() {
+                    Some(token) => format!("Bearer {}", token),
+                    None => {
+                        return Err(Error::AuthInitFailed("token"));
+                    }
+                },
+            )
+            .header("appkey", self.auth.get_appkey())
+            .header("appsecret", self.auth.get_appsecret())
+            .header("tr_id", tr_id_str)
+            .send()
+            .await?
+            .json::<response::stock::order::Body::InquirePsblRvsecncl>()
+            .await?;
+        crate::update_last_call();
+        Ok(result)
+    }
+
     // TODO: 매수가능조회[v1_국내주식-007]
     // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-psbl-order)
 }

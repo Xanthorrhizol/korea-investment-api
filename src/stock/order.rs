@@ -2,6 +2,7 @@ use crate::types::{
     request, response, Account, CorrectionClass, CreditType, Direction, Environment, OrderClass,
     Price, Quantity, TargetExchange, TrId,
 };
+
 use crate::{auth, Error};
 
 #[derive(Clone, Debug)]
@@ -265,6 +266,7 @@ impl Korea {
         inqr_dvsn_1: Option<String>,
         ctx_area_fk100: Option<String>,
         ctx_area_nk100: Option<String>,
+        excg_id_dvsn_cd: Option<TargetExchange>,
     ) -> Result<response::stock::order::daily_ccld::InquireDailyCcld, Error> {
         // 조회 시작일이 3개월 이내이면 Recent, 이전이면 Past TR 사용
         let three_months_ago = chrono::Utc::now()
@@ -305,6 +307,7 @@ impl Korea {
             inqr_dvsn_1,
             ctx_area_fk100,
             ctx_area_nk100,
+            excg_id_dvsn_cd,
         );
         let url = format!(
             "{}/uapi/domestic-stock/v1/trading/inquire-daily-ccld",

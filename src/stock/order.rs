@@ -2,6 +2,7 @@ use crate::types::{
     request, response, Account, CorrectionClass, CreditType, Direction, Environment, OrderClass,
     Price, Quantity, TargetExchange, TrId,
 };
+
 use crate::{auth, Error};
 
 #[derive(Clone, Debug)]
@@ -245,8 +246,100 @@ impl Korea {
     // TODO: 주식정정취소가능주문조회[v1_국내주식-004]
     // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-psbl-rvsecncl)
 
-    // TODO: 주식일별주문체결조회[v1_국내주식-005]
-    // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-daily-ccld)
+    /// 주식일별주문체결조회[v1_국내주식-005]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-daily-ccld)
+    ///
+    /// 기간별 주문 및 체결 내역을 조회합니다.
+    /// 조회 시작일이 3개월 이내이면 Recent TR, 3개월 이전이면 Past TR을 자동으로 사용합니다.
+    /// 실전계좌: 최대 50건, 모의계좌: 최대 20건 / 초과분은 `ctx_area_fk100`/`ctx_area_nk100`으로 연속조회
+    pub async fn inquire_daily_ccld(
+        &self,
+        inqr_strt_dt: &str,
+        inqr_end_dt: &str,
+        sll_buy_dvsn_cd: Option<String>,
+        inqr_dvsn: Option<String>,
+        pdno: Option<String>,
+        ccld_dvsn: Option<String>,
+        ord_gno_brno: Option<String>,
+        odno: Option<String>,
+        inqr_dvsn_3: Option<String>,
+        inqr_dvsn_1: Option<String>,
+        ctx_area_fk100: Option<String>,
+        ctx_area_nk100: Option<String>,
+        excg_id_dvsn_cd: Option<TargetExchange>,
+    ) -> Result<response::stock::order::daily_ccld::InquireDailyCcld, Error> {
+        // 조회 시작일이 3개월 이내이면 Recent, 이전이면 Past TR 사용
+        let three_months_ago = chrono::Utc::now()
+            .with_timezone(&chrono_tz::Asia::Seoul)
+            .checked_sub_signed(chrono::Duration::days(90))
+            .unwrap()
+            .format("%Y%m%d")
+            .to_string();
+        let is_recent = inqr_strt_dt >= three_months_ago.as_str();
+        let tr_id = match self.environment {
+            Environment::Real => {
+                if is_recent {
+                    TrId::RealInquireDailyCcldRecent
+                } else {
+                    TrId::RealInquireDailyCcldPast
+                }
+            }
+            Environment::Virtual => {
+                if is_recent {
+                    TrId::VirtualInquireDailyCcldRecent
+                } else {
+                    TrId::VirtualInquireDailyCcldPast
+                }
+            }
+        };
+        let param = request::stock::order::Query::InquireDailyCcld::new(
+            self.account.cano.clone(),
+            self.account.acnt_prdt_cd.clone(),
+            inqr_strt_dt.to_string(),
+            inqr_end_dt.to_string(),
+            sll_buy_dvsn_cd,
+            inqr_dvsn,
+            pdno,
+            ccld_dvsn,
+            ord_gno_brno,
+            odno,
+            inqr_dvsn_3,
+            inqr_dvsn_1,
+            ctx_area_fk100,
+            ctx_area_nk100,
+            excg_id_dvsn_cd,
+        );
+        let url = format!(
+            "{}/uapi/domestic-stock/v1/trading/inquire-daily-ccld",
+            self.endpoint_url
+        );
+        let params = param.into_iter();
+        let url = reqwest::Url::parse_with_params(&url, &params)?;
+        let tr_id_str: String = tr_id.into();
+        crate::wait(self.environment).await;
+        let result = self
+            .client
+            .get(url)
+            .header("Content-Type", "application/json")
+            .header(
+                "Authorization",
+                match self.auth.get_token() {
+                    Some(token) => format!("Bearer {}", token),
+                    None => {
+                        return Err(Error::AuthInitFailed("token"));
+                    }
+                },
+            )
+            .header("appkey", self.auth.get_appkey())
+            .header("appsecret", self.auth.get_appsecret())
+            .header("tr_id", tr_id_str)
+            .send()
+            .await?
+            .json::<response::stock::order::daily_ccld::InquireDailyCcld>()
+            .await?;
+        crate::update_last_call();
+        Ok(result)
+    }
 
     /// 주식잔고조회[v1_국내주식-006]
     /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-balance)

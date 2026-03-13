@@ -1,7 +1,6 @@
 # 한국투자증권 API for Rust
 
 > 💡필요한 부분이나 이슈가 있다면 issue 올려주시면 그 부분 볼 수 있도록 하겠습니다.  
-> 💡빠른 시일 내에 NXT, SOR 관련 피쳐를 추가하겠습니다(테스트중...).  
 > 💡cargo에 publish한 라이브러리를 이용하거나, Release에 올라온 버전을 이용 바랍니다.
 
 ## 현재 지원되는 기능
@@ -75,7 +74,7 @@ async fn main() {
     ).await;
     
     // 삼성전자 호가 실시간 시세 구독
-    let (rx, subscribe_response) = api.k_data.subscribe_market("005930", TrId::RealtimeOrdb).unwrap();
+    let (rx, subscribe_response) = api.k_data.subscribe_market("005930", TrId::RealtimeOrdbKrx).unwrap();
 
     // 구독한 시세 읽기
     while let Ok(ordb) = rx.recv().await {

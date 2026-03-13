@@ -1,0 +1,11 @@
+[book]
+title = "한국투자증권 API for Rust"
+description = "한국투자증권 Open API Rust 클라이언트 라이브러리 문서"
+authors = []
+language = "ko"
+src = "src"
+
+[output.html]
+default-theme = "navy"
+preferred-dark-theme = "navy"
+git-repository-url = "https://github.com/Xanthorrhizol/korea-investment-api"

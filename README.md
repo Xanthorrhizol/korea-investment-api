@@ -8,16 +8,20 @@
 - 인증
 - 국내 주식 주문
   - 현금주문
+  - 신용주문
   - 정정/취소
+  - 일별 주문체결 조회
+  - 잔고 조회
+  - 정정취소가능주문 조회
 - 국내 주식 시세
-  - 일자별
-  - 거래량순위
-  - 관심종목 그룹별 종목조회
+  - 주식 일자별 시세
+  - 거래량 순위
   - 관심종목 그룹조회
+  - 관심종목 그룹별 종목조회
   - 주식기본조회
 - 실시간 시세
-  - 체결
-  - 호가
+  - 체결(KRX/NXT/통합)
+  - 호가(KRX/NXT/통합)
   - 체결통보
 
 ## 사용 방법
@@ -72,6 +76,20 @@ async fn main() {
         PeriodCode::ThirtyDays, // 기간 코드(ThirtyDays(30일), ThirtyWeeks(30주), ThirtyMonths(30달))
         false, // 수정주가 원주가 가격 여부(수정주가 반영: true)
     ).await;
+
+    // 신규 주문
+    let order_result = api
+        .order
+        .order_cash(
+            OrderClass::Limit,
+            Direction::Bid,
+            "005930",
+            Quantity::from(1),
+            Price::from(50_000),
+            Some(TargetExchange::KRX),
+        )
+        .await;
+    println!("신규 주문 Response: {:?}", order_result);
     
     // 삼성전자 호가 실시간 시세 구독
     let (rx, subscribe_response) = api.k_data.subscribe_market("005930", TrId::RealtimeOrdbKrx).unwrap();

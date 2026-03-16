@@ -91,7 +91,10 @@ impl KoreaInvestmentApi {
         } else if real_auth.get_approval_key().is_none() {
             real_auth.create_approval_key().await?;
         }
-        debug!("실전투자계좌(view용) approval_key: {:?}", auth.get_token());
+        debug!(
+            "실전투자계좌(view용) approval_key: {:?}",
+            auth.get_approval_key()
+        );
 
         let order = stock::order::Korea::new(&client, acc.clone(), auth.clone(), account.clone())?;
         let quote = stock::quote::Quote::new(

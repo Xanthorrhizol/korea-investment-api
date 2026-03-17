@@ -598,14 +598,15 @@ pub enum CreditType {
 
 /// 체결구분
 #[derive(Debug, Clone)]
-#[repr(i32)]
 pub enum ExecClass {
-    /// 매수(1)
-    Bid = 1,
-    /// 장전(3)
-    PreMarket = 3,
-    /// 매도(5)
-    Ask = 5,
+    /// 없음("")
+    None,
+    /// 매수("1")
+    Bid,
+    /// 장전("3")
+    PreMarket,
+    /// 매도("5")
+    Ask,
 }
 
 impl From<&str> for ExecClass {
@@ -614,6 +615,7 @@ impl From<&str> for ExecClass {
             "1" => Self::Bid,
             "3" => Self::PreMarket,
             "5" => Self::Ask,
+            "" => Self::None,
             _ => unreachable!(),
         }
     }

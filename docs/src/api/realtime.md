@@ -25,7 +25,7 @@ pub async fn subscribe_market<T: StreamParser<R> + Send, R: Clone + Send>(
     &mut self,
     tr_key: &str,
     tr_id: TrId,
-) -> Result<(Option<UnboundedReceiver<T>>, SubscribeResponse), Error>
+) -> Result<(Option<broadcast::Receiver<T>>, SubscribeResponse), Error>
 ```
 
 ### 파라미터
@@ -37,16 +37,16 @@ pub async fn subscribe_market<T: StreamParser<R> + Send, R: Clone + Send>(
 
 ### 반환값
 
-- `Option<UnboundedReceiver<T>>`: 새로 생성된 수신 채널. 이미 구독 중이면 `None`
+- `Option<broadcast::Receiver<T>>`: 새로 생성된 수신 채널. 이미 구독 중이면 `None`
 - `SubscribeResponse`: 구독 응답 (성공 여부, 메시지)
 
 ### 예시 — 체결 구독
 
 ```rust
 use korea_investment_api::types::{TrId};
-use korea_investment_api::types::stream::stock::{Exec, ExecRow};
+use korea_investment_api::types::stream::stock::{Exec, exec};
 
-let (rx, response) = api.k_data.subscribe_market::<Exec, ExecRow>(
+let (rx, response) = api.k_data.subscribe_market::<Exec, exec::Body>(
     "005930",
     TrId::RealtimeExecKrx,
 ).await?;
@@ -63,9 +63,9 @@ if let Some(mut rx) = rx {
 ### 예시 — 호가 구독
 
 ```rust
-use korea_investment_api::types::stream::stock::{Ordb, OrdbRow};
+use korea_investment_api::types::stream::stock::{Ordb, ordb};
 
-let (rx, _) = api.k_data.subscribe_market::<Ordb, OrdbRow>(
+let (rx, _) = api.k_data.subscribe_market::<Ordb, ordb::Body>(
     "005930",
     TrId::RealtimeOrdbKrx,
 ).await?;

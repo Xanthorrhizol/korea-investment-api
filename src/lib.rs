@@ -105,7 +105,8 @@ impl KoreaInvestmentApi {
             real_auth.clone(),
         )?;
         let k_data =
-            stock::data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), hts_id)?;
+            stock::data::KoreaStockData::new(acc.clone(), auth.clone(), account.clone(), hts_id)
+                .await?;
         info!("API Ready");
         Ok(Self {
             auth,

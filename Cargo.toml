@@ -40,3 +40,5 @@ tokio-tungstenite = "0.23"
 toml = { version = "0.8.8" }
 url = "2.4.1"
 xan-log = "1.2.0"
+xan-actor = "9.0.1"
+async-trait = "0.1.89"

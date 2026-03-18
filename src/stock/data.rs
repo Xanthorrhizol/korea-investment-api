@@ -1,12 +1,12 @@
 use crate::types::request::stock::subscribe::{SubscribeRequest, TrType};
 use crate::types::response::stock::subscribe::SubscribeResponse;
-use crate::types::stream::stock::{exec, ordb, Exec, MyExec, Ordb, StreamParser};
+use crate::types::stream::stock::{Exec, MyExec, Ordb, StreamParser, exec, ordb};
 use crate::types::{Account, CustomerType, Environment, TrId};
-use crate::{auth, Error};
+use crate::{Error, auth};
 use futures_util::{SinkExt, StreamExt};
 use std::collections::HashMap;
 use std::sync::Arc;
-use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async, tungstenite::Message};
 use xan_actor::prelude::*;
 
 type WsStream = WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>;
@@ -265,7 +265,7 @@ impl KoreaStockData {
                 return Err(Error::WrongTrId(
                     tr_id,
                     "RealtimeExecXXX or RealtimeOrdbXXX",
-                ))
+                ));
             }
         };
 
@@ -377,7 +377,7 @@ impl KoreaStockData {
                 return Err(Error::WrongTrId(
                     tr_id,
                     "RealtimeExecXXX or RealtimeOrdbXXX",
-                ))
+                ));
             }
         };
 
@@ -557,7 +557,7 @@ where
         let (ws_stream, _) = connect_async(&url).await.unwrap();
         let (mut write, mut read) = ws_stream.split();
 
-        let (tx, rx) = tokio::sync::broadcast::channel(50);
+        let (tx, rx) = tokio::sync::broadcast::channel(4096);
         let (cmd_tx, mut cmd_rx) = tokio::sync::mpsc::unbounded_channel::<(
             Arc<DataStreamCmdMessage>,
             tokio::sync::oneshot::Sender<(

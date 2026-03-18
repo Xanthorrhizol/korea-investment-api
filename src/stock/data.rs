@@ -554,7 +554,7 @@ where
         personalseckey: String,
         environment: Environment,
     ) -> DataStreamActor<T, R> {
-        let (ws_stream, _) = connect_async(&url).await.unwrap();
+        let (ws_stream, _) = connect_async(&url).await.expect("Failed to connect");
         let (mut write, mut read) = ws_stream.split();
 
         let (tx, rx) = tokio::sync::broadcast::channel(4096);

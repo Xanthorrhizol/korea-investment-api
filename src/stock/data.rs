@@ -239,22 +239,6 @@ impl KoreaStockData {
         })
     }
 
-    /// TrId로부터 해당 WebSocket endpoint URL을 반환하는 헬퍼 메서드
-    fn market_url(&self, tr_id: &TrId) -> Result<String, Error> {
-        match tr_id {
-            TrId::RealtimeExecKrx => Ok(self.krx_exec_url.clone()),
-            TrId::RealtimeOrdbKrx => Ok(self.krx_ordb_url.clone()),
-            TrId::RealtimeExecNxt => Ok(self.nxt_exec_url.clone()),
-            TrId::RealtimeOrdbNxt => Ok(self.nxt_ordb_url.clone()),
-            TrId::RealtimeExecUnion => Ok(self.union_exec_url.clone()),
-            TrId::RealtimeOrdbUnion => Ok(self.union_ordb_url.clone()),
-            _ => Err(Error::WrongTrId(
-                tr_id.clone(),
-                "RealtimeExecXXX or RealtimeOrdbXXX",
-            )),
-        }
-    }
-
     /// 종목 시세 구독
     pub async fn subscribe_market<
         T: StreamParser<R> + Send + Clone,
@@ -373,24 +357,38 @@ impl KoreaStockData {
         let cmd = DataStreamCmdMessage::Unsubscribe(tr_key.to_string(), tr_id.clone());
 
         let result = match tr_id {
-            TrId::RealtimeExecKrx | TrId::RealtimeExecNxt | TrId::RealtimeExecUnion => {
-                self.actor_system
-                    .send_and_recv::<DataStreamActor<Exec, exec::Body>>(url, cmd)
-                    .await
-                    .ok()
-                    .map(|(_rx, r)| r)
-            }
-            TrId::RealtimeOrdbKrx | TrId::RealtimeOrdbNxt | TrId::RealtimeOrdbUnion => {
-                self.actor_system
-                    .send_and_recv::<DataStreamActor<Ordb, ordb::Body>>(url, cmd)
-                    .await
-                    .ok()
-                    .map(|(_rx, r)| r)
-            }
+            TrId::RealtimeExecKrx | TrId::RealtimeExecNxt | TrId::RealtimeExecUnion => self
+                .actor_system
+                .send_and_recv::<DataStreamActor<Exec, exec::Body>>(url, cmd)
+                .await
+                .ok()
+                .map(|(_rx, r)| r),
+            TrId::RealtimeOrdbKrx | TrId::RealtimeOrdbNxt | TrId::RealtimeOrdbUnion => self
+                .actor_system
+                .send_and_recv::<DataStreamActor<Ordb, ordb::Body>>(url, cmd)
+                .await
+                .ok()
+                .map(|(_rx, r)| r),
             _ => None,
         };
 
         Ok(result.unwrap_or_else(|| SubscribeResponse::new(false, "".to_string(), None, None)))
+    }
+
+    /// TrId로부터 해당 WebSocket endpoint URL을 반환하는 헬퍼 메서드
+    fn market_url(&self, tr_id: &TrId) -> Result<String, Error> {
+        match tr_id {
+            TrId::RealtimeExecKrx => Ok(self.krx_exec_url.clone()),
+            TrId::RealtimeOrdbKrx => Ok(self.krx_ordb_url.clone()),
+            TrId::RealtimeExecNxt => Ok(self.nxt_exec_url.clone()),
+            TrId::RealtimeOrdbNxt => Ok(self.nxt_ordb_url.clone()),
+            TrId::RealtimeExecUnion => Ok(self.union_exec_url.clone()),
+            TrId::RealtimeOrdbUnion => Ok(self.union_ordb_url.clone()),
+            _ => Err(Error::WrongTrId(
+                tr_id.clone(),
+                "RealtimeExecXXX or RealtimeOrdbXXX",
+            )),
+        }
     }
 }
 

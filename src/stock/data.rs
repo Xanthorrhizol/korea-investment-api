@@ -254,20 +254,7 @@ impl KoreaStockData {
         ),
         Error,
     > {
-        let url = match tr_id {
-            TrId::RealtimeExecKrx => self.krx_exec_url.clone(),
-            TrId::RealtimeOrdbKrx => self.krx_ordb_url.clone(),
-            TrId::RealtimeExecNxt => self.nxt_exec_url.clone(),
-            TrId::RealtimeOrdbNxt => self.nxt_ordb_url.clone(),
-            TrId::RealtimeExecUnion => self.union_exec_url.clone(),
-            TrId::RealtimeOrdbUnion => self.union_ordb_url.clone(),
-            _ => {
-                return Err(Error::WrongTrId(
-                    tr_id,
-                    "RealtimeExecXXX or RealtimeOrdbXXX",
-                ));
-            }
-        };
+        let url = self.market_url(&tr_id)?;
 
         if let Ok((rx, result)) = self
             .actor_system
@@ -366,97 +353,42 @@ impl KoreaStockData {
         tr_key: &str,
         tr_id: TrId,
     ) -> Result<SubscribeResponse, Error> {
-        let url = match tr_id {
-            TrId::RealtimeExecKrx => self.krx_exec_url.clone(),
-            TrId::RealtimeOrdbKrx => self.krx_ordb_url.clone(),
-            TrId::RealtimeExecNxt => self.nxt_exec_url.clone(),
-            TrId::RealtimeOrdbNxt => self.nxt_ordb_url.clone(),
-            TrId::RealtimeExecUnion => self.union_exec_url.clone(),
-            TrId::RealtimeOrdbUnion => self.union_ordb_url.clone(),
-            _ => {
-                return Err(Error::WrongTrId(
-                    tr_id,
-                    "RealtimeExecXXX or RealtimeOrdbXXX",
-                ));
-            }
+        let url = self.market_url(&tr_id)?;
+        let cmd = DataStreamCmdMessage::Unsubscribe(tr_key.to_string(), tr_id.clone());
+
+        let result = match tr_id {
+            TrId::RealtimeExecKrx | TrId::RealtimeExecNxt | TrId::RealtimeExecUnion => self
+                .actor_system
+                .send_and_recv::<DataStreamActor<Exec, exec::Body>>(url, cmd)
+                .await
+                .ok()
+                .map(|(_rx, r)| r),
+            TrId::RealtimeOrdbKrx | TrId::RealtimeOrdbNxt | TrId::RealtimeOrdbUnion => self
+                .actor_system
+                .send_and_recv::<DataStreamActor<Ordb, ordb::Body>>(url, cmd)
+                .await
+                .ok()
+                .map(|(_rx, r)| r),
+            _ => None,
         };
 
+        Ok(result.unwrap_or_else(|| SubscribeResponse::new(false, "".to_string(), None, None)))
+    }
+
+    /// TrId로부터 해당 WebSocket endpoint URL을 반환하는 헬퍼 메서드
+    fn market_url(&self, tr_id: &TrId) -> Result<String, Error> {
         match tr_id {
-            TrId::RealtimeExecKrx => {
-                if let Ok((_rx, result)) = self
-                    .actor_system
-                    .send_and_recv::<DataStreamActor<Exec, exec::Body>>(
-                        url,
-                        DataStreamCmdMessage::Unsubscribe(tr_key.to_string(), tr_id),
-                    )
-                    .await
-                {
-                    return Ok(result);
-                }
-            }
-            TrId::RealtimeOrdbKrx => {
-                if let Ok((_rx, result)) = self
-                    .actor_system
-                    .send_and_recv::<DataStreamActor<Ordb, ordb::Body>>(
-                        url,
-                        DataStreamCmdMessage::Unsubscribe(tr_key.to_string(), tr_id),
-                    )
-                    .await
-                {
-                    return Ok(result);
-                }
-            }
-            TrId::RealtimeExecNxt => {
-                if let Ok((_rx, result)) = self
-                    .actor_system
-                    .send_and_recv::<DataStreamActor<Exec, exec::Body>>(
-                        url,
-                        DataStreamCmdMessage::Unsubscribe(tr_key.to_string(), tr_id),
-                    )
-                    .await
-                {
-                    return Ok(result);
-                }
-            }
-            TrId::RealtimeOrdbNxt => {
-                if let Ok((_rx, result)) = self
-                    .actor_system
-                    .send_and_recv::<DataStreamActor<Ordb, ordb::Body>>(
-                        url,
-                        DataStreamCmdMessage::Unsubscribe(tr_key.to_string(), tr_id),
-                    )
-                    .await
-                {
-                    return Ok(result);
-                }
-            }
-            TrId::RealtimeExecUnion => {
-                if let Ok((_rx, result)) = self
-                    .actor_system
-                    .send_and_recv::<DataStreamActor<Exec, exec::Body>>(
-                        url,
-                        DataStreamCmdMessage::Unsubscribe(tr_key.to_string(), tr_id),
-                    )
-                    .await
-                {
-                    return Ok(result);
-                }
-            }
-            TrId::RealtimeOrdbUnion => {
-                if let Ok((_rx, result)) = self
-                    .actor_system
-                    .send_and_recv::<DataStreamActor<Ordb, ordb::Body>>(
-                        url,
-                        DataStreamCmdMessage::Unsubscribe(tr_key.to_string(), tr_id),
-                    )
-                    .await
-                {
-                    return Ok(result);
-                }
-            }
-            _ => {}
+            TrId::RealtimeExecKrx => Ok(self.krx_exec_url.clone()),
+            TrId::RealtimeOrdbKrx => Ok(self.krx_ordb_url.clone()),
+            TrId::RealtimeExecNxt => Ok(self.nxt_exec_url.clone()),
+            TrId::RealtimeOrdbNxt => Ok(self.nxt_ordb_url.clone()),
+            TrId::RealtimeExecUnion => Ok(self.union_exec_url.clone()),
+            TrId::RealtimeOrdbUnion => Ok(self.union_ordb_url.clone()),
+            _ => Err(Error::WrongTrId(
+                tr_id.clone(),
+                "RealtimeExecXXX or RealtimeOrdbXXX",
+            )),
         }
-        Ok(SubscribeResponse::new(false, "".to_string(), None, None))
     }
 }
 

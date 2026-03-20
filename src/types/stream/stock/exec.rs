@@ -1,15 +1,15 @@
 use super::{Header, StreamParser};
+use crate::Error;
 use crate::types::{
-    parse_bool, ExecClass, MarketOperationClassCode, MarketTerminationClassCode, Time,
-    TimeClassCode, VsPriceSign,
+    ExecClass, MarketOperationClassCode, MarketTerminationClassCode, Time, TimeClassCode,
+    VsPriceSign, parse_bool,
 };
 use crate::util::get_json_inner;
-use crate::Error;
 
 #[derive(Debug, Clone)]
 pub struct Exec {
     header: Header,
-    body: Option<Body>,
+    body: Vec<Body>,
 }
 
 unsafe impl Send for Exec {}
@@ -18,13 +18,19 @@ impl StreamParser<Body> for Exec {
     fn parse(s: String) -> Result<Self, Error> {
         if let Ok(j) = json::parse(&s) {
             let header = Header {
-                tr_id: get_json_inner(&j, "header.tr_id")?.as_str().ok_or(crate::Error::InvalidData)?.parse()?,
+                tr_id: get_json_inner(&j, "header.tr_id")?
+                    .as_str()
+                    .ok_or(crate::Error::InvalidData)?
+                    .parse()?,
                 datetime: Time::parse(
                     get_json_inner(&j, "header.datetime")?.as_str().unwrap(),
                     "%Y%m%d%H%M%S",
                 )?,
             };
-            Ok(Self { header, body: None })
+            Ok(Self {
+                header,
+                body: Vec::new(),
+            })
         } else {
             let splits = s.split('^').collect::<Vec<&str>>();
             let business_operation_date = splits[33];
@@ -34,73 +40,97 @@ impl StreamParser<Body> for Exec {
                 &(business_operation_date.to_string() + splits[1]),
                 "%Y%m%d%H%M%S",
             )?;
+            let tr_id = header_str[1].parse()?;
+
+            let column_count = Self::get_column_count(&tr_id);
             let header = Header {
-                tr_id: header_str[1].parse()?,
+                tr_id,
                 datetime: exec_time.clone(),
             };
             let body = if encrypted {
-                None // TODO
+                Vec::new() // TODO
             } else {
-                Some(Body {
-                    shortcode: header_str[3].to_string(),
-                    exec_time,
-                    current_price: splits[2].parse()?,
-                    price_sign_vs_yesterday: splits[3].into(),
-                    price_vs_yesterday: splits[4].parse()?,
-                    price_rate_vs_yesterday: splits[5].parse()?,
-                    weighted_average_price: splits[6].parse()?,
-                    market_price: splits[7].parse()?,
-                    market_upper_price: splits[8].parse()?,
-                    market_lower_price: splits[9].parse()?,
-                    ask_price: splits[10].parse()?,
-                    bid_price: splits[11].parse()?,
-                    exec_volume: splits[12].parse()?,
-                    accumulative_exec_volume: splits[13].parse()?,
-                    accumulative_exec_amount: splits[14].parse()?,
-                    ask_exec_count: splits[15].parse()?,
-                    bid_exec_count: splits[16].parse()?,
-                    natural_bid_exec_count: splits[17].parse()?,
-                    volume_power: splits[18].parse()?,
-                    total_ask_exec_volume: splits[19].parse()?,
-                    total_bid_exec_volume: splits[20].parse()?,
-                    exec_class: splits[21].into(),
-                    bid_rate: splits[22].parse()?,
-                    exec_volume_rate_vs_yesterday: splits[23].parse()?,
-                    market_price_time: Time::parse(
-                        &(business_operation_date.to_string() + splits[24]),
-                        "%Y%m%d%H%M%S",
-                    )?,
-                    vs_market_price_sign: splits[25].into(),
-                    vs_market_price: splits[26].parse()?,
-                    upper_price_time: Time::parse(
-                        &(business_operation_date.to_string() + splits[27]),
-                        "%Y%m%d%H%M%S",
-                    )?,
-                    vs_upper_price_sign: splits[28].into(),
-                    vs_upper_price: splits[29].parse()?,
-                    lower_price_time: Time::parse(
-                        &(business_operation_date.to_string() + splits[30]),
-                        "%Y%m%d%H%M%S",
-                    )?,
-                    vs_lower_price_sign: splits[31].into(),
-                    vs_lower_price: splits[32].parse()?,
-                    business_operation_date: Time::parse(
-                        &(splits[33].to_string() + "000000"),
-                        "%Y%m%d%H%M%S",
-                    )?,
-                    new_market_operation_class_code: splits[34].into(),
-                    trade_suspended: parse_bool(splits[35]),
-                    ask_order_remained: splits[36].parse()?,
-                    bid_order_remained: splits[37].parse()?,
-                    total_ask_order_remained: splits[38].parse()?,
-                    total_bid_order_remained: splits[39].parse()?,
-                    turnover_ratio: splits[40].parse()?,
-                    yesterday_symmetric_time_accumulate_volume: splits[41].parse()?,
-                    yesterday_symmetric_time_accumulate_volume_rate: splits[42].parse()?,
-                    time_class_code: splits[43].into(),
-                    market_termination_class_code: splits[44].into(),
-                    vi_standard_price: splits[45].parse().unwrap_or_else(|_| 0),
-                })
+                if let Ok(count) = header_str[2].parse() {
+                    let mut bodies = Vec::with_capacity(count);
+                    for i in 0..count {
+                        let exec_time = Time::parse(
+                            &(business_operation_date.to_string() + splits[i * column_count + 1]),
+                            "%Y%m%d%H%M%S",
+                        )?;
+                        bodies.push(Body {
+                            shortcode: header_str[3].to_string(),
+                            exec_time,
+                            current_price: splits[i * column_count + 2].parse()?,
+                            price_sign_vs_yesterday: splits[i * column_count + 3].into(),
+                            price_vs_yesterday: splits[i * column_count + 4].parse()?,
+                            price_rate_vs_yesterday: splits[i * column_count + 5].parse()?,
+                            weighted_average_price: splits[i * column_count + 6].parse()?,
+                            market_price: splits[i * column_count + 7].parse()?,
+                            market_upper_price: splits[i * column_count + 8].parse()?,
+                            market_lower_price: splits[i * column_count + 9].parse()?,
+                            ask_price: splits[i * column_count + 10].parse()?,
+                            bid_price: splits[i * column_count + 11].parse()?,
+                            exec_volume: splits[i * column_count + 12].parse()?,
+                            accumulative_exec_volume: splits[i * column_count + 13].parse()?,
+                            accumulative_exec_amount: splits[i * column_count + 14].parse()?,
+                            ask_exec_count: splits[i * column_count + 15].parse()?,
+                            bid_exec_count: splits[i * column_count + 16].parse()?,
+                            natural_bid_exec_count: splits[i * column_count + 17].parse()?,
+                            volume_power: splits[i * column_count + 18].parse()?,
+                            total_ask_exec_volume: splits[i * column_count + 19].parse()?,
+                            total_bid_exec_volume: splits[i * column_count + 20].parse()?,
+                            exec_class: splits[i * column_count + 21].into(),
+                            bid_rate: splits[i * column_count + 22].parse()?,
+                            exec_volume_rate_vs_yesterday: splits[i * column_count + 23].parse()?,
+                            market_price_time: Time::parse(
+                                &(business_operation_date.to_string()
+                                    + splits[i * column_count + 24]),
+                                "%Y%m%d%H%M%S",
+                            )?,
+                            vs_market_price_sign: splits[i * column_count + 25].into(),
+                            vs_market_price: splits[i * column_count + 26].parse()?,
+                            upper_price_time: Time::parse(
+                                &(business_operation_date.to_string()
+                                    + splits[i * column_count + 27]),
+                                "%Y%m%d%H%M%S",
+                            )?,
+                            vs_upper_price_sign: splits[i * column_count + 28].into(),
+                            vs_upper_price: splits[i * column_count + 29].parse()?,
+                            lower_price_time: Time::parse(
+                                &(business_operation_date.to_string()
+                                    + splits[i * column_count + 30]),
+                                "%Y%m%d%H%M%S",
+                            )?,
+                            vs_lower_price_sign: splits[i * column_count + 31].into(),
+                            vs_lower_price: splits[i * column_count + 32].parse()?,
+                            business_operation_date: Time::parse(
+                                &(splits[i * column_count + 33].to_string() + "000000"),
+                                "%Y%m%d%H%M%S",
+                            )?,
+                            new_market_operation_class_code: splits[i * column_count + 34].into(),
+                            trade_suspended: parse_bool(splits[i * column_count + 35]),
+                            ask_order_remained: splits[i * column_count + 36].parse()?,
+                            bid_order_remained: splits[i * column_count + 37].parse()?,
+                            total_ask_order_remained: splits[i * column_count + 38].parse()?,
+                            total_bid_order_remained: splits[i * column_count + 39].parse()?,
+                            turnover_ratio: splits[i * column_count + 40].parse()?,
+                            yesterday_symmetric_time_accumulate_volume: splits
+                                [i * column_count + 41]
+                                .parse()?,
+                            yesterday_symmetric_time_accumulate_volume_rate: splits
+                                [i * column_count + 42]
+                                .parse()?,
+                            time_class_code: splits[i * column_count + 43].into(),
+                            market_termination_class_code: splits[i * column_count + 44].into(),
+                            vi_standard_price: splits[i * column_count + 45]
+                                .parse()
+                                .unwrap_or_else(|_| 0),
+                        });
+                    }
+                    bodies
+                } else {
+                    Vec::new()
+                }
             };
             Ok(Self { header, body })
         }
@@ -110,7 +140,7 @@ impl StreamParser<Body> for Exec {
         &self.header
     }
 
-    fn body(&self) -> &Option<Body> {
+    fn body(&self) -> &Vec<Body> {
         &self.body
     }
 }

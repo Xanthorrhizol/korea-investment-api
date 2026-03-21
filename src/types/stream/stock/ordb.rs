@@ -37,7 +37,7 @@ impl StreamParser<Body> for Ordb {
             let header_str = splits[0].split('|').collect::<Vec<&str>>();
             let encrypted = header_str[0] == "1";
             let time = Time::parse(
-                &(business_operation_date.to_string() + splits[1]),
+                &(business_operation_date.clone() + splits[1]),
                 "%Y%m%d%H%M%S",
             )?;
             let tr_id = header_str[1].parse()?;
@@ -53,7 +53,7 @@ impl StreamParser<Body> for Ordb {
                     let mut bodies = Vec::with_capacity(count);
                     for i in 0..count {
                         let time = Time::parse(
-                            &(business_operation_date.to_string() + splits[i * column_count + 1]),
+                            &(business_operation_date.clone() + splits[i * column_count + 1]),
                             "%Y%m%d%H%M%S",
                         )?;
                         let ask_price = {
@@ -137,22 +137,22 @@ impl StreamParser<Body> for Ordb {
                                 _ => unreachable!(),
                             },
                             nxt_mid_price: match tr_id {
-                                TrId::RealtimeOrdbNxt => None,
-                                TrId::RealtimeOrdbKrx | TrId::RealtimeOrdbUnion => {
+                                TrId::RealtimeOrdbKrx => None,
+                                TrId::RealtimeOrdbNxt | TrId::RealtimeOrdbUnion => {
                                     Some(splits[i * column_count + 62].parse()?)
                                 }
                                 _ => unreachable!(),
                             },
                             nxt_mid_total_remained: match tr_id {
-                                TrId::RealtimeOrdbNxt => None,
-                                TrId::RealtimeOrdbKrx | TrId::RealtimeOrdbUnion => {
+                                TrId::RealtimeOrdbKrx => None,
+                                TrId::RealtimeOrdbNxt | TrId::RealtimeOrdbUnion => {
                                     Some(splits[i * column_count + 63].parse()?)
                                 }
                                 _ => unreachable!(),
                             },
                             nxt_mid_class_code: match tr_id {
-                                TrId::RealtimeOrdbNxt => None,
-                                TrId::RealtimeOrdbKrx | TrId::RealtimeOrdbUnion => {
+                                TrId::RealtimeOrdbKrx => None,
+                                TrId::RealtimeOrdbNxt | TrId::RealtimeOrdbUnion => {
                                     Some(splits[i * column_count + 64].into())
                                 }
                                 _ => unreachable!(),

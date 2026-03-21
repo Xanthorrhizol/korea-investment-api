@@ -37,7 +37,7 @@ impl StreamParser<Body> for Exec {
             let header_str = splits[0].split('|').collect::<Vec<&str>>();
             let encrypted = header_str[0] == "1";
             let exec_time = Time::parse(
-                &(business_operation_date.clone() + splits[1]),
+                &(business_operation_date.to_string() + splits[1]),
                 "%Y%m%d%H%M%S",
             )?;
             let tr_id = header_str[1].parse()?;
@@ -54,7 +54,7 @@ impl StreamParser<Body> for Exec {
                     let mut bodies = Vec::with_capacity(count);
                     for i in 0..count {
                         let exec_time = Time::parse(
-                            &(business_operation_date.clone() + splits[i * column_count + 1]),
+                            &(business_operation_date.to_string() + splits[i * column_count + 1]),
                             "%Y%m%d%H%M%S",
                         )?;
                         bodies.push(Body {
@@ -83,25 +83,28 @@ impl StreamParser<Body> for Exec {
                             bid_rate: splits[i * column_count + 22].parse()?,
                             exec_volume_rate_vs_yesterday: splits[i * column_count + 23].parse()?,
                             market_price_time: Time::parse(
-                                &(business_operation_date.clone() + splits[i * column_count + 24]),
+                                &(business_operation_date.to_string()
+                                    + splits[i * column_count + 24]),
                                 "%Y%m%d%H%M%S",
                             )?,
                             vs_market_price_sign: splits[i * column_count + 25].into(),
                             vs_market_price: splits[i * column_count + 26].parse()?,
                             upper_price_time: Time::parse(
-                                &(business_operation_date.clone() + splits[i * column_count + 27]),
+                                &(business_operation_date.to_string()
+                                    + splits[i * column_count + 27]),
                                 "%Y%m%d%H%M%S",
                             )?,
                             vs_upper_price_sign: splits[i * column_count + 28].into(),
                             vs_upper_price: splits[i * column_count + 29].parse()?,
                             lower_price_time: Time::parse(
-                                &(business_operation_date.clone() + splits[i * column_count + 30]),
+                                &(business_operation_date.to_string()
+                                    + splits[i * column_count + 30]),
                                 "%Y%m%d%H%M%S",
                             )?,
                             vs_lower_price_sign: splits[i * column_count + 31].into(),
                             vs_lower_price: splits[i * column_count + 32].parse()?,
                             business_operation_date: Time::parse(
-                                &(splits[i * column_count + 33].clone() + "000000"),
+                                &(splits[i * column_count + 33].to_string() + "000000"),
                                 "%Y%m%d%H%M%S",
                             )?,
                             new_market_operation_class_code: splits[i * column_count + 34].into(),

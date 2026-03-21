@@ -1,6 +1,6 @@
 use super::{Header, StreamParser};
 use crate::Error;
-use crate::types::{DealClassCode, Time, TimeClassCode, VsPriceSign};
+use crate::types::{Direction, Time, TimeClassCode, TrId, VsPriceSign};
 use crate::util::get_json_inner;
 
 #[derive(Debug, Clone)]
@@ -96,11 +96,15 @@ impl StreamParser<Body> for Ordb {
                             total_bid_order_remained: splits[i * column_count + 44].parse()?,
                             total_otc_ask_order_remained: splits[i * column_count + 45].parse()?,
                             total_otc_bid_order_remained: splits[i * column_count + 46].parse()?,
-                            predicted_exec_price: splits[i * column_count + 47].parse()?,
-                            predicted_exec_quantity: splits[i * column_count + 48].parse()?,
-                            predicted_volume: splits[i * column_count + 49].parse()?,
-                            predicted_vs_exec: splits[i * column_count + 50].parse()?,
-                            predicted_vs_exec_sign: splits[i * column_count + 51].into(),
+                            predicted_exec_price: splits[i * column_count + 47].parse().ok(),
+                            predicted_exec_quantity: splits[i * column_count + 48].parse().ok(),
+                            predicted_volume: splits[i * column_count + 49].parse().ok(),
+                            predicted_vs_exec: splits[i * column_count + 50].parse().ok(),
+                            predicted_vs_exec_sign: if splits[i * column_count + 51].is_empty() {
+                                None
+                            } else {
+                                Some(splits[i * column_count + 51].into())
+                            },
                             predicted_exec_price_rate_vs_yesterday: splits[i * column_count + 52]
                                 .parse()?,
                             accumulative_exec_volume: splits[i * column_count + 53].parse()?,
@@ -110,7 +114,49 @@ impl StreamParser<Body> for Ordb {
                                 .parse()?,
                             total_otc_bid_order_remained_diff: splits[i * column_count + 57]
                                 .parse()?,
-                            stock_deal_class_code: splits[i * column_count + 58].into(),
+                            // 58th is filler
+                            krx_mid_price: match tr_id {
+                                TrId::RealtimeOrdbKrx => None,
+                                TrId::RealtimeOrdbNxt | TrId::RealtimeOrdbUnion => {
+                                    Some(splits[i * column_count + 59].parse()?)
+                                }
+                                _ => unreachable!(),
+                            },
+                            krx_mid_total_remained: match tr_id {
+                                TrId::RealtimeOrdbKrx => None,
+                                TrId::RealtimeOrdbNxt | TrId::RealtimeOrdbUnion => {
+                                    Some(splits[i * column_count + 60].parse()?)
+                                }
+                                _ => unreachable!(),
+                            },
+                            krx_mid_class_code: match tr_id {
+                                TrId::RealtimeOrdbKrx => None,
+                                TrId::RealtimeOrdbNxt | TrId::RealtimeOrdbUnion => {
+                                    Some(splits[i * column_count + 61].into())
+                                }
+                                _ => unreachable!(),
+                            },
+                            nxt_mid_price: match tr_id {
+                                TrId::RealtimeOrdbNxt => None,
+                                TrId::RealtimeOrdbKrx | TrId::RealtimeOrdbUnion => {
+                                    Some(splits[i * column_count + 62].parse()?)
+                                }
+                                _ => unreachable!(),
+                            },
+                            nxt_mid_total_remained: match tr_id {
+                                TrId::RealtimeOrdbNxt => None,
+                                TrId::RealtimeOrdbKrx | TrId::RealtimeOrdbUnion => {
+                                    Some(splits[i * column_count + 63].parse()?)
+                                }
+                                _ => unreachable!(),
+                            },
+                            nxt_mid_class_code: match tr_id {
+                                TrId::RealtimeOrdbNxt => None,
+                                TrId::RealtimeOrdbKrx | TrId::RealtimeOrdbUnion => {
+                                    Some(splits[i * column_count + 64].into())
+                                }
+                                _ => unreachable!(),
+                            },
                         });
                     }
                     bodies
@@ -156,15 +202,15 @@ pub struct Body {
     /// OVTM_TOTAL_ASKP_RSQN(시간외 총 매수호가 잔량)
     pub total_otc_bid_order_remained: u64,
     /// ANTC_CNPR(예상 체결가)
-    pub predicted_exec_price: u32,
+    pub predicted_exec_price: Option<u32>,
     /// ANTC_CNQN(예상 체결량)
-    pub predicted_exec_quantity: u64,
+    pub predicted_exec_quantity: Option<u64>,
     /// ANTC_VOL(예상 거래량)
-    pub predicted_volume: u64,
+    pub predicted_volume: Option<u64>,
     /// ANTC_CNTG_VRSS(예상 체결 대비)
-    pub predicted_vs_exec: i32,
+    pub predicted_vs_exec: Option<i32>,
     /// ANTC_CNTG_VRSS_SIGN(예상 체결 대비 부호)
-    pub predicted_vs_exec_sign: VsPriceSign,
+    pub predicted_vs_exec_sign: Option<VsPriceSign>,
     /// ANTC_CNTG_PRDY_CTRT(예상 체결 전일 대비율)
     pub predicted_exec_price_rate_vs_yesterday: f32,
     /// ACML_VOL(누적 거래량) - Exture 3.0에서 제거됨 -> 0
@@ -177,6 +223,16 @@ pub struct Body {
     pub total_otc_ask_order_remained_diff: i64,
     /// OVTM_TOTAL_BIDP_RSQN_ICDC(시간외 총 매수호가 잔량 증감)
     pub total_otc_bid_order_remained_diff: i64,
-    /// STCK_DEAL_CLS_CODE(주식 매매 구분 코드)
-    pub stock_deal_class_code: DealClassCode,
+    /// KMID_PRC(KRX 중간가)
+    pub krx_mid_price: Option<u32>,
+    /// KMID_TOTAL_RSQN(KRX 중간가잔량합계수량)
+    pub krx_mid_total_remained: Option<u64>,
+    /// KMID_CLS_CODE(KRX 중간가 매수매도 구분)
+    pub krx_mid_class_code: Option<Direction>,
+    /// NMID_PRC(NXT 중간가)
+    pub nxt_mid_price: Option<u32>,
+    /// NMID_TOTAL_RSQN(NXT 중간가잔량합계수량)
+    pub nxt_mid_total_remained: Option<u64>,
+    /// NMID_CLS_CODE(NXT 중간가 매수매도 구분)
+    pub nxt_mid_class_code: Option<Direction>,
 }

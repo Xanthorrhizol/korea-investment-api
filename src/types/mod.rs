@@ -684,18 +684,6 @@ impl From<&str> for TimeClassCode {
     }
 }
 
-/// 매매구분코드
-// TODO: check and find what it is
-#[derive(Debug, Clone)]
-pub enum DealClassCode {
-    IDK(String),
-}
-impl From<&str> for DealClassCode {
-    fn from(s: &str) -> Self {
-        Self::IDK(s.to_string())
-    }
-}
-
 /// 임의종료구분코드
 // TODO: check
 #[derive(Debug, Clone)]

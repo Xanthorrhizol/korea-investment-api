@@ -3,8 +3,8 @@ pub mod my_exec;
 pub mod ordb;
 
 use crate::{
-    types::{Time, TrId},
     Error,
+    types::{Time, TrId},
 };
 pub use exec::Exec;
 pub use my_exec::MyExec;
@@ -32,5 +32,16 @@ where
 {
     fn parse(s: String) -> Result<Self, Error>;
     fn header(&self) -> &Header;
-    fn body(&self) -> &Option<T>;
+    fn body(&self) -> &Vec<T>;
+    fn get_column_count(tr_id: &TrId) -> usize {
+        match *tr_id {
+            TrId::RealtimeExecKrx => 46,
+            TrId::RealtimeOrdbKrx => 59,
+            TrId::RealtimeExecNxt => 46,
+            TrId::RealtimeOrdbNxt => 65,
+            TrId::RealtimeExecUnion => 46,
+            TrId::RealtimeOrdbUnion => 65,
+            _ => 0,
+        }
+    }
 }

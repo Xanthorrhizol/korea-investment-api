@@ -393,7 +393,7 @@ impl KoreaStockData {
     }
 }
 
-async fn parse_subscribe_response(
+fn parse_subscribe_response(
     msg: &json::JsonValue,
 ) -> Result<Option<SubscribeResponse>, json::Error> {
     let mut result = SubscribeResponse::new(
@@ -461,7 +461,7 @@ async fn recv_subscribe_response(
         match msg {
             Ok(Message::Text(s)) => {
                 let json_value = json::parse(&s)?;
-                match parse_subscribe_response(&json_value).await {
+                match parse_subscribe_response(&json_value) {
                     Ok(Some(result)) => {
                         return Ok(result);
                     }
@@ -570,7 +570,7 @@ where
                             Some(Ok(Message::Text(s))) => {
                                 debug!("Get message from stream={:?}", s);
                                 if let Ok(j) = json::parse(&s) {
-                                    match parse_subscribe_response(&j).await {
+                                    match parse_subscribe_response(&j) {
                                         Ok(Some(result)) => {
                                             let result_tx = result_tx_map.remove(result.tr_key()).expect("Failed to get result tx");
                                             result_tx.send((Some(rx.resubscribe()), result)).expect("Failed to send result");

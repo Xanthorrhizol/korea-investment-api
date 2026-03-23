@@ -155,6 +155,8 @@ pub enum Error {
     TomlSerializeError(#[from] toml::ser::Error),
     #[error(transparent)]
     IoError(#[from] std::io::Error),
+    #[error(transparent)]
+    ActorError(#[from] xan_actor::ActorError),
     // custom
     #[error("Auth init failed - None value in {0}")]
     AuthInitFailed(&'static str),

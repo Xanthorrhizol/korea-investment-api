@@ -364,13 +364,13 @@ impl KoreaStockData {
         match tr_id {
             TrId::RealtimeExecKrx | TrId::RealtimeExecNxt | TrId::RealtimeExecUnion => {
                 self.actor_system
-                    .send::<DataStreamActor<Exec, exec::Body>>(url, cmd)
-                    .await?
+                    .send_and_recv::<DataStreamActor<Exec, exec::Body>>(url, cmd)
+                    .await?;
             }
             TrId::RealtimeOrdbKrx | TrId::RealtimeOrdbNxt | TrId::RealtimeOrdbUnion => {
                 self.actor_system
-                    .send::<DataStreamActor<Ordb, ordb::Body>>(url, cmd)
-                    .await?
+                    .send_and_recv::<DataStreamActor<Ordb, ordb::Body>>(url, cmd)
+                    .await?;
             }
             _ => {}
         }
@@ -413,7 +413,15 @@ fn parse_subscribe_response(
                     if let Some(result_tr) = o.get("tr_id") {
                         if &result_tr.to_string() == "PINGPONG" {
                             return Ok(None);
+                        } else {
+                            result.set_tr_id(
+                                TrId::from_str(&result_tr.to_string())
+                                    .expect("Failed to parse tr_id"),
+                            );
                         }
+                    }
+                    if let Some(s) = o.get("tr_key") {
+                        result.set_tr_key(s.to_string());
                     }
                 }
             }
@@ -426,16 +434,6 @@ fn parse_subscribe_response(
                                 result.set_success(true);
                             }
                             result.set_msg(s);
-                        }
-                        if let Some(json::JsonValue::Object(o)) = o.get("header") {
-                            if let Some(s) = o.get("tr_id") {
-                                result.set_tr_id(
-                                    TrId::from_str(&s.to_string()).expect("Failed to parse tr_id"),
-                                );
-                            }
-                            if let Some(s) = o.get("tr_key") {
-                                result.set_tr_key(s.to_string());
-                            }
                         }
                         if let Some(json::JsonValue::Object(o)) = o.get("output") {
                             if let Some(s) = o.get("iv") {
@@ -556,7 +554,7 @@ where
         tokio::spawn(async move {
             let rx = rx_clone;
             let mut result_tx_map: HashMap<
-                String,
+                (TrId, String),
                 tokio::sync::oneshot::Sender<(
                     Option<tokio::sync::broadcast::Receiver<T>>,
                     SubscribeResponse,
@@ -574,7 +572,7 @@ where
                                 if let Ok(j) = json::parse(&s) {
                                     match parse_subscribe_response(&j) {
                                         Ok(Some(result)) => {
-                                            if let Some(result_tx) = result_tx_map.remove(result.tr_key()) {
+                                            if let Some(result_tx) = result_tx_map.remove(&(result.tr_id().clone(), result.tr_key().clone())) {
                                                 if let Err(e) = result_tx.send((Some(rx.resubscribe()), result)) {
                                                     error!("Failed to send result: {:?}", e);
                                                 }
@@ -622,10 +620,10 @@ where
                                     TrType::Register,
                                 )
                                 .get_json_string();
+                                result_tx_map.insert((tr_id.clone(), tr_key.clone()), result_tx);
                                 crate::wait(environment).await;
                                 let _ = write.send(Message::Text(msg_str)).await;
                                 crate::update_last_call();
-                                result_tx_map.insert(tr_key.clone(), result_tx);
                             }
                             DataStreamCmdMessage::Unsubscribe(tr_key, tr_id) => {
                                 let msg_str = SubscribeRequest::new(
@@ -638,6 +636,7 @@ where
                                     TrType::Unregister,
                                 )
                                 .get_json_string();
+                                result_tx_map.insert((tr_id.clone(), tr_key.clone()), result_tx);
                                 crate::wait(environment).await;
                                 let _ = write.send(Message::Text(msg_str)).await;
                                 crate::update_last_call();

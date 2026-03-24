@@ -331,8 +331,13 @@ impl KoreaStockData {
             loop {
                 match read.next().await {
                     Some(Ok(Message::Text(s))) => {
-                        let data = MyExec::parse(s.clone(), iv.clone(), key.clone())
-                            .expect("Failed to parse message");
+                        let data = match MyExec::parse(s.clone(), iv.clone(), key.clone()) {
+                            Ok(data) => data,
+                            Err(e) => {
+                                error!("Failed to parse message: {}", e);
+                                break;
+                            }
+                        };
                         if data.header().tr_id() == &TrId::PingPong {
                             let _ = write.send(Message::Text(s)).await;
                         } else {
@@ -605,7 +610,7 @@ where
                                         Ok(data) => data,
                                         Err(e) => {
                                             error!("Failed to parse message: {}", e);
-                                            continue;
+                                            break;
                                         }
                                     };
                                     if *data.header().tr_id() == TrId::PingPong {

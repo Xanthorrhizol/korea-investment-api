@@ -318,9 +318,8 @@ impl KoreaStockData {
         let result = recv_subscribe_response(tr_id.clone(), &mut read).await?;
 
         if let Some(handle) = self.handles.remove(&(String::default(), tr_id)) {
+            warn!("Aborting old handle");
             handle.abort();
-        } else {
-            error!("Failed to remove handle");
         }
 
         let (iv, key) = (
@@ -414,10 +413,14 @@ fn parse_subscribe_response(
                         if &result_tr.to_string() == "PINGPONG" {
                             return Ok(None);
                         } else {
-                            result.set_tr_id(
-                                TrId::from_str(&result_tr.to_string())
-                                    .expect("Failed to parse tr_id"),
-                            );
+                            let tr_id = match TrId::from_str(&result_tr.to_string()) {
+                                Ok(tr_id) => tr_id,
+                                Err(e) => {
+                                    error!("Failed to parse tr_id: {}", e);
+                                    return Ok(None);
+                                }
+                            };
+                            result.set_tr_id(tr_id);
                         }
                     }
                     if let Some(s) = o.get("tr_key") {
@@ -586,7 +589,13 @@ where
                                         _ => {}
                                     }
                                 } else {
-                                    let data = T::parse(s.clone()).expect("Failed to parse message");
+                                    let data = match T::parse(s.clone()) {
+                                        Ok(data) => data,
+                                        Err(e) => {
+                                            error!("Failed to parse message: {}", e);
+                                            continue;
+                                        }
+                                    };
                                     if *data.header().tr_id() == TrId::PingPong {
                                         let _ = write.send(Message::Text(s)).await;
                                     } else {

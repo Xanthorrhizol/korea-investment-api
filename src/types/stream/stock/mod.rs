@@ -41,7 +41,7 @@ where
             TrId::RealtimeOrdbNxt => 65,
             TrId::RealtimeExecUnion => 46,
             TrId::RealtimeOrdbUnion => 65,
-            _ => 0,
+            _ => unreachable!(),
         }
     }
 }

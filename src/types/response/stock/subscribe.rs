@@ -7,6 +7,10 @@ pub struct SubscribeResponse {
     #[getset(get = "pub", set = "pub")]
     success: bool,
     #[getset(get = "pub", set = "pub")]
+    tr_id: TrId,
+    #[getset(get = "pub", set = "pub")]
+    tr_key: String,
+    #[getset(get = "pub", set = "pub")]
     msg: String,
     #[getset(get = "pub", set = "pub")]
     iv: Option<String>,
@@ -15,9 +19,18 @@ pub struct SubscribeResponse {
 }
 
 impl SubscribeResponse {
-    pub fn new(success: bool, msg: String, iv: Option<String>, key: Option<String>) -> Self {
+    pub fn new(
+        success: bool,
+        tr_id: TrId,
+        tr_key: String,
+        msg: String,
+        iv: Option<String>,
+        key: Option<String>,
+    ) -> Self {
         Self {
             success,
+            tr_id,
+            tr_key,
             msg,
             iv,
             key,

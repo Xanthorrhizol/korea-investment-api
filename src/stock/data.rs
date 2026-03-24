@@ -5,6 +5,7 @@ use crate::types::{Account, CustomerType, Environment, TrId};
 use crate::{Error, auth};
 use futures_util::{SinkExt, StreamExt};
 use std::collections::HashMap;
+use std::str::FromStr;
 use std::sync::Arc;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream, connect_async, tungstenite::Message};
 use xan_actor::prelude::*;
@@ -268,7 +269,14 @@ impl KoreaStockData {
         }
         Ok((
             None,
-            SubscribeResponse::new(false, "".to_string(), None, None),
+            SubscribeResponse::new(
+                false,
+                TrId::PingPong,
+                "".to_string(),
+                "".to_string(),
+                None,
+                None,
+            ),
         ))
     }
 
@@ -307,10 +315,10 @@ impl KoreaStockData {
         write.send(Message::Text(msg_str)).await?;
         crate::update_last_call();
 
-        let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
-        recv_subscribe_response(&mut read, &mut result).await?;
+        let result = recv_subscribe_response(tr_id.clone(), &mut read).await?;
 
         if let Some(handle) = self.handles.remove(&(String::default(), tr_id)) {
+            warn!("Aborting old handle");
             handle.abort();
         }
 
@@ -323,8 +331,13 @@ impl KoreaStockData {
             loop {
                 match read.next().await {
                     Some(Ok(Message::Text(s))) => {
-                        let data = MyExec::parse(s.clone(), iv.clone(), key.clone())
-                            .expect("Failed to parse message");
+                        let data = match MyExec::parse(s.clone(), iv.clone(), key.clone()) {
+                            Ok(data) => data,
+                            Err(e) => {
+                                error!("Failed to parse message: {}", e);
+                                break;
+                            }
+                        };
                         if data.header().tr_id() == &TrId::PingPong {
                             let _ = write.send(Message::Text(s)).await;
                         } else {
@@ -348,31 +361,25 @@ impl KoreaStockData {
     }
 
     /// 종목 시세 구독 해체
-    pub async fn unsubscribe_market(
-        &mut self,
-        tr_key: &str,
-        tr_id: TrId,
-    ) -> Result<SubscribeResponse, Error> {
+    pub async fn unsubscribe_market(&mut self, tr_key: &str, tr_id: TrId) -> Result<(), Error> {
         let url = self.market_url(&tr_id)?;
         let cmd = DataStreamCmdMessage::Unsubscribe(tr_key.to_string(), tr_id.clone());
 
-        let result = match tr_id {
-            TrId::RealtimeExecKrx | TrId::RealtimeExecNxt | TrId::RealtimeExecUnion => self
-                .actor_system
-                .send_and_recv::<DataStreamActor<Exec, exec::Body>>(url, cmd)
-                .await
-                .ok()
-                .map(|(_rx, r)| r),
-            TrId::RealtimeOrdbKrx | TrId::RealtimeOrdbNxt | TrId::RealtimeOrdbUnion => self
-                .actor_system
-                .send_and_recv::<DataStreamActor<Ordb, ordb::Body>>(url, cmd)
-                .await
-                .ok()
-                .map(|(_rx, r)| r),
-            _ => None,
-        };
+        match tr_id {
+            TrId::RealtimeExecKrx | TrId::RealtimeExecNxt | TrId::RealtimeExecUnion => {
+                self.actor_system
+                    .send_and_recv::<DataStreamActor<Exec, exec::Body>>(url, cmd)
+                    .await?;
+            }
+            TrId::RealtimeOrdbKrx | TrId::RealtimeOrdbNxt | TrId::RealtimeOrdbUnion => {
+                self.actor_system
+                    .send_and_recv::<DataStreamActor<Ordb, ordb::Body>>(url, cmd)
+                    .await?;
+            }
+            _ => {}
+        }
 
-        Ok(result.unwrap_or_else(|| SubscribeResponse::new(false, "".to_string(), None, None)))
+        Ok(())
     }
 
     /// TrId로부터 해당 WebSocket endpoint URL을 반환하는 헬퍼 메서드
@@ -392,56 +399,107 @@ impl KoreaStockData {
     }
 }
 
-async fn recv_subscribe_response(
-    read: &mut WsSplitStream,
-    result: &mut SubscribeResponse,
-) -> Result<(), json::Error> {
-    while let Some(msg) = read.next().await {
-        match msg {
-            Ok(Message::Text(s)) => {
-                let json_value = json::parse(&s)?;
-                match json_value {
-                    json::JsonValue::Object(obj) => {
-                        if let Some(header) = obj.get("header") {
-                            if let json::JsonValue::Object(o) = header {
-                                if let Some(result_tr) = o.get("tr_id") {
-                                    if &result_tr.to_string() == "PINGPONG" {
-                                        continue;
-                                    }
+fn parse_subscribe_response(
+    msg: &json::JsonValue,
+) -> Result<Option<SubscribeResponse>, json::Error> {
+    let mut result = SubscribeResponse::new(
+        false,
+        TrId::PingPong,
+        "".to_string(),
+        "".to_string(),
+        None,
+        None,
+    );
+    match msg {
+        json::JsonValue::Object(obj) => {
+            if let Some(header) = obj.get("header") {
+                if let json::JsonValue::Object(o) = header {
+                    if let Some(result_tr) = o.get("tr_id") {
+                        if &result_tr.to_string() == "PINGPONG" {
+                            return Ok(None);
+                        } else {
+                            let tr_id = match TrId::from_str(&result_tr.to_string()) {
+                                Ok(tr_id) => tr_id,
+                                Err(e) => {
+                                    error!("Failed to parse tr_id: {}", e);
+                                    return Ok(None);
                                 }
-                            }
+                            };
+                            result.set_tr_id(tr_id);
                         }
-                        if let Some(v) = obj.get("body") {
-                            match v {
-                                json::JsonValue::Object(o) => {
-                                    if let Some(s) = o.get("msg1") {
-                                        let s = s.to_string();
-                                        if &s == "SUBSCRIBE SUCCESS" {
-                                            result.set_success(true);
-                                        }
-                                        result.set_msg(s);
-                                    }
-                                    if let Some(json::JsonValue::Object(o)) = o.get("output") {
-                                        if let Some(s) = o.get("iv") {
-                                            result.set_iv(Some(s.to_string()));
-                                        }
-                                        if let Some(s) = o.get("key") {
-                                            result.set_key(Some(s.to_string()));
-                                        }
-                                    }
-                                }
-                                _ => {}
+                    }
+                    if let Some(s) = o.get("tr_key") {
+                        result.set_tr_key(s.to_string());
+                    }
+                }
+            }
+            if let Some(v) = obj.get("body") {
+                match v {
+                    json::JsonValue::Object(o) => {
+                        if let Some(s) = o.get("msg1") {
+                            let s = s.to_string();
+                            if &s == "SUBSCRIBE SUCCESS" {
+                                result.set_success(true);
+                            }
+                            result.set_msg(s);
+                        }
+                        if let Some(json::JsonValue::Object(o)) = o.get("output") {
+                            if let Some(s) = o.get("iv") {
+                                result.set_iv(Some(s.to_string()));
+                            }
+                            if let Some(s) = o.get("key") {
+                                result.set_key(Some(s.to_string()));
                             }
                         }
                     }
                     _ => {}
                 }
             }
+        }
+        _ => {}
+    }
+    Ok(Some(result))
+}
+
+async fn recv_subscribe_response(
+    tr_id: TrId,
+    read: &mut WsSplitStream,
+) -> Result<SubscribeResponse, json::Error> {
+    while let Some(msg) = read.next().await {
+        match msg {
+            Ok(Message::Text(s)) => {
+                let json_value = json::parse(&s)?;
+                match parse_subscribe_response(&json_value) {
+                    Ok(Some(result)) => {
+                        return Ok(result);
+                    }
+                    Err(e) => {
+                        error!("Failed to parse subscribe response: {}", e);
+                        return Ok(SubscribeResponse::new(
+                            false,
+                            tr_id,
+                            "".to_string(),
+                            "".to_string(),
+                            None,
+                            None,
+                        ));
+                    }
+                    _ => {
+                        // pingpong
+                    }
+                }
+            }
             _ => {}
         }
-        break;
     }
-    Ok(())
+    Ok(SubscribeResponse::new(
+        false,
+        tr_id,
+        "".to_string(),
+        "".to_string(),
+        None,
+        None,
+    ))
 }
 
 impl Drop for KoreaStockData {
@@ -456,7 +514,7 @@ impl Drop for KoreaStockData {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 enum DataStreamCmdMessage {
     Subscribe(String, TrId), // tr_key, tr_id
     Unsubscribe(String, TrId),
@@ -503,6 +561,13 @@ where
         let rx_clone = rx.resubscribe();
         tokio::spawn(async move {
             let rx = rx_clone;
+            let mut result_tx_map: HashMap<
+                DataStreamCmdMessage,
+                tokio::sync::oneshot::Sender<(
+                    Option<tokio::sync::broadcast::Receiver<T>>,
+                    SubscribeResponse,
+                )>,
+            > = HashMap::new();
             loop {
                 let app_key = app_key_clone.clone();
                 let app_secret = app_secret_clone.clone();
@@ -512,11 +577,47 @@ where
                         match msg {
                             Some(Ok(Message::Text(s))) => {
                                 debug!("Get message from stream={:?}", s);
-                                let data = T::parse(s.clone()).expect("Failed to parse message");
-                                if *data.header().tr_id() == TrId::PingPong {
-                                    let _ = write.send(Message::Text(s)).await;
+                                if let Ok(j) = json::parse(&s) {
+                                    match parse_subscribe_response(&j) {
+                                        Ok(Some(result)) => {
+                                            let map_key = match result.msg().as_str() {
+                                                "SUBSCRIBE SUCCESS" => {
+                                                    DataStreamCmdMessage::Subscribe(result.tr_key().clone(), result.tr_id().clone())
+                                                }
+                                                "UNSUBSCRIBE SUCCESS" => {
+                                                    DataStreamCmdMessage::Unsubscribe(result.tr_key().clone(), result.tr_id().clone())
+                                                }
+                                                msg => {
+                                                    error!("Failed to parse subscribe response: msg={}", msg);
+                                                    continue;
+                                                }
+                                            };
+                                            if let Some(result_tx) = result_tx_map.remove(&map_key) {
+                                                if let Err(e) = result_tx.send((Some(rx.resubscribe()), result)) {
+                                                    error!("Failed to send result: {:?}", e);
+                                                }
+                                            } else {
+                                                error!("Failed to send result");
+                                            }
+                                        }
+                                        Err(e) => {
+                                            error!("Failed to parse subscribe response: {}", e);
+                                        }
+                                        _ => {}
+                                    }
                                 } else {
-                                    let _ = tx.send(data);
+                                    let data = match T::parse(s.clone()) {
+                                        Ok(data) => data,
+                                        Err(e) => {
+                                            error!("Failed to parse message: {}", e);
+                                            break;
+                                        }
+                                    };
+                                    if *data.header().tr_id() == TrId::PingPong {
+                                        let _ = write.send(Message::Text(s)).await;
+                                    } else {
+                                        let _ = tx.send(data);
+                                    }
                                 }
                             }
                             Some(Ok(_)) => {
@@ -545,15 +646,10 @@ where
                                     TrType::Register,
                                 )
                                 .get_json_string();
+                                result_tx_map.insert(DataStreamCmdMessage::Subscribe(tr_key.clone(), tr_id.clone()), result_tx);
                                 crate::wait(environment).await;
                                 let _ = write.send(Message::Text(msg_str)).await;
                                 crate::update_last_call();
-
-                                let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
-                                if let Err(e) = recv_subscribe_response(&mut read, &mut result).await {
-                                    error!("Failed to subscribe: {}", e);
-                                }
-                                result_tx.send((Some(rx.resubscribe()), result)).expect("Failed to send result");
                             }
                             DataStreamCmdMessage::Unsubscribe(tr_key, tr_id) => {
                                 let msg_str = SubscribeRequest::new(
@@ -566,15 +662,10 @@ where
                                     TrType::Unregister,
                                 )
                                 .get_json_string();
+                                result_tx_map.insert(DataStreamCmdMessage::Unsubscribe(tr_key.clone(), tr_id.clone()), result_tx);
                                 crate::wait(environment).await;
                                 let _ = write.send(Message::Text(msg_str)).await;
                                 crate::update_last_call();
-
-                                let mut result = SubscribeResponse::new(false, "".to_string(), None, None);
-                                if let Err(e) = recv_subscribe_response(&mut read, &mut result).await {
-                                    error!("Failed to unsubscribe: {}", e);
-                                }
-                                result_tx.send((None, result)).expect("Failed to send result");
                             }
                         }
                     }
@@ -610,6 +701,13 @@ where
     async fn handle(&mut self, msg: Arc<Self::Message>) -> Result<Self::Result, Self::Error> {
         let (result_tx, result_rx) = tokio::sync::oneshot::channel();
         let _ = self.cmd_tx.send((msg, result_tx));
-        Ok(result_rx.await.expect("Failed to get result"))
+        let result = match result_rx.await {
+            Ok(result) => result,
+            Err(e) => {
+                error!("Failed to get result: {}", e);
+                return Err(e.into());
+            }
+        };
+        Ok(result)
     }
 }

@@ -509,7 +509,7 @@ impl Drop for KoreaStockData {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 enum DataStreamCmdMessage {
     Subscribe(String, TrId), // tr_key, tr_id
     Unsubscribe(String, TrId),
@@ -557,7 +557,7 @@ where
         tokio::spawn(async move {
             let rx = rx_clone;
             let mut result_tx_map: HashMap<
-                (TrId, String),
+                DataStreamCmdMessage,
                 tokio::sync::oneshot::Sender<(
                     Option<tokio::sync::broadcast::Receiver<T>>,
                     SubscribeResponse,
@@ -575,7 +575,19 @@ where
                                 if let Ok(j) = json::parse(&s) {
                                     match parse_subscribe_response(&j) {
                                         Ok(Some(result)) => {
-                                            if let Some(result_tx) = result_tx_map.remove(&(result.tr_id().clone(), result.tr_key().clone())) {
+                                            let map_key = match result.msg().as_str() {
+                                                "SUBSCRIBE SUCCESS" => {
+                                                    DataStreamCmdMessage::Subscribe(result.tr_key().clone(), result.tr_id().clone())
+                                                }
+                                                "UNSUBSCRIBE SUCCESS" => {
+                                                    DataStreamCmdMessage::Unsubscribe(result.tr_key().clone(), result.tr_id().clone())
+                                                }
+                                                msg => {
+                                                    error!("Failed to parse subscribe response: msg={}", msg);
+                                                    continue;
+                                                }
+                                            };
+                                            if let Some(result_tx) = result_tx_map.remove(&map_key) {
                                                 if let Err(e) = result_tx.send((Some(rx.resubscribe()), result)) {
                                                     error!("Failed to send result: {:?}", e);
                                                 }
@@ -629,7 +641,7 @@ where
                                     TrType::Register,
                                 )
                                 .get_json_string();
-                                result_tx_map.insert((tr_id.clone(), tr_key.clone()), result_tx);
+                                result_tx_map.insert(DataStreamCmdMessage::Subscribe(tr_key.clone(), tr_id.clone()), result_tx);
                                 crate::wait(environment).await;
                                 let _ = write.send(Message::Text(msg_str)).await;
                                 crate::update_last_call();
@@ -645,7 +657,7 @@ where
                                     TrType::Unregister,
                                 )
                                 .get_json_string();
-                                result_tx_map.insert((tr_id.clone(), tr_key.clone()), result_tx);
+                                result_tx_map.insert(DataStreamCmdMessage::Unsubscribe(tr_key.clone(), tr_id.clone()), result_tx);
                                 crate::wait(environment).await;
                                 let _ = write.send(Message::Text(msg_str)).await;
                                 crate::update_last_call();

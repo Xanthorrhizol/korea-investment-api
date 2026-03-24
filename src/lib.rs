@@ -157,6 +157,8 @@ pub enum Error {
     IoError(#[from] std::io::Error),
     #[error(transparent)]
     ActorError(#[from] xan_actor::ActorError),
+    #[error(transparent)]
+    OneshotRecvError(#[from] tokio::sync::oneshot::error::RecvError),
     // custom
     #[error("Auth init failed - None value in {0}")]
     AuthInitFailed(&'static str),

@@ -696,6 +696,13 @@ where
     async fn handle(&mut self, msg: Arc<Self::Message>) -> Result<Self::Result, Self::Error> {
         let (result_tx, result_rx) = tokio::sync::oneshot::channel();
         let _ = self.cmd_tx.send((msg, result_tx));
-        Ok(result_rx.await.expect("Failed to get result"))
+        let result = match result_rx.await {
+            Ok(result) => result,
+            Err(e) => {
+                error!("Failed to get result: {}", e);
+                return Err(e.into());
+            }
+        };
+        Ok(result)
     }
 }

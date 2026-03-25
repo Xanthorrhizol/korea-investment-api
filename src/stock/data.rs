@@ -12,7 +12,7 @@ use xan_actor::prelude::*;
 
 type WsStream = WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>;
 type WsSplitStream = futures_util::stream::SplitStream<WsStream>;
-type _WsSplitSink = futures_util::stream::SplitSink<WsStream, Message>;
+type WsSplitSink = futures_util::stream::SplitSink<WsStream, Message>;
 
 #[allow(dead_code)]
 pub struct KoreaStockData {
@@ -315,7 +315,7 @@ impl KoreaStockData {
         write.send(Message::Text(msg_str)).await?;
         crate::update_last_call();
 
-        let result = recv_subscribe_response(tr_id.clone(), &mut read).await?;
+        let result = recv_subscribe_response(tr_id.clone(), &mut read, &mut write).await?;
 
         if let Some(handle) = self.handles.remove(&(String::default(), tr_id)) {
             warn!("Aborting old handle");
@@ -464,6 +464,7 @@ fn parse_subscribe_response(
 async fn recv_subscribe_response(
     tr_id: TrId,
     read: &mut WsSplitStream,
+    write: &mut WsSplitSink,
 ) -> Result<SubscribeResponse, json::Error> {
     while let Some(msg) = read.next().await {
         match msg {
@@ -472,6 +473,10 @@ async fn recv_subscribe_response(
                 match parse_subscribe_response(&json_value) {
                     Ok(Some(result)) => {
                         return Ok(result);
+                    }
+                    Ok(None) => {
+                        // PingPong
+                        let _ = write.send(Message::Text(s)).await;
                     }
                     Err(e) => {
                         error!("Failed to parse subscribe response: {}", e);
@@ -483,9 +488,6 @@ async fn recv_subscribe_response(
                             None,
                             None,
                         ));
-                    }
-                    _ => {
-                        // pingpong
                     }
                 }
             }
@@ -602,10 +604,13 @@ where
                                                 error!("Failed to send result");
                                             }
                                         }
+                                        Ok(None) => {
+                                            // PingPong
+                                            let _ = write.send(Message::Text(s)).await;
+                                        }
                                         Err(e) => {
                                             error!("Failed to parse subscribe response: {}", e);
                                         }
-                                        _ => {}
                                     }
                                 } else {
                                     let data = match T::parse(s.clone()) {

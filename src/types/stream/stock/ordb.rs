@@ -161,7 +161,7 @@ impl StreamParser<Body> for Ordb {
                     }
                     bodies
                 } else {
-                    error!("invalid data: {}", s);
+                    warn!("invalid data: {}", s);
                     Vec::new()
                 }
             };

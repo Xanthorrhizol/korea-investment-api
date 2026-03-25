@@ -129,7 +129,7 @@ impl StreamParser<Body> for Exec {
                     }
                     bodies
                 } else {
-                    error!("Invalid data: {}", s);
+                    warn!("invalid data: {}", s);
                     Vec::new()
                 }
             };

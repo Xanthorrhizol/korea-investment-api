@@ -512,7 +512,7 @@ async fn main() {
     let mut i = 0;
     if let Some(mut rx) = rx {
         while let Ok(ordb) = rx.recv().await {
-            debug!("[실시간] KRX 호가 수신: {:?}", ordb);
+            trace!("[실시간] KRX 호가 수신: {:?}", ordb);
             i += 1;
             if i == 10 {
                 break;
@@ -539,7 +539,7 @@ async fn main() {
     let mut i = 0;
     if let Some(mut rx) = rx {
         while let Ok(exec) = rx.recv().await {
-            debug!("[실시간] KRX 체결 수신: {:?}", exec);
+            trace!("[실시간] KRX 체결 수신: {:?}", exec);
             i += 1;
             if i == 10 {
                 break;
@@ -566,7 +566,7 @@ async fn main() {
     let mut i = 0;
     if let Some(mut rx) = rx {
         while let Ok(ordb) = rx.recv().await {
-            debug!("[실시간] NXT 호가 수신: {:?}", ordb);
+            trace!("[실시간] NXT 호가 수신: {:?}", ordb);
             i += 1;
             if i == 10 {
                 break;
@@ -593,7 +593,7 @@ async fn main() {
     let mut i = 0;
     if let Some(mut rx) = rx {
         while let Ok(exec) = rx.recv().await {
-            debug!("[실시간] NXT 체결 수신: {:?}", exec);
+            trace!("[실시간] NXT 체결 수신: {:?}", exec);
             i += 1;
             if i == 10 {
                 break;
@@ -620,7 +620,7 @@ async fn main() {
     let mut i = 0;
     if let Some(mut rx) = rx {
         while let Ok(ordb) = rx.recv().await {
-            debug!("[실시간] 통합 호가 수신: {:?}", ordb);
+            trace!("[실시간] 통합 호가 수신: {:?}", ordb);
             i += 1;
             if i == 10 {
                 break;
@@ -646,7 +646,7 @@ async fn main() {
     let mut i = 0;
     if let Some(mut rx) = rx {
         while let Ok(exec) = rx.recv().await {
-            debug!("[실시간] 통합 체결 수신: {:?}", exec);
+            trace!("[실시간] 통합 체결 수신: {:?}", exec);
             i += 1;
             if i == 10 {
                 break;

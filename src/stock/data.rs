@@ -318,7 +318,7 @@ impl KoreaStockData {
         let result = recv_subscribe_response(tr_id.clone(), &mut read, &mut write).await?;
 
         if let Some(handle) = self.handles.remove(&(String::default(), tr_id)) {
-            warn!("Aborting old handle");
+            debug!("Aborting old handle");
             handle.abort();
         }
 
@@ -421,7 +421,7 @@ fn parse_subscribe_response(
                             let tr_id = match TrId::from_str(&result_tr.to_string()) {
                                 Ok(tr_id) => tr_id,
                                 Err(e) => {
-                                    error!("Failed to parse tr_id: {}", e);
+                                    warn!("Failed to parse tr_id: {}", e);
                                     return Ok(None);
                                 }
                             };
@@ -580,7 +580,7 @@ where
                     msg = read.next() => {
                         match msg {
                             Some(Ok(Message::Text(s))) => {
-                                debug!("Get message from stream={:?}", s);
+                                trace!("Get message from stream={:?}", s);
                                 if let Ok(j) = json::parse(&s) {
                                     match parse_subscribe_response(&j) {
                                         Ok(Some(result)) => {
@@ -592,7 +592,7 @@ where
                                                     DataStreamCmdMessage::Unsubscribe(result.tr_key().clone(), result.tr_id().clone())
                                                 }
                                                 msg => {
-                                                    error!("Failed to parse subscribe response: msg={}", msg);
+                                                    warn!("Failed to parse subscribe response: msg={}", msg);
                                                     continue;
                                                 }
                                             };
@@ -601,7 +601,7 @@ where
                                                     error!("Failed to send result: {:?}", e);
                                                 }
                                             } else {
-                                                error!("Failed to send result");
+                                                warn!("Failed to send result: no pending request for key");
                                             }
                                         }
                                         Ok(None) => {
@@ -643,6 +643,7 @@ where
                         let result_tx = cmd.1;
                         match msg {
                             DataStreamCmdMessage::Subscribe(tr_key, tr_id) => {
+                                debug!("Subscribing: tr_key={}, tr_id={:?}", tr_key, tr_id);
                                 let msg_str = SubscribeRequest::new(
                                     app_key.clone(),
                                     app_secret.clone(),
@@ -659,6 +660,7 @@ where
                                 crate::update_last_call();
                             }
                             DataStreamCmdMessage::Unsubscribe(tr_key, tr_id) => {
+                                debug!("Unsubscribing: tr_key={}, tr_id={:?}", tr_key, tr_id);
                                 let msg_str = SubscribeRequest::new(
                                     app_key.clone(),
                                     app_secret.clone(),

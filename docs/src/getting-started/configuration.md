@@ -46,3 +46,13 @@ api.export_config(&config)?;
 ```
 
 > **주의:** `config.toml`에는 민감한 인증 정보가 포함됩니다. `.gitignore`에 추가하여 버전 관리에서 제외하세요.
+
+## 환경변수
+
+| 환경변수 | 기본값 | 설명 |
+|---|---|---|
+| `CHANNEL_SIZE` | `16384` | WebSocket 데이터 스트림 내부 broadcast 채널 크기. 메시지 유실이 발생할 경우 더 높은 값으로 설정하세요. |
+
+```bash
+CHANNEL_SIZE=32768 cargo run
+```

@@ -11,6 +11,10 @@ pub const VIRTUAL_FREQ: i64 = 2;
 pub const REAL_FREQ: i64 = 20;
 lazy_static::lazy_static! {
     pub static ref LAST_CALL: std::sync::Mutex<types::Time> = std::sync::Mutex::new(types::Time::now());
+    pub static ref CHANNEL_SIZE: usize = std::env::var("CHANNEL_SIZE")
+        .unwrap_or("16384".to_string())
+        .parse()
+        .unwrap();
 }
 
 pub(crate) async fn wait(env: types::Environment) {

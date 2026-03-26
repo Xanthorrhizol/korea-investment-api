@@ -2,7 +2,7 @@ use crate::types::request::stock::subscribe::{SubscribeRequest, TrType};
 use crate::types::response::stock::subscribe::SubscribeResponse;
 use crate::types::stream::stock::{Exec, MyExec, Ordb, StreamParser, exec, ordb};
 use crate::types::{Account, CustomerType, Environment, TrId};
-use crate::{Error, auth};
+use crate::{CHANNEL_SIZE, Error, auth};
 use futures_util::{SinkExt, StreamExt};
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -551,7 +551,7 @@ where
         let (ws_stream, _) = connect_async(&url).await.expect("Failed to connect");
         let (mut write, mut read) = ws_stream.split();
 
-        let (tx, rx) = tokio::sync::broadcast::channel(4096);
+        let (tx, rx) = tokio::sync::broadcast::channel(*CHANNEL_SIZE);
         let (cmd_tx, mut cmd_rx) = tokio::sync::mpsc::unbounded_channel::<(
             Arc<DataStreamCmdMessage>,
             tokio::sync::oneshot::Sender<(

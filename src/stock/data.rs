@@ -116,7 +116,7 @@ impl KoreaStockData {
                 &mut actor_system,
                 ErrorHandling::Stop,
                 Blocking::Blocking,
-                None,
+                Some(*CHANNEL_SIZE),
             )
             .await
         {
@@ -136,7 +136,7 @@ impl KoreaStockData {
                 &mut actor_system,
                 ErrorHandling::Stop,
                 Blocking::Blocking,
-                None,
+                Some(*CHANNEL_SIZE),
             )
             .await
         {
@@ -156,7 +156,7 @@ impl KoreaStockData {
                 &mut actor_system,
                 ErrorHandling::Stop,
                 Blocking::Blocking,
-                None,
+                Some(*CHANNEL_SIZE),
             )
             .await
         {
@@ -176,7 +176,7 @@ impl KoreaStockData {
                 &mut actor_system,
                 ErrorHandling::Stop,
                 Blocking::Blocking,
-                None,
+                Some(*CHANNEL_SIZE),
             )
             .await
         {
@@ -196,7 +196,7 @@ impl KoreaStockData {
                 &mut actor_system,
                 ErrorHandling::Stop,
                 Blocking::Blocking,
-                None,
+                Some(*CHANNEL_SIZE),
             )
             .await
         {
@@ -216,7 +216,7 @@ impl KoreaStockData {
                 &mut actor_system,
                 ErrorHandling::Stop,
                 Blocking::Blocking,
-                None,
+                Some(*CHANNEL_SIZE),
             )
             .await
         {

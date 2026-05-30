@@ -1,6 +1,7 @@
-use crate::types::{request, response, Environment};
 use crate::Error;
+use crate::types::{Environment, request, response};
 use reqwest::header::{HeaderMap, HeaderValue};
+use std::sync::{Arc, RwLock};
 
 /// Auth
 /// [OAuth 인증 관련](https://apiportal.koreainvestment.com/apiservice-apiservice?/oauth2/tokenP)
@@ -11,8 +12,10 @@ pub struct Auth {
     endpoint_url: String,
     appkey: String,
     appsecret: String,
-    token: Option<String>,
-    approval_key: Option<String>,
+    // Shared so a runtime refresh (create_token) propagates to every clone
+    // held by the sub-clients (order/quote/data).
+    token: Arc<RwLock<Option<String>>>,
+    approval_key: Arc<RwLock<Option<String>>>,
 }
 
 impl Auth {
@@ -36,19 +39,19 @@ impl Auth {
             endpoint_url,
             appkey: appkey.to_string(),
             appsecret: appsecret.to_string(),
-            token: None,
-            approval_key: None,
+            token: Arc::new(RwLock::new(None)),
+            approval_key: Arc::new(RwLock::new(None)),
         }
     }
 
     /// 구조체에 저장되어 있는 token을 반환
     pub fn get_token(&self) -> Option<String> {
-        self.token.clone()
+        self.token.read().unwrap().clone()
     }
 
     /// 구조체에 저장되어 있는 approval_key 반환
     pub fn get_approval_key(&self) -> Option<String> {
-        self.approval_key.clone()
+        self.approval_key.read().unwrap().clone()
     }
 
     /// 구조체에 저장되어 있는 appkey 반환
@@ -83,12 +86,12 @@ impl Auth {
             .await?
             .get_approval_key();
         crate::update_last_call();
-        self.approval_key = Some(approval_key.clone());
+        *self.approval_key.write().unwrap() = Some(approval_key.clone());
         Ok(approval_key)
     }
 
     pub fn set_approval_key(&mut self, approval_key: String) {
-        self.approval_key = Some(approval_key);
+        *self.approval_key.write().unwrap() = Some(approval_key);
     }
 
     /// Hashkey
@@ -139,12 +142,12 @@ impl Auth {
             .await?
             .get_access_token();
         crate::update_last_call();
-        self.token = Some(token.clone());
+        *self.token.write().unwrap() = Some(token.clone());
         Ok(token)
     }
 
     pub fn set_token(&mut self, token: String) {
-        self.token = Some(token);
+        *self.token.write().unwrap() = Some(token);
     }
 
     /// 접근토큰폐기(P)[인증-002]
@@ -164,7 +167,7 @@ impl Auth {
                 serde_json::json!(request::auth::TokenRevokeBody::new(
                     self.appkey.clone(),
                     self.appsecret.clone(),
-                    match self.token.clone() {
+                    match self.get_token() {
                         Some(token) => token,
                         None => {
                             return Err(Error::AuthInitFailed("token"));

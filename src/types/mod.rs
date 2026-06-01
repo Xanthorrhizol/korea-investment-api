@@ -67,6 +67,11 @@ pub struct Account {
     pub cano: String,
     pub acnt_prdt_cd: String,
 }
+impl std::fmt::Display for Account {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.write_str(&format!("{}-{}", self.cano, self.acnt_prdt_cd))
+    }
+}
 
 /// 대상 거래소
 /// 1. 주문을 접수할 거래소.

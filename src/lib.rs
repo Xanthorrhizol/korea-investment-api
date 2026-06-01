@@ -57,10 +57,7 @@ impl KoreaInvestmentApi {
     ) -> Result<KoreaInvestmentApi, Error> {
         let client = reqwest::Client::new();
         let mut auth = auth::Auth::new(&client, acc.clone(), appkey, appsecret);
-        info!(
-            "Authorizing: acc={}, appkey={}, appsecret={}",
-            &acc, &appkey, &appsecret,
-        );
+        info!("Authorizing: acc={}, account={}", &acc, &account);
         if let Some(token) = token {
             auth.set_token(token);
         } else {

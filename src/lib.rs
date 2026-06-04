@@ -15,6 +15,16 @@ lazy_static::lazy_static! {
         .unwrap_or("16384".to_string())
         .parse()
         .unwrap();
+    /// WebSocket 재연결 시 최초 backoff 지연 시간(ms). 기본 1000ms
+    pub static ref WS_RECONNECT_INITIAL_DELAY_MS: u64 = std::env::var("WS_RECONNECT_INITIAL_DELAY_MS")
+        .unwrap_or("1000".to_string())
+        .parse()
+        .unwrap();
+    /// WebSocket 재연결 시 backoff 최대 지연 시간(ms). 기본 30000ms
+    pub static ref WS_RECONNECT_MAX_DELAY_MS: u64 = std::env::var("WS_RECONNECT_MAX_DELAY_MS")
+        .unwrap_or("30000".to_string())
+        .parse()
+        .unwrap();
 }
 
 pub(crate) async fn wait(env: types::Environment) {

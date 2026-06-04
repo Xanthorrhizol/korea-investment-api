@@ -2,7 +2,7 @@ use crate::types::request::stock::subscribe::{SubscribeRequest, TrType};
 use crate::types::response::stock::subscribe::SubscribeResponse;
 use crate::types::stream::stock::{Exec, MyExec, Ordb, StreamParser, exec, ordb};
 use crate::types::{Account, CustomerType, Environment, TrId};
-use crate::{CHANNEL_SIZE, Error, auth};
+use crate::{CHANNEL_SIZE, Error, WS_RECONNECT_INITIAL_DELAY_MS, WS_RECONNECT_MAX_DELAY_MS, auth};
 use futures_util::{SinkExt, StreamExt};
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -13,6 +13,101 @@ use xan_actor::prelude::*;
 type WsStream = WebSocketStream<MaybeTlsStream<tokio::net::TcpStream>>;
 type WsSplitStream = futures_util::stream::SplitStream<WsStream>;
 type WsSplitSink = futures_util::stream::SplitSink<WsStream, Message>;
+
+/// 끊긴 WebSocket을 exponential backoff로 재연결한다.
+/// 연결에 성공할 때까지 무한히 재시도하며, 지연 시간은
+/// `WS_RECONNECT_INITIAL_DELAY_MS`에서 시작해 `WS_RECONNECT_MAX_DELAY_MS`까지 2배씩 증가한다.
+async fn connect_with_backoff(url: &str) -> WsStream {
+    let max_delay = std::time::Duration::from_millis(*WS_RECONNECT_MAX_DELAY_MS);
+    let mut delay = std::time::Duration::from_millis(*WS_RECONNECT_INITIAL_DELAY_MS);
+    let mut attempt: u32 = 0;
+    loop {
+        attempt += 1;
+        match connect_async(url).await {
+            Ok((ws_stream, _)) => {
+                info!("Reconnected to {} after {} attempt(s)", url, attempt);
+                return ws_stream;
+            }
+            Err(e) => {
+                warn!(
+                    "Failed to reconnect to {} (attempt {}): {:?}, retrying in {:?}",
+                    url, attempt, e, delay
+                );
+                tokio::time::sleep(delay).await;
+                delay = (delay * 2).min(max_delay);
+            }
+        }
+    }
+}
+
+/// 재연결 직후 기존 활성 구독을 모두 다시 등록한다.
+async fn resubscribe_all(
+    write: &mut WsSplitSink,
+    active_subs: &std::collections::HashSet<(String, TrId)>,
+    app_key: &str,
+    app_secret: &str,
+    personalseckey: &str,
+    environment: Environment,
+) {
+    for (tr_key, tr_id) in active_subs {
+        debug!("Resubscribing: tr_key={}, tr_id={:?}", tr_key, tr_id);
+        let msg_str = SubscribeRequest::new(
+            app_key.to_string(),
+            app_secret.to_string(),
+            personalseckey.to_string(),
+            CustomerType::Personal,
+            tr_key.clone(),
+            tr_id.clone(),
+            TrType::Register,
+        )
+        .get_json_string();
+        crate::wait(environment).await;
+        if let Err(e) = write.send(Message::Text(msg_str)).await {
+            error!(
+                "Failed to resubscribe tr_key={}, tr_id={:?}: {:?}",
+                tr_key, tr_id, e
+            );
+        } else {
+            crate::update_last_call();
+        }
+    }
+}
+
+/// my_exec(체결통보) 스트림을 재연결하고 다시 구독한다.
+/// 재구독 응답에서 새로운 iv/key를 받아 반환한다.
+/// 연결에는 성공했으나 재구독 응답을 받지 못한 경우 `None`을 반환한다.
+async fn reconnect_my_exec(
+    url: &str,
+    msg_str: &str,
+    tr_id: TrId,
+    environment: Environment,
+) -> Option<(WsSplitSink, WsSplitStream, String, String)> {
+    let ws_stream = connect_with_backoff(url).await;
+    let (mut write, mut read) = ws_stream.split();
+
+    crate::wait(environment).await;
+    if let Err(e) = write.send(Message::Text(msg_str.to_string())).await {
+        error!("Failed to resubscribe my_exec: {:?}", e);
+        return None;
+    }
+    crate::update_last_call();
+
+    let result = match recv_subscribe_response(tr_id, &mut read, &mut write).await {
+        Ok(result) => result,
+        Err(e) => {
+            error!("Failed to recv my_exec subscribe response: {}", e);
+            return None;
+        }
+    };
+
+    match (result.iv().clone(), result.key().clone()) {
+        (Some(iv), Some(key)) => Some((write, read, iv, key)),
+        _ => {
+            error!("my_exec resubscribe returned no iv/key");
+            None
+        }
+    }
+}
 
 #[allow(dead_code)]
 pub struct KoreaStockData {
@@ -312,30 +407,35 @@ impl KoreaStockData {
         let (mut write, mut read) = ws_stream.split();
 
         crate::wait(self.environment).await;
-        write.send(Message::Text(msg_str)).await?;
+        write.send(Message::Text(msg_str.clone())).await?;
         crate::update_last_call();
 
         let result = recv_subscribe_response(tr_id.clone(), &mut read, &mut write).await?;
 
-        if let Some(handle) = self.handles.remove(&(String::default(), tr_id)) {
+        if let Some(handle) = self.handles.remove(&(String::default(), tr_id.clone())) {
             debug!("Aborting old handle");
             handle.abort();
         }
 
-        let (iv, key) = (
+        let (mut iv, mut key) = (
             result.iv().clone().expect("no iv"),
             result.key().clone().expect("no key"),
         );
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
+        // 재연결에 필요한 정보를 태스크로 이동
+        let reconnect_url = self.my_exec_url.clone();
+        let reconnect_msg = msg_str;
+        let reconnect_tr_id = tr_id.clone();
+        let environment = self.environment;
         let handle = tokio::spawn(async move {
             loop {
-                match read.next().await {
+                let need_reconnect = match read.next().await {
                     Some(Ok(Message::Text(s))) => {
                         let data = match MyExec::parse(s.clone(), iv.clone(), key.clone()) {
                             Ok(data) => data,
                             Err(e) => {
                                 error!("Failed to parse message: {}", e);
-                                break;
+                                continue;
                             }
                         };
                         if data.header().tr_id() == &TrId::PingPong {
@@ -343,16 +443,54 @@ impl KoreaStockData {
                         } else {
                             let _ = tx.send(data);
                         }
+                        false
                     }
                     Some(Ok(_)) => {
-                        error!("Get wrong data from stream");
-                        break;
+                        warn!("Got non-text frame from my_exec stream, reconnecting");
+                        true
                     }
                     Some(Err(e)) => {
-                        error!("Failed to get message from stream: {:?}", e);
-                        break;
+                        warn!("my_exec stream error: {:?}, reconnecting", e);
+                        true
                     }
-                    None => break,
+                    None => {
+                        warn!("my_exec stream closed, reconnecting");
+                        true
+                    }
+                };
+                if need_reconnect {
+                    // connect 자체는 connect_with_backoff가 backoff를 처리하지만,
+                    // "연결은 되는데 재구독 응답(iv/key)을 못 받는" 경우를 대비해
+                    // 핸드셰이크 재시도에도 exponential backoff를 적용한다.
+                    let max_delay = std::time::Duration::from_millis(*WS_RECONNECT_MAX_DELAY_MS);
+                    let mut delay =
+                        std::time::Duration::from_millis(*WS_RECONNECT_INITIAL_DELAY_MS);
+                    loop {
+                        match reconnect_my_exec(
+                            &reconnect_url,
+                            &reconnect_msg,
+                            reconnect_tr_id.clone(),
+                            environment,
+                        )
+                        .await
+                        {
+                            Some((w, r, new_iv, new_key)) => {
+                                write = w;
+                                read = r;
+                                iv = new_iv;
+                                key = new_key;
+                                break;
+                            }
+                            None => {
+                                warn!(
+                                    "my_exec resubscribe failed, retrying in {:?}",
+                                    delay
+                                );
+                                tokio::time::sleep(delay).await;
+                                delay = (delay * 2).min(max_delay);
+                            }
+                        }
+                    }
                 }
             }
         });
@@ -563,6 +701,7 @@ where
         let app_secret_clone = app_secret.clone();
         let personalseckey_clone = personalseckey.clone();
         let rx_clone = rx.resubscribe();
+        let url_clone = url.clone();
         tokio::spawn(async move {
             let rx = rx_clone;
             let mut result_tx_map: HashMap<
@@ -572,6 +711,9 @@ where
                     SubscribeResponse,
                 )>,
             > = HashMap::new();
+            // 재연결 시 다시 구독해야 할 활성 구독 목록 (tr_key, tr_id)
+            let mut active_subs: std::collections::HashSet<(String, TrId)> =
+                std::collections::HashSet::new();
             loop {
                 let app_key = app_key_clone.clone();
                 let app_secret = app_secret_clone.clone();
@@ -617,7 +759,7 @@ where
                                         Ok(data) => data,
                                         Err(e) => {
                                             error!("Failed to parse message: {}", e);
-                                            break;
+                                            continue;
                                         }
                                     };
                                     if *data.header().tr_id() == TrId::PingPong {
@@ -628,14 +770,23 @@ where
                                 }
                             }
                             Some(Ok(_)) => {
-                                error!("Get wrong data from stream");
-                                break;
+                                warn!("Got non-text frame from {}, reconnecting", url_clone);
+                                let ws_stream = connect_with_backoff(&url_clone).await;
+                                (write, read) = ws_stream.split();
+                                resubscribe_all(&mut write, &active_subs, &app_key, &app_secret, &personalseckey, environment).await;
                             }
                             Some(Err(e)) => {
-                                error!("Failed to get message from stream: {:?}", e);
-                                break;
+                                warn!("Stream error from {}: {:?}, reconnecting", url_clone, e);
+                                let ws_stream = connect_with_backoff(&url_clone).await;
+                                (write, read) = ws_stream.split();
+                                resubscribe_all(&mut write, &active_subs, &app_key, &app_secret, &personalseckey, environment).await;
                             }
-                            None => break,
+                            None => {
+                                warn!("Stream closed by {}, reconnecting", url_clone);
+                                let ws_stream = connect_with_backoff(&url_clone).await;
+                                (write, read) = ws_stream.split();
+                                resubscribe_all(&mut write, &active_subs, &app_key, &app_secret, &personalseckey, environment).await;
+                            }
                         }
                     }
                     Some(cmd) = cmd_rx.recv() => {
@@ -655,6 +806,8 @@ where
                                 )
                                 .get_json_string();
                                 result_tx_map.insert(DataStreamCmdMessage::Subscribe(tr_key.clone(), tr_id.clone()), result_tx);
+                                // 재연결 시 다시 구독하기 위해 활성 구독 목록에 추가
+                                active_subs.insert((tr_key.clone(), tr_id.clone()));
                                 crate::wait(environment).await;
                                 let _ = write.send(Message::Text(msg_str)).await;
                                 crate::update_last_call();
@@ -672,6 +825,8 @@ where
                                 )
                                 .get_json_string();
                                 result_tx_map.insert(DataStreamCmdMessage::Unsubscribe(tr_key.clone(), tr_id.clone()), result_tx);
+                                // 구독 해제되었으므로 활성 구독 목록에서 제거
+                                active_subs.remove(&(tr_key.clone(), tr_id.clone()));
                                 crate::wait(environment).await;
                                 let _ = write.send(Message::Text(msg_str)).await;
                                 crate::update_last_call();

@@ -500,6 +500,37 @@ async fn main() {
     }
     // }}}
 
+    // {{{ 삼성전자 매수가능조회
+    // 정확한 매수가능수량을 보려면 ORD_DVSN:01(시장가) + 단가 공란으로 조회
+    // (지정가는 종목증거금율이 반영되지 않음)
+    let psbl_order = api
+        .order
+        .inquire_psbl_order(
+            "005930",            // 삼성전자
+            None,                // 주문단가: 시장가 조회 시 공란
+            Some("01".into()),   // 주문구분: 01 시장가
+            Some("N".into()),    // CMA평가금액 포함여부
+            Some("N".into()),    // 해외 포함여부
+        )
+        .await
+        .unwrap();
+    if psbl_order.rt_cd() != "0" {
+        panic!("매수가능조회 Error Response: {:?}", psbl_order);
+    }
+    info!("매수가능조회 Response: {:?}", psbl_order);
+
+    if let Some(output) = psbl_order.output() {
+        info!(
+            "주문가능현금: {}, 미수없는매수금액: {} (수량: {}), 최대매수금액: {} (수량: {})",
+            output.ord_psbl_cash(),
+            output.nrcvb_buy_amt(),
+            output.nrcvb_buy_qty(),
+            output.max_buy_amt(),
+            output.max_buy_qty(),
+        );
+    }
+    // }}}
+
     // {{{ 삼성전자 호가 실시간 시세 구독(호가; KRX)
     let (rx, subscribe_response) = api
         .k_data

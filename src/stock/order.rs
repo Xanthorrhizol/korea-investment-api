@@ -243,9 +243,6 @@ impl Korea {
         Ok(result)
     }
 
-    // TODO: 주식정정취소가능주문조회[v1_국내주식-004]
-    // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-psbl-rvsecncl)
-
     /// 주식일별주문체결조회[v1_국내주식-005]
     /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-daily-ccld)
     ///

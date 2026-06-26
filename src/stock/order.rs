@@ -452,6 +452,58 @@ impl Korea {
         Ok(result)
     }
 
-    // TODO: 매수가능조회[v1_국내주식-007]
-    // [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-psbl-order)
+    /// 매수가능조회[v1_국내주식-007]
+    /// [Docs](https://apiportal.koreainvestment.com/apiservice-apiservice?/uapi/domestic-stock/v1/trading/inquire-psbl-order)
+    pub async fn inquire_psbl_order(
+        &self,
+        pdno: &str,
+        ord_unpr: Option<String>,
+        ord_dvsn: Option<String>,
+        cma_evlu_amt_icld_yn: Option<String>,
+        ovrs_icld_yn: Option<String>,
+    ) -> Result<response::stock::order::psbl_order::InquirePsblOrder, Error> {
+        let tr_id = match self.environment {
+            Environment::Real => TrId::RealInquirePsblOrder,
+            Environment::Virtual => TrId::VirtualInquirePsblOrder,
+        };
+        let param = request::stock::order::Query::InquirePsblOrder::new(
+            self.account.cano.clone(),
+            self.account.acnt_prdt_cd.clone(),
+            pdno.to_string(),
+            ord_unpr,
+            ord_dvsn,
+            cma_evlu_amt_icld_yn,
+            ovrs_icld_yn,
+        );
+        let url = format!(
+            "{}/uapi/domestic-stock/v1/trading/inquire-psbl-order",
+            self.endpoint_url
+        );
+        let params = param.into_iter();
+        let url = reqwest::Url::parse_with_params(&url, &params)?;
+        let tr_id_str: String = tr_id.into();
+        crate::wait(self.environment).await;
+        let result = self
+            .client
+            .get(url)
+            .header("Content-Type", "application/json")
+            .header(
+                "Authorization",
+                match self.auth.get_token() {
+                    Some(token) => format!("Bearer {}", token),
+                    None => {
+                        return Err(Error::AuthInitFailed("token"));
+                    }
+                },
+            )
+            .header("appkey", self.auth.get_appkey())
+            .header("appsecret", self.auth.get_appsecret())
+            .header("tr_id", tr_id_str)
+            .send()
+            .await?
+            .json::<response::stock::order::psbl_order::InquirePsblOrder>()
+            .await?;
+        crate::update_last_call();
+        Ok(result)
+    }
 }

@@ -137,6 +137,70 @@ pub mod Output {
     }
 }
 
+/// 매수가능조회 response types [v1_국내주식-007]
+pub mod psbl_order {
+    use getset::Getters;
+    use serde::{Deserialize, Serialize};
+
+    /// 매수가능조회 응답 Body
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Getters)]
+    pub struct InquirePsblOrder {
+        /// 0: 성공, 0 이외의 값: 실패
+        #[getset(get = "pub")]
+        rt_cd: String,
+        /// 응답코드
+        #[getset(get = "pub")]
+        msg_cd: String,
+        /// 응답메시지
+        #[getset(get = "pub")]
+        msg1: String,
+        /// 응답 상세 (단건)
+        #[getset(get = "pub")]
+        output: Option<PsblOrderOutput>,
+    }
+
+    /// output - 매수가능조회 상세
+    #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize, Getters)]
+    pub struct PsblOrderOutput {
+        /// 주문가능현금
+        #[getset(get = "pub")]
+        ord_psbl_cash: String,
+        /// 주문가능대용
+        #[getset(get = "pub")]
+        ord_psbl_sbst: String,
+        /// 재사용가능금액
+        #[getset(get = "pub")]
+        ruse_psbl_amt: String,
+        /// 펀드환매대금
+        #[getset(get = "pub")]
+        fund_rpch_chgs: String,
+        /// 가능수량계산단가
+        #[getset(get = "pub")]
+        psbl_qty_calc_unpr: String,
+        /// 미수없는매수금액
+        #[getset(get = "pub")]
+        nrcvb_buy_amt: String,
+        /// 미수없는매수수량
+        #[getset(get = "pub")]
+        nrcvb_buy_qty: String,
+        /// 최대매수금액
+        #[getset(get = "pub")]
+        max_buy_amt: String,
+        /// 최대매수수량
+        #[getset(get = "pub")]
+        max_buy_qty: String,
+        /// CMA평가금액
+        #[getset(get = "pub")]
+        cma_evlu_amt: String,
+        /// 해외재사용금액원화
+        #[getset(get = "pub")]
+        ovrs_re_use_amt_wcrc: String,
+        /// 주문가능외화금액원화
+        #[getset(get = "pub")]
+        ord_psbl_frcr_amt_wcrc: String,
+    }
+}
+
 /// 주식일별주문체결조회 response types [v1_국내주식-005]
 pub mod daily_ccld {
     use getset::Getters;

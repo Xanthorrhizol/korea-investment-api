@@ -441,6 +441,73 @@ pub mod Query {
         }
     }
 
+    /// 매수가능조회 Query Parameter [v1_국내주식-007]
+    #[derive(Debug, Clone, PartialEq, Getters, Setters, Serialize, Deserialize)]
+    pub struct InquirePsblOrder {
+        /// 종합계좌번호 (계좌번호 체계(8-2)의 앞 8자리)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "CANO")]
+        cano: String,
+        /// 계좌상품코드 (계좌번호 체계(8-2)의 뒤 2자리)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "ACNT_PRDT_CD")]
+        acnt_prdt_cd: String,
+        /// 상품번호 (종목번호 6자리)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "PDNO")]
+        pdno: String,
+        /// 주문단가 (1주당 가격; 시장가 조회 시 "0" 또는 공란)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "ORD_UNPR")]
+        ord_unpr: String,
+        /// 주문구분 (예: "00" 지정가, "01" 시장가)
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "ORD_DVSN")]
+        ord_dvsn: String,
+        /// CMA평가금액포함여부 ("Y"/"N")
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "CMA_EVLU_AMT_ICLD_YN")]
+        cma_evlu_amt_icld_yn: String,
+        /// 해외포함여부 ("Y"/"N")
+        #[getset(get = "pub", set = "pub")]
+        #[serde(rename = "OVRS_ICLD_YN")]
+        ovrs_icld_yn: String,
+    }
+
+    impl InquirePsblOrder {
+        pub fn new(
+            cano: String,
+            acnt_prdt_cd: String,
+            pdno: String,
+            ord_unpr: Option<String>,
+            ord_dvsn: Option<String>,
+            cma_evlu_amt_icld_yn: Option<String>,
+            ovrs_icld_yn: Option<String>,
+        ) -> Self {
+            Self {
+                cano,
+                acnt_prdt_cd,
+                pdno,
+                ord_unpr: ord_unpr.unwrap_or_default(),
+                ord_dvsn: ord_dvsn.unwrap_or_else(|| "00".to_string()),
+                cma_evlu_amt_icld_yn: cma_evlu_amt_icld_yn.unwrap_or_else(|| "N".to_string()),
+                ovrs_icld_yn: ovrs_icld_yn.unwrap_or_else(|| "N".to_string()),
+            }
+        }
+
+        pub fn into_iter(&self) -> [(&'static str, String); 7] {
+            [
+                ("CANO", self.cano.clone()),
+                ("ACNT_PRDT_CD", self.acnt_prdt_cd.clone()),
+                ("PDNO", self.pdno.clone()),
+                ("ORD_UNPR", self.ord_unpr.clone()),
+                ("ORD_DVSN", self.ord_dvsn.clone()),
+                ("CMA_EVLU_AMT_ICLD_YN", self.cma_evlu_amt_icld_yn.clone()),
+                ("OVRS_ICLD_YN", self.ovrs_icld_yn.clone()),
+            ]
+        }
+    }
+
     /// 주식일별주문체결조회 Query Parameter [v1_국내주식-005]
     #[derive(Debug, Clone, PartialEq, Getters, Setters, Serialize, Deserialize)]
     pub struct InquireDailyCcld {

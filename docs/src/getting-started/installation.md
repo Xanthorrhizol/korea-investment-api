@@ -2,7 +2,7 @@
 
 ## 요구사항
 
-- Rust 1.70 이상
+- Rust 1.85 이상 (Edition 2024)
 - Tokio async runtime
 
 ## Cargo.toml 추가
@@ -11,18 +11,18 @@
 
 ```toml
 [dependencies]
-korea_investment_api = "0.x"  # crates.io 최신 버전 확인
+korea-investment-api = "5.4"  # crates.io 최신 버전 확인
 tokio = { version = "1", features = ["full"] }
 ```
 
-> crates.io에 publish된 최신 버전은 [crates.io/crates/korea_investment_api](https://crates.io/crates/korea_investment_api)에서 확인하세요.
+> crates.io에 publish된 최신 버전은 [crates.io/crates/korea-investment-api](https://crates.io/crates/korea-investment-api)에서 확인하세요.
 
 ## 예제 바이너리 빌드
 
 이 저장소를 직접 클론해서 예제 바이너리를 빌드할 수 있습니다:
 
 ```bash
-git clone https://github.com/systeminit/korea-investment-api
+git clone https://github.com/Xanthorrhizol/korea-investment-api
 cd korea-investment-api
 
 # 예제 바이너리 빌드 (structopt feature 필요)

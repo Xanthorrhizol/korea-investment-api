@@ -1,5 +1,17 @@
 # 빠른 시작
 
+## 편의 임포트 (prelude)
+
+자주 쓰는 타입을 한 번에 가져오려면 `prelude`를 사용하세요.
+
+```rust
+use korea_investment_api::prelude::*;
+```
+
+`prelude`는 `KoreaInvestmentApi`, `Config`, `types::*`(주문/시세 관련 enum 등), 요청 모듈(`order` / `quote` / `subscribe`), 실시간 스트림 타입(`Exec` / `ExecBody` / `Ordb` / `OrdbBody`)을 재노출합니다.
+
+> `Error` 타입은 크레이트 루트에 있으므로 `prelude`에 포함되지 않습니다. 필요하면 `use korea_investment_api::Error;`로 따로 가져오세요.
+
 ## API 인스턴스 생성
 
 ```rust
@@ -72,16 +84,17 @@ let result = api.order.order_cash(
 ### 실시간 체결 구독
 
 ```rust
-use korea_investment_api::types::TrId;
+use korea_investment_api::prelude::*;  // Exec, ExecBody, TrId 포함
 
 // KRX 체결 스트림 구독
-let (rx, response) = api.k_data.subscribe_market::<Exec, ExecRow>(
+let (rx, response) = api.k_data.subscribe_market::<Exec, ExecBody>(
     "005930",
     TrId::RealtimeExecKrx,
 ).await?;
 
 if let Some(mut rx) = rx {
-    while let Some(exec) = rx.recv().await {
+    // recv()는 broadcast Receiver이므로 Result를 반환합니다
+    while let Ok(exec) = rx.recv().await {
         println!("체결: {:?}", exec);
     }
 }

@@ -2,7 +2,7 @@
 
 ## 요구사항
 
-- Rust 1.70 이상
+- Rust 1.85 이상 (Edition 2024)
 - Tokio async runtime
 
 ## Cargo.toml 추가

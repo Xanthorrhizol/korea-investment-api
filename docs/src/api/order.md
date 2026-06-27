@@ -172,3 +172,65 @@ pub async fn inquire_psbl_rvsecncl(
 ```
 
 > **주의:** 실전투자 전용 API입니다. 모의투자 환경에서도 실전투자 엔드포인트로 요청됩니다.
+
+---
+
+## inquire_psbl_order — 매수가능 조회 `[v1_국내주식-007]`
+
+특정 종목에 대한 매수가능 금액 및 수량을 조회합니다.
+
+```rust
+pub async fn inquire_psbl_order(
+    &self,
+    pdno: &str,
+    ord_unpr: Option<String>,
+    ord_dvsn: OrderClass,
+    cma_evlu_amt_icld_yn: bool,
+    ovrs_icld_yn: bool,
+) -> Result<response::stock::order::psbl_order::InquirePsblOrder, Error>
+```
+
+### 파라미터
+
+| 파라미터 | 타입 | 설명 |
+|---|---|---|
+| `pdno` | `&str` | 종목 코드 (6자리, 예: `"005930"`) |
+| `ord_unpr` | `Option<String>` | 주문 단가. 시장가 조회 시 `None`(공란) |
+| `ord_dvsn` | `OrderClass` | 주문 구분 (지정가, 시장가 등) |
+| `cma_evlu_amt_icld_yn` | `bool` | CMA 평가금액 포함 여부 (`true` → `"Y"`) |
+| `ovrs_icld_yn` | `bool` | 해외 포함 여부 (`true` → `"Y"`) |
+
+> **수량 조회 시:** 정확한 매수가능수량을 보려면 `ord_dvsn`을 `OrderClass::Market`(시장가)으로 지정하세요. 지정가(`OrderClass::Limit`)는 종목증거금율이 반영되지 않습니다.
+
+### 응답
+
+`output`(단건)에서 다음 값을 확인합니다.
+
+| 필드 | 설명 |
+|---|---|
+| `nrcvb_buy_amt` / `nrcvb_buy_qty` | 미수 없는 매수금액 / 수량 |
+| `max_buy_amt` / `max_buy_qty` | 최대 매수금액 / 수량 (미수 사용 시) |
+| `ord_psbl_cash` | 주문가능현금 |
+
+### 예시
+
+```rust
+use korea_investment_api::types::OrderClass;
+
+// 삼성전자 매수가능 조회 (시장가 기준)
+let psbl = api.order.inquire_psbl_order(
+    "005930",
+    None,                // 시장가 조회 → 단가 공란
+    OrderClass::Market,
+    false,               // CMA 평가금액 미포함
+    false,               // 해외 미포함
+).await?;
+
+if let Some(output) = psbl.output() {
+    println!("미수없는 매수가능수량: {}", output.nrcvb_buy_qty());
+}
+```
+
+### 지원 환경
+
+실전 · 모의 모두 지원합니다.

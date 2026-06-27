@@ -1,4 +1,5 @@
 mod auth;
+pub mod prelude;
 mod stock;
 pub mod types;
 pub(crate) mod util;

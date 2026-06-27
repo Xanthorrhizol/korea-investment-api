@@ -449,6 +449,11 @@ pub enum TrId {
     // InquirePsblRvsecncl (주식정정취소가능주문조회, 실전투자만 지원)
     #[serde(rename = "TTTC0084R")]
     RealInquirePsblRvsecncl,
+    // InquirePsblOrder (매수가능조회)
+    #[serde(rename = "TTTC8908R")]
+    RealInquirePsblOrder,
+    #[serde(rename = "VTTC8908R")]
+    VirtualInquirePsblOrder,
     // InquireDailyCcld (주식일별주문체결조회(3개월 이내))
     #[serde(rename = "TTTC0081R")]
     RealInquireDailyCcldRecent,
@@ -496,6 +501,9 @@ impl Into<String> for TrId {
             TrId::VirtualInquireBalance => "VTTC8434R",
             // InquirePsblRvsecncl (실전투자만 지원)
             TrId::RealInquirePsblRvsecncl => "TTTC0084R",
+            // InquirePsblOrder
+            TrId::RealInquirePsblOrder => "TTTC8908R",
+            TrId::VirtualInquirePsblOrder => "VTTC8908R",
             // InquireDailyCcld
             TrId::RealInquireDailyCcldRecent => "TTTC0081R",
             TrId::VirtualInquireDailyCcldRecent => "VTTC0081R",
@@ -543,6 +551,9 @@ impl std::str::FromStr for TrId {
             "VTTC8434R" => Ok(TrId::VirtualInquireBalance),
             // InquirePsblRvsecncl (실전투자만 지원)
             "TTTC0084R" => Ok(TrId::RealInquirePsblRvsecncl),
+            // InquirePsblOrder
+            "TTTC8908R" => Ok(TrId::RealInquirePsblOrder),
+            "VTTC8908R" => Ok(TrId::VirtualInquirePsblOrder),
             // InquireDailyCcld
             "TTTC0081R" => Ok(TrId::RealInquireDailyCcldRecent),
             "VTTC0081R" => Ok(TrId::VirtualInquireDailyCcldRecent),

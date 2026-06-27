@@ -1,15 +1,4 @@
-use korea_investment_api::types::config::Config;
-use korea_investment_api::types::request::stock::quote::{
-    GroupItemParameter, GroupListParameter, VolumeRankParameter,
-};
-use korea_investment_api::types::stream::stock::{exec::Body as ExecBody, Exec};
-use korea_investment_api::types::stream::stock::{ordb::Body as OrdbBody, Ordb};
-use korea_investment_api::types::{
-    Account, BelongClassCode, CorrectionClass, CreditType, Direction, Environment, MarketCode,
-    OrderClass, PeriodCode, Price, ProductTypeCode, Quantity, ShareClassCode, TargetClassCode,
-    TargetExchange, TargetExeceptClassCode, TrId,
-};
-use korea_investment_api::KoreaInvestmentApi;
+use korea_investment_api::prelude::*;
 use std::io::Read;
 use std::path::PathBuf;
 use structopt::StructOpt;
@@ -107,7 +96,7 @@ async fn main() {
     // {{{ 관심종목 그룹조회
     let groups = api
         .quote
-        .group_list(GroupListParameter::new(config.hts_id()))
+        .group_list(quote::GroupListParameter::new(config.hts_id()))
         .await
         .unwrap();
     info!("관심종목 그룹조회 Response: {:?}", groups);
@@ -116,7 +105,7 @@ async fn main() {
         for group in output {
             let group_items = api
                 .quote
-                .group_item(GroupItemParameter::new(
+                .group_item(quote::GroupItemParameter::new(
                     config.hts_id(),
                     group.inter_grp_code(),
                 ))
@@ -128,7 +117,7 @@ async fn main() {
         for group in output {
             let group_items = api
                 .quote
-                .group_item(GroupItemParameter::new(
+                .group_item(quote::GroupItemParameter::new(
                     config.hts_id(),
                     group.inter_grp_code(),
                 ))
@@ -175,7 +164,7 @@ async fn main() {
     // {{{ 거래량 순위 - 정규장만 가능한데, 모의투자 Credential로도 호출이 됨.
     let volume_rank = api
         .quote
-        .volume_rank(VolumeRankParameter::new(
+        .volume_rank(quote::VolumeRankParameter::new(
             String::from("005930"),
             ShareClassCode::Whole,
             BelongClassCode::IncreasedVolumeRate,

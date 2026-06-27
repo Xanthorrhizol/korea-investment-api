@@ -506,11 +506,11 @@ async fn main() {
     let psbl_order = api
         .order
         .inquire_psbl_order(
-            "005930",            // 삼성전자
-            None,                // 주문단가: 시장가 조회 시 공란
-            Some("01".into()),   // 주문구분: 01 시장가
-            Some("N".into()),    // CMA평가금액 포함여부
-            Some("N".into()),    // 해외 포함여부
+            "005930",           // 삼성전자
+            None,               // 주문단가: 시장가 조회 시 공란
+            OrderClass::Market, // 주문구분: 시장가
+            false,              // CMA평가금액 포함여부
+            false,              // 해외 포함여부
         )
         .await
         .unwrap();

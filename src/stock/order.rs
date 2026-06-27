@@ -455,9 +455,9 @@ impl Korea {
         &self,
         pdno: &str,
         ord_unpr: Option<String>,
-        ord_dvsn: Option<String>,
-        cma_evlu_amt_icld_yn: Option<String>,
-        ovrs_icld_yn: Option<String>,
+        ord_dvsn: OrderClass,
+        cma_evlu_amt_icld_yn: bool,
+        ovrs_icld_yn: bool,
     ) -> Result<response::stock::order::psbl_order::InquirePsblOrder, Error> {
         let tr_id = match self.environment {
             Environment::Real => TrId::RealInquirePsblOrder,

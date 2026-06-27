@@ -286,7 +286,7 @@ pub mod Body {
 
 #[allow(non_snake_case)]
 pub mod Query {
-    use crate::types::TargetExchange;
+    use crate::types::{OrderClass, TargetExchange};
     use getset::{Getters, Setters};
     use serde::{Deserialize, Serialize};
 
@@ -460,18 +460,18 @@ pub mod Query {
         #[getset(get = "pub", set = "pub")]
         #[serde(rename = "ORD_UNPR")]
         ord_unpr: String,
-        /// 주문구분 (예: "00" 지정가, "01" 시장가)
+        /// 주문구분
         #[getset(get = "pub", set = "pub")]
         #[serde(rename = "ORD_DVSN")]
-        ord_dvsn: String,
-        /// CMA평가금액포함여부 ("Y"/"N")
+        ord_dvsn: OrderClass,
+        /// CMA평가금액포함여부 ('Y'/'N')
         #[getset(get = "pub", set = "pub")]
         #[serde(rename = "CMA_EVLU_AMT_ICLD_YN")]
-        cma_evlu_amt_icld_yn: String,
-        /// 해외포함여부 ("Y"/"N")
+        cma_evlu_amt_icld_yn: char,
+        /// 해외포함여부 ('Y'/'N')
         #[getset(get = "pub", set = "pub")]
         #[serde(rename = "OVRS_ICLD_YN")]
-        ovrs_icld_yn: String,
+        ovrs_icld_yn: char,
     }
 
     impl InquirePsblOrder {
@@ -480,18 +480,18 @@ pub mod Query {
             acnt_prdt_cd: String,
             pdno: String,
             ord_unpr: Option<String>,
-            ord_dvsn: Option<String>,
-            cma_evlu_amt_icld_yn: Option<String>,
-            ovrs_icld_yn: Option<String>,
+            ord_dvsn: OrderClass,
+            cma_evlu_amt_icld_yn: bool,
+            ovrs_icld_yn: bool,
         ) -> Self {
             Self {
                 cano,
                 acnt_prdt_cd,
                 pdno,
                 ord_unpr: ord_unpr.unwrap_or_default(),
-                ord_dvsn: ord_dvsn.unwrap_or_else(|| "00".to_string()),
-                cma_evlu_amt_icld_yn: cma_evlu_amt_icld_yn.unwrap_or_else(|| "N".to_string()),
-                ovrs_icld_yn: ovrs_icld_yn.unwrap_or_else(|| "N".to_string()),
+                ord_dvsn,
+                cma_evlu_amt_icld_yn: if cma_evlu_amt_icld_yn { 'Y' } else { 'N' },
+                ovrs_icld_yn: if ovrs_icld_yn { 'Y' } else { 'N' },
             }
         }
 
@@ -501,9 +501,9 @@ pub mod Query {
                 ("ACNT_PRDT_CD", self.acnt_prdt_cd.clone()),
                 ("PDNO", self.pdno.clone()),
                 ("ORD_UNPR", self.ord_unpr.clone()),
-                ("ORD_DVSN", self.ord_dvsn.clone()),
-                ("CMA_EVLU_AMT_ICLD_YN", self.cma_evlu_amt_icld_yn.clone()),
-                ("OVRS_ICLD_YN", self.ovrs_icld_yn.clone()),
+                ("ORD_DVSN", self.ord_dvsn.clone().into()),
+                ("CMA_EVLU_AMT_ICLD_YN", self.cma_evlu_amt_icld_yn.to_string()),
+                ("OVRS_ICLD_YN", self.ovrs_icld_yn.to_string()),
             ]
         }
     }
